@@ -1,0 +1,119 @@
+/* ==============================================================================
+   GATHERLY Design System – Themes (Midnight Elegance & Soft Lavender)
+   ============================================================================== */
+
+/* Fallback & Dark Theme (Midnight Elegance) */
+:root,
+[data-theme="dark"] {
+  /* Surfaces */
+  --bg-primary: #080D1A;
+  --bg-secondary: #111A2E;
+  --bg-elevated: #1C2940;
+  --bg-hover: #22324F;
+  --bg-glass: rgba(17, 26, 46, 0.85);
+  --bg-overlay: rgba(8, 13, 26, 0.75);
+
+  /* Primary Brand Colors */
+  --primary: #8B5CF6;
+  --primary-hover: #7C3AED;
+  --primary-active: #6D28D9;
+  --primary-rgb: 139, 92, 246;
+
+  /* Accents */
+  --accent-cyan: #22D3EE;
+  --accent-cyan-hover: #06B6D4;
+  --accent-cyan-rgb: 34, 211, 238;
+
+  --highlight-pink: #F472B6;
+  --highlight-pink-hover: #EC4899;
+  --highlight-pink-rgb: 244, 114, 182;
+
+  /* Text & Content */
+  --text-primary: #F8FAFC;
+  --text-secondary: #A1AEC4;
+  --text-muted: #64748B;
+  --text-inverse: #080D1A;
+
+  /* Borders & Dividers */
+  --border-subtle: #26344B;
+  --border-strong: #334460;
+  --border-glow: rgba(139, 92, 246, 0.35);
+
+  /* Functional Status Colors */
+  --success: #10B981;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --error: #EF4444;
+  --error-bg: rgba(239, 68, 68, 0.15);
+  --info: #06B6D4;
+  --info-bg: rgba(6, 182, 212, 0.15);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.65), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 24px rgba(139, 92, 246, 0.3);
+
+  /* Scrollbar */
+  --scrollbar-thumb: #26344B;
+  --scrollbar-track: #080D1A;
+}
+
+/* Light Theme (Soft Lavender) */
+[data-theme="light"] {
+  /* Surfaces */
+  --bg-primary: #F7F7FC;
+  --bg-secondary: #FFFFFF;
+  --bg-elevated: #EEEAFE;
+  --bg-hover: #E4DFFE;
+  --bg-glass: rgba(255, 255, 255, 0.9);
+  --bg-overlay: rgba(23, 23, 43, 0.5);
+
+  /* Primary Brand Colors */
+  --primary: #7047EB;
+  --primary-hover: #5B32D6;
+  --primary-active: #4823B5;
+  --primary-rgb: 112, 71, 235;
+
+  /* Accents */
+  --accent-cyan: #0891B2;
+  --accent-cyan-hover: #0E7490;
+  --accent-cyan-rgb: 8, 145, 178;
+
+  --highlight-pink: #EC4899;
+  --highlight-pink-hover: #DB2777;
+  --highlight-pink-rgb: 236, 72, 153;
+
+  /* Text & Content */
+  --text-primary: #17172B;
+  --text-secondary: #66677D;
+  --text-muted: #9496A8;
+  --text-inverse: #FFFFFF;
+
+  /* Borders & Dividers */
+  --border-subtle: #E7E5F0;
+  --border-strong: #CDC9DF;
+  --border-glow: rgba(112, 71, 235, 0.25);
+
+  /* Functional Status Colors */
+  --success: #059669;
+  --success-bg: rgba(5, 150, 105, 0.12);
+  --warning: #D97706;
+  --warning-bg: rgba(217, 119, 6, 0.12);
+  --error: #DC2626;
+  --error-bg: rgba(220, 38, 38, 0.12);
+  --info: #0284C7;
+  --info-bg: rgba(2, 132, 199, 0.12);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(23, 23, 43, 0.05);
+  --shadow-md: 0 4px 16px -2px rgba(23, 23, 43, 0.08), 0 2px 6px -1px rgba(23, 23, 43, 0.04);
+  --shadow-lg: 0 12px 32px -4px rgba(23, 23, 43, 0.12), 0 4px 12px -2px rgba(23, 23, 43, 0.06);
+  --shadow-glow: 0 0 24px rgba(112, 71, 235, 0.2);
+
+  /* Scrollbar */
+  --scrollbar-thumb: #CDC9DF;
+  --scrollbar-track: #F7F7FC;
+}
+

@@ -1,0 +1,62 @@
+/* ==============================================================================
+   GATHERLY Design System – Responsive Media Queries
+   ============================================================================== */
+
+/* Mobile viewports (below 640px) */
+@media (max-width: 639px) {
+  .container,
+  .container-narrow {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+
+  h1 { font-size: var(--text-3xl); }
+  h2 { font-size: var(--text-2xl); }
+  h3 { font-size: var(--text-xl); }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+/* Tablet viewports (640px to 1023px) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .hide-on-tablet {
+    display: none !important;
+  }
+}
+
+/* Screens smaller than desktop (below 1024px) */
+@media (max-width: 1023px) {
+  .hide-below-desktop {
+    display: none !important;
+  }
+
+  .show-below-desktop {
+    display: block !important;
+  }
+}
+
+/* Desktop and wider (1024px and up) */
+@media (min-width: 1024px) {
+  .show-below-desktop {
+    display: none !important;
+  }
+
+  .hide-above-mobile {
+    display: none !important;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

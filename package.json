@@ -1,0 +1,25 @@
+{
+  "name": "gatherly-monorepo",
+  "version": "1.0.0",
+  "description": "GATHERLY - Responsive Campus Event Discovery and Management Platform",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "start:backend": "npm start --prefix backend"
+  },
+  "keywords": [
+    "campus-events",
+    "react",
+    "express",
+    "mongodb",
+    "vite",
+    "event-management"
+  ],
+  "author": "GATHERLY Development Team",
+  "license": "ISC"
+}
+
