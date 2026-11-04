@@ -48,7 +48,7 @@ export const PublicNavbar = () => {
               width: '38px',
               height: '38px',
               borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, var(--primary), var(--accent-cyan))',
+              background: 'linear-gradient(135deg, var(--primary), var(--accent-secondary))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

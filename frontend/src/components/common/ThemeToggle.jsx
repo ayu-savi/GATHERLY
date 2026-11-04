@@ -13,7 +13,7 @@ export const ThemeToggle = ({ size = 'md', className = '', style = {} }) => {
       onClick={toggleTheme}
       type="button"
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-      title={`Current: ${isDark ? 'Midnight Elegance' : 'Soft Lavender'} (Click to switch)`}
+      title={`Current: ${isDark ? 'Burgundy Galaxy' : 'Peach + Emerald'} (Click to switch)`}
       className={`gatherly-theme-toggle ${className}`}
       style={{
         width: `${buttonSize}px`,
@@ -21,7 +21,7 @@ export const ThemeToggle = ({ size = 'md', className = '', style = {} }) => {
         borderRadius: 'var(--radius-full)',
         background: 'var(--bg-elevated)',
         border: '1px solid var(--border-subtle)',
-        color: isDark ? 'var(--accent-cyan)' : 'var(--primary)',
+        color: isDark ? 'var(--highlight)' : 'var(--primary)',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',

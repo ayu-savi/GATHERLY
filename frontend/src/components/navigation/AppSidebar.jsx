@@ -85,7 +85,7 @@ export const AppSidebar = ({ isCollapsed, setIsCollapsed }) => {
               width: '34px',
               height: '34px',
               borderRadius: 'var(--radius-sm)',
-              background: 'linear-gradient(135deg, var(--primary), var(--accent-cyan))',
+              background: 'linear-gradient(135deg, var(--primary), var(--accent-secondary))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

@@ -16,24 +16,33 @@ export const Badge = ({
           color: 'var(--primary)',
           border: '1px solid rgba(var(--primary-rgb), 0.3)',
         };
+      case 'secondary':
       case 'cyan':
+      case 'turquoise':
         return {
-          background: 'rgba(var(--accent-cyan-rgb), 0.15)',
-          color: 'var(--accent-cyan)',
-          border: '1px solid rgba(var(--accent-cyan-rgb), 0.3)',
+          background: 'rgba(var(--accent-secondary-rgb), 0.18)',
+          color: 'var(--accent-secondary)',
+          border: '1px solid rgba(var(--accent-secondary-rgb), 0.35)',
         };
       case 'pink':
+      case 'highlight':
         return {
-          background: 'rgba(var(--highlight-pink-rgb), 0.15)',
-          color: 'var(--highlight-pink)',
-          border: '1px solid rgba(var(--highlight-pink-rgb), 0.3)',
+          background: 'rgba(var(--highlight-rgb), 0.18)',
+          color: 'var(--highlight)',
+          border: '1px solid rgba(var(--highlight-rgb), 0.35)',
+        };
+      case 'peach':
+        return {
+          background: 'var(--bg-elevated)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border-subtle)',
         };
       case 'featured':
         return {
-          background: 'linear-gradient(135deg, var(--primary), var(--highlight-pink))',
+          background: 'linear-gradient(135deg, var(--primary), var(--accent-secondary))',
           color: '#ffffff',
           border: 'none',
-          boxShadow: '0 2px 8px rgba(var(--primary-rgb), 0.3)',
+          boxShadow: '0 2px 10px rgba(var(--primary-rgb), 0.3)',
         };
       case 'success':
         return {

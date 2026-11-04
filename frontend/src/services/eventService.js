@@ -6,19 +6,39 @@ export const eventService = {
     return await api.get('/health');
   },
 
-  // Get all events with optional query parameters
+  // Get featured events for homepage
+  getFeaturedEvents: async (limit = 4) => {
+    const res = await api.get('/events/featured', { params: { limit } });
+    return res.data || [];
+  },
+
+  // Get upcoming events for homepage
+  getUpcomingEvents: async (limit = 6) => {
+    const res = await api.get('/events/upcoming', { params: { limit } });
+    return res.data || [];
+  },
+
+  // Get all event categories
+  getCategories: async () => {
+    const res = await api.get('/categories');
+    return res.data || [];
+  },
+
+  // Get homepage statistics
+  getHomepageStats: async () => {
+    const res = await api.get('/stats/overview');
+    return res.data || null;
+  },
+
+  // Get all events with query parameters (search, category, sort, page)
   getEvents: async (params = {}) => {
     return await api.get('/events', { params });
   },
 
-  // Get single event by id
+  // Get single event by id or slug
   getEventById: async (id) => {
-    return await api.get(`/events/${id}`);
-  },
-
-  // Get featured events
-  getFeaturedEvents: async () => {
-    return await api.get('/events/featured');
+    const res = await api.get(`/events/${id}`);
+    return res.data || null;
   },
 
   // Register for an event
@@ -28,9 +48,9 @@ export const eventService = {
 
   // Get my registrations
   getMyRegistrations: async () => {
-    return await api.get('/registrations/my');
+    const res = await api.get('/registrations/my');
+    return res.data || [];
   },
 };
 
 export default eventService;
-

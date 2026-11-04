@@ -171,7 +171,7 @@ export const AppTopbar = ({ onMobileToggle }) => {
                 width: '30px',
                 height: '30px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--primary), var(--accent-cyan))',
+                background: 'linear-gradient(135deg, var(--primary), var(--accent-secondary))',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

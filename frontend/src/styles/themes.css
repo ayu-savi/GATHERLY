@@ -1,119 +1,126 @@
 /* ==============================================================================
-   GATHERLY Design System – Themes (Midnight Elegance & Soft Lavender)
+   GATHERLY Design System – Themes
+   Dark Theme: Burgundy Galaxy
+   Light Theme: Peach + Emerald + Turquoise (STRICT: NO ORANGE)
    ============================================================================== */
 
-/* Fallback & Dark Theme (Midnight Elegance) */
+/* Fallback & Dark Theme (Burgundy Galaxy) */
 :root,
 [data-theme="dark"] {
   /* Surfaces */
-  --bg-primary: #080D1A;
-  --bg-secondary: #111A2E;
-  --bg-elevated: #1C2940;
-  --bg-hover: #22324F;
-  --bg-glass: rgba(17, 26, 46, 0.85);
-  --bg-overlay: rgba(8, 13, 26, 0.75);
+  --bg-primary: #190E18;           /* Main background: Burgundy Galaxy */
+  --bg-secondary: #301527;         /* Secondary surface */
+  --bg-elevated: #441D37;          /* Elevated surface */
+  --bg-hover: #582647;             /* Hover highlight */
+  --bg-glass: rgba(48, 21, 39, 0.88); /* Glassmorphic frosted overlays */
+  --bg-overlay: rgba(25, 14, 24, 0.8);
 
   /* Primary Brand Colors */
-  --primary: #8B5CF6;
-  --primary-hover: #7C3AED;
-  --primary-active: #6D28D9;
-  --primary-rgb: 139, 92, 246;
+  --primary: #BE4B8B;              /* Primary accent: #BE4B8B */
+  --primary-hover: #A83E78;
+  --primary-active: #8F3265;
+  --primary-rgb: 190, 75, 139;
 
-  /* Accents */
-  --accent-cyan: #22D3EE;
-  --accent-cyan-hover: #06B6D4;
-  --accent-cyan-rgb: 34, 211, 238;
+  /* Secondary & Highlight Accents */
+  --accent-secondary: #E879B9;     /* Secondary accent: #E879B9 */
+  --accent-secondary-rgb: 232, 121, 185;
+  --highlight: #F9A8D4;            /* Highlight: #F9A8D4 */
+  --highlight-rgb: 249, 168, 212;
 
-  --highlight-pink: #F472B6;
-  --highlight-pink-hover: #EC4899;
-  --highlight-pink-rgb: 244, 114, 182;
+  /* For backward compatibility with helper classes */
+  --accent-cyan: #E879B9;
+  --accent-cyan-rgb: 232, 121, 185;
+  --highlight-pink: #F9A8D4;
+  --highlight-pink-rgb: 249, 168, 212;
 
   /* Text & Content */
-  --text-primary: #F8FAFC;
-  --text-secondary: #A1AEC4;
-  --text-muted: #64748B;
-  --text-inverse: #080D1A;
+  --text-primary: #FFF1F8;         /* Crisp soft white */
+  --text-secondary: #E2BED4;       /* Muted berry lavender */
+  --text-muted: #A8839B;           /* Dim plum slate */
+  --text-inverse: #190E18;
 
   /* Borders & Dividers */
-  --border-subtle: #26344B;
-  --border-strong: #334460;
-  --border-glow: rgba(139, 92, 246, 0.35);
+  --border-subtle: #4D213E;
+  --border-strong: #692D55;
+  --border-glow: rgba(190, 75, 139, 0.4);
 
-  /* Functional Status Colors */
+  /* Functional Status Colors (STRICT: NO ORANGE) */
   --success: #10B981;
   --success-bg: rgba(16, 185, 129, 0.15);
-  --warning: #F59E0B;
-  --warning-bg: rgba(245, 158, 11, 0.15);
-  --error: #EF4444;
-  --error-bg: rgba(239, 68, 68, 0.15);
-  --info: #06B6D4;
-  --info-bg: rgba(6, 182, 212, 0.15);
+  --warning: #F472B6;              /* Rose pink warning - NO ORANGE */
+  --warning-bg: rgba(244, 114, 182, 0.15);
+  --error: #FB7185;
+  --error-bg: rgba(251, 113, 133, 0.15);
+  --info: #2DD4BF;                 /* Turquoise info */
+  --info-bg: rgba(45, 212, 191, 0.15);
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.65), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 24px rgba(139, 92, 246, 0.3);
+  --shadow-lg: 0 12px 30px -4px rgba(0, 0, 0, 0.7), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 24px rgba(190, 75, 139, 0.35);
 
   /* Scrollbar */
-  --scrollbar-thumb: #26344B;
-  --scrollbar-track: #080D1A;
+  --scrollbar-thumb: #4D213E;
+  --scrollbar-track: #190E18;
 }
 
-/* Light Theme (Soft Lavender) */
+/* Light Theme (Peach + Emerald + Turquoise - STRICT: NO ORANGE) */
 [data-theme="light"] {
   /* Surfaces */
-  --bg-primary: #F7F7FC;
-  --bg-secondary: #FFFFFF;
-  --bg-elevated: #EEEAFE;
-  --bg-hover: #E4DFFE;
-  --bg-glass: rgba(255, 255, 255, 0.9);
-  --bg-overlay: rgba(23, 23, 43, 0.5);
+  --bg-primary: #FFF8F5;           /* Main background: #FFF8F5 */
+  --bg-secondary: #FFFFFF;         /* Card surface: #FFFFFF */
+  --bg-elevated: #FFE8DD;          /* Soft peach surface: #FFE8DD */
+  --bg-hover: #FEDDCD;             /* Gentle peach hover */
+  --bg-glass: rgba(255, 255, 255, 0.92);
+  --bg-overlay: rgba(15, 41, 38, 0.45);
 
   /* Primary Brand Colors */
-  --primary: #7047EB;
-  --primary-hover: #5B32D6;
-  --primary-active: #4823B5;
-  --primary-rgb: 112, 71, 235;
+  --primary: #0F766E;              /* Primary emerald: #0F766E */
+  --primary-hover: #115E59;
+  --primary-active: #134E4A;
+  --primary-rgb: 15, 118, 110;
 
-  /* Accents */
-  --accent-cyan: #0891B2;
-  --accent-cyan-hover: #0E7490;
-  --accent-cyan-rgb: 8, 145, 178;
+  /* Secondary & Highlight Accents */
+  --accent-secondary: #2DD4BF;     /* Turquoise accent: #2DD4BF */
+  --accent-secondary-rgb: 45, 212, 191;
+  --highlight: #99F6E4;            /* Pale mint highlight: #99F6E4 */
+  --highlight-rgb: 153, 246, 228;
 
-  --highlight-pink: #EC4899;
-  --highlight-pink-hover: #DB2777;
-  --highlight-pink-rgb: 236, 72, 153;
+  /* For backward compatibility with helper classes */
+  --accent-cyan: #2DD4BF;
+  --accent-cyan-rgb: 45, 212, 191;
+  --highlight-pink: #0F766E;
+  --highlight-pink-rgb: 15, 118, 110;
 
   /* Text & Content */
-  --text-primary: #17172B;
-  --text-secondary: #66677D;
-  --text-muted: #9496A8;
+  --text-primary: #113330;         /* Deep emerald charcoal */
+  --text-secondary: #365B56;       /* Medium forest slate */
+  --text-muted: #668A84;           /* Soft sage slate */
   --text-inverse: #FFFFFF;
 
   /* Borders & Dividers */
-  --border-subtle: #E7E5F0;
-  --border-strong: #CDC9DF;
-  --border-glow: rgba(112, 71, 235, 0.25);
+  --border-subtle: #F0D5C7;        /* Soft peach border */
+  --border-strong: #D5BDB0;        /* Slightly firmer peach border */
+  --border-glow: rgba(15, 118, 110, 0.25);
 
-  /* Functional Status Colors */
-  --success: #059669;
-  --success-bg: rgba(5, 150, 105, 0.12);
-  --warning: #D97706;
-  --warning-bg: rgba(217, 119, 6, 0.12);
-  --error: #DC2626;
-  --error-bg: rgba(220, 38, 38, 0.12);
-  --info: #0284C7;
+  /* Functional Status Colors (STRICT: NO ORANGE) */
+  --success: #0F766E;              /* Emerald */
+  --success-bg: rgba(15, 118, 110, 0.12);
+  --warning: #0D9488;              /* Deep Teal - NO ORANGE */
+  --warning-bg: rgba(13, 148, 136, 0.12);
+  --error: #E11D48;                /* Rose red */
+  --error-bg: rgba(225, 29, 72, 0.12);
+  --info: #0284C7;                 /* Sky cyan */
   --info-bg: rgba(2, 132, 199, 0.12);
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(23, 23, 43, 0.05);
-  --shadow-md: 0 4px 16px -2px rgba(23, 23, 43, 0.08), 0 2px 6px -1px rgba(23, 23, 43, 0.04);
-  --shadow-lg: 0 12px 32px -4px rgba(23, 23, 43, 0.12), 0 4px 12px -2px rgba(23, 23, 43, 0.06);
-  --shadow-glow: 0 0 24px rgba(112, 71, 235, 0.2);
+  --shadow-sm: 0 1px 3px rgba(15, 41, 38, 0.05);
+  --shadow-md: 0 4px 16px -2px rgba(15, 41, 38, 0.07), 0 2px 6px -1px rgba(15, 41, 38, 0.03);
+  --shadow-lg: 0 12px 32px -4px rgba(15, 41, 38, 0.1), 0 4px 12px -2px rgba(15, 41, 38, 0.05);
+  --shadow-glow: 0 0 24px rgba(45, 212, 191, 0.25);
 
   /* Scrollbar */
-  --scrollbar-thumb: #CDC9DF;
-  --scrollbar-track: #F7F7FC;
+  --scrollbar-thumb: #D5BDB0;
+  --scrollbar-track: #FFF8F5;
 }
-

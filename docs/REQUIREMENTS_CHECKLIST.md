@@ -76,5 +76,5 @@ Every requirement explicitly listed in the examiner's problem statement is track
 | **Campus Event Photo Gallery** | Module H | **Phase 8** | `frontend/src/pages/app/GalleryPage.jsx` | Categorized visual memories with accessible lightbox preview. |
 | **Digital Event Ticket Voucher** | Module F | **Phase 7, 8** | `frontend/src/components/dashboard/RegistrationTicket.jsx` | Formatted event pass with QR code simulation and printable format. |
 | **Organizer Event Submission** | Module J | **Phase 8** | `frontend/src/components/forms/CreateEventModal.jsx` + API | Enables student society leaders to draft new campus events. |
-| **Dual Theme System with Zero-Flicker** | System | **Phase 1, 9** | `frontend/src/context/ThemeContext.jsx` | Midnight Elegance & Soft Lavender themes with LocalStorage persistence. |
+| **Dual Theme System with Zero-Flicker** | System | **Phase 1, 2, 9** | `frontend/src/context/ThemeContext.jsx` | Burgundy Galaxy & Peach+Emerald+Turquoise (Strictly NO Orange) with LocalStorage persistence. |
 | **Demo Login Quick-Fill Helpers** | Module E | **Phase 6** | `frontend/src/pages/auth/LoginPage.jsx` | 1-click credentials filling for examiners to evaluate without typing. |

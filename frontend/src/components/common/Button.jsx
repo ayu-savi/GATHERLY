@@ -36,11 +36,13 @@ export const Button = ({
           border: '1px solid transparent',
         };
       case 'cyan':
+      case 'turquoise':
+      case 'accent':
         return {
-          background: 'var(--accent-cyan)',
-          color: '#080D1A',
+          background: 'var(--accent-secondary)',
+          color: 'var(--text-inverse)',
           border: 'none',
-          boxShadow: '0 2px 10px rgba(var(--accent-cyan-rgb), 0.3)',
+          boxShadow: '0 2px 10px rgba(var(--accent-secondary-rgb), 0.3)',
         };
       case 'danger':
         return {

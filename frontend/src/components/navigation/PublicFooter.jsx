@@ -30,7 +30,7 @@ export const PublicFooter = () => {
                   width: '32px',
                   height: '32px',
                   borderRadius: 'var(--radius-sm)',
-                  background: 'linear-gradient(135deg, var(--primary), var(--accent-cyan))',
+                  background: 'linear-gradient(135deg, var(--primary), var(--accent-secondary))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
