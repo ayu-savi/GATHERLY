@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { Badge } from '../../components/common/Badge';
 import { useAuth } from '../../hooks/useAuth';
 import { UserPlus, Sparkles } from 'lucide-react';
 
@@ -27,14 +26,19 @@ export const SignupPage = () => {
   };
 
   return (
-    <div style={{ padding: 'var(--space-12) 0', flex: 1, display: 'flex', alignItems: 'center' }}>
+    <div style={{ padding: 'var(--space-16) 0', flex: 1, display: 'flex', alignItems: 'center' }}>
       <div className="container" style={{ maxWidth: '480px' }}>
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
-          <Badge variant="cyan" icon={Sparkles} style={{ marginBottom: 'var(--space-3)' }}>
-            Join GATHERLY
-          </Badge>
-          <h2>Create Your Account</h2>
-          <p>Connect with campus events and activities</p>
+          <div className="editorial-eyebrow" style={{ justifyContent: 'center' }}>
+            <Sparkles size={13} />
+            <span>Campus Onboarding</span>
+          </div>
+          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: '900', letterSpacing: '-0.02em', marginBottom: '6px' }}>
+            Create Student Account
+          </h2>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+            Join the university event network in seconds
+          </p>
         </div>
 
         <Card glass style={{ padding: 'var(--space-8)' }}>
@@ -56,31 +60,38 @@ export const SignupPage = () => {
               required
             />
             <Input
-              label="Phone Number"
+              label="10-Digit Mobile Number"
               type="tel"
-              placeholder="10-digit mobile number"
+              placeholder="9876543210"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               required
             />
             <Input
+              label="Academic Department"
+              type="text"
+              placeholder="e.g. Computer Science & Engineering"
+              value={formData.department}
+              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+            />
+            <Input
               label="Password"
               type="password"
-              placeholder="Create a secure password"
+              placeholder="Create a password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
             />
 
-            <Button fullWidth variant="primary" type="submit" loading={loading} icon={UserPlus}>
-              Create Account
+            <Button fullWidth variant="primary" size="md" type="submit" loading={loading} icon={UserPlus}>
+              Register Student Account
             </Button>
           </form>
 
-          <div style={{ textAlign: 'center', marginTop: 'var(--space-6)', fontSize: 'var(--text-sm)' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>Already have an account? </span>
+          <div style={{ textAlign: 'center', marginTop: 'var(--space-6)', fontSize: 'var(--text-xs)' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Already registered? </span>
             <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>
-              Log In
+              Sign In
             </Link>
           </div>
         </Card>
@@ -90,4 +101,3 @@ export const SignupPage = () => {
 };
 
 export default SignupPage;
-

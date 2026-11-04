@@ -6,14 +6,14 @@ export const ThemeToggle = ({ size = 'md', className = '', style = {} }) => {
   const { theme, toggleTheme, isDark } = useTheme();
 
   const buttonSize = size === 'sm' ? 32 : size === 'lg' ? 44 : 38;
-  const iconSize = size === 'sm' ? 16 : size === 'lg' ? 22 : 18;
+  const iconSize = size === 'sm' ? 15 : size === 'lg' ? 20 : 17;
 
   return (
     <button
       onClick={toggleTheme}
       type="button"
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-      title={`Current: ${isDark ? 'Burgundy Galaxy' : 'Peach + Emerald'} (Click to switch)`}
+      title={`Current: ${isDark ? 'Graphite + Coral Pink' : 'Peach + Emerald + Turquoise'} (Click to switch)`}
       className={`gatherly-theme-toggle ${className}`}
       style={{
         width: `${buttonSize}px`,
@@ -21,7 +21,7 @@ export const ThemeToggle = ({ size = 'md', className = '', style = {} }) => {
         borderRadius: 'var(--radius-full)',
         background: 'var(--bg-elevated)',
         border: '1px solid var(--border-subtle)',
-        color: isDark ? 'var(--highlight)' : 'var(--primary)',
+        color: isDark ? 'var(--accent-secondary)' : 'var(--primary)',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -45,4 +45,3 @@ export const ThemeToggle = ({ size = 'md', className = '', style = {} }) => {
 };
 
 export default ThemeToggle;
-

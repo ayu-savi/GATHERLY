@@ -5,3 +5,4 @@ const { getHomepageStats } = require('../controllers/statsController');
 router.get('/overview', getHomepageStats);
 
 module.exports = router;
+

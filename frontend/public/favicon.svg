@@ -1,13 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
-  <defs>
-    <linearGradient id="gatherly_grad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#BE4B8B"/>
-      <stop offset="50%" stop-color="#E879B9"/>
-      <stop offset="100%" stop-color="#2DD4BF"/>
-    </linearGradient>
-  </defs>
-  <rect width="48" height="48" rx="14" fill="#190E18"/>
-  <path d="M14 34C14 22.9543 22.9543 14 34 14" stroke="url(#gatherly_grad)" stroke-width="4.5" stroke-linecap="round"/>
-  <path d="M14 34C25.0457 34 34 25.0457 34 14" stroke="url(#gatherly_grad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="1 7"/>
-  <circle cx="24" cy="24" r="5" fill="#2DD4BF"/>
+  <rect width="48" height="48" rx="12" fill="#171719"/>
+  <circle cx="24" cy="24" r="14" stroke="#D95770" stroke-width="4" stroke-dasharray="64" stroke-dashoffset="18"/>
+  <circle cx="24" cy="24" r="5" fill="#FF91A5"/>
 </svg>

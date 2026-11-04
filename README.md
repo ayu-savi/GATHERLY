@@ -15,7 +15,7 @@
 - View detailed event profiles with live countdown timers and agendas.
 - Register for events with instant JavaScript client validation and MongoDB backend persistence.
 - Manage personal registrations, bookmarked events, and digital ticket passes from a personalized student dashboard.
-- Experience an independent dual-theme design system (**Midnight Elegance** & **Soft Lavender**).
+- Experience an independent dual-theme design system (**Graphite + Coral Pink** in Dark mode & **Peach + Emerald + Turquoise** in Light mode; strictly zero orange).
 
 ---
 
@@ -99,9 +99,10 @@ npm run dev:frontend
 ## 5. Development Phases
 
 - **Phase 0:** Master Project Blueprint, Architecture & Roadmap *(Complete)*
-- **Phase 1:** Full-Stack Foundation, Project Architecture & Core Design System *(Current)*
-- **Phase 2:** Public Landing Page (Hero, Featured Events, Stats, Highlights)
-- **Phase 3:** Application Layout (Collapsible Sidebar, Topbar, Mobile Drawer)
+- **Phase 1:** Full-Stack Foundation, Project Architecture & Core Design System *(Complete)*
+- **Phase 2:** Public Landing Page (Hero, Featured Events, Stats, Highlights) *(Complete)*
+- **Milestone:** Complete Visual Identity & UI/UX Redesign *(Complete & Verified)*
+- **Phase 3:** Application Layout (Collapsible Sidebar, Topbar, Mobile Drawer) *(Next)*
 - **Phase 4:** Event Discovery & Exploration (Search, 8 Categories, Sorting)
 - **Phase 5:** Dedicated Event Profile & Live Countdown Timers
 - **Phase 6:** Full-Stack Authentication & Protected Route Guards

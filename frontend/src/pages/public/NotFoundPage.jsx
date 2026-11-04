@@ -1,25 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { HelpCircle, Home, Compass } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
-import { HelpCircle, Home, Compass } from 'lucide-react';
 
 export const NotFoundPage = () => {
   return (
-    <div style={{ padding: 'var(--space-16) 0', flex: 1, display: 'flex', alignItems: 'center' }}>
-      <div className="container" style={{ maxWidth: '500px', textAlign: 'center' }}>
+    <div style={{ padding: 'var(--space-20) 0', flex: 1, display: 'flex', alignItems: 'center' }}>
+      <div className="container" style={{ maxWidth: '480px', textAlign: 'center' }}>
         <Card glass style={{ padding: 'var(--space-10) var(--space-6)' }}>
           <Badge variant="error" icon={HelpCircle} style={{ marginBottom: 'var(--space-4)' }}>
             404 Error
           </Badge>
-          <h1 style={{ fontSize: 'var(--text-4xl)', marginBottom: 'var(--space-2)' }}>Page Not Found</h1>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-8)' }}>
-            The campus destination you're looking for doesn't exist or has moved.
+          <h1 style={{ fontSize: 'var(--text-4xl)', fontWeight: '900', marginBottom: 'var(--space-2)' }}>
+            Page Not Found
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-8)' }}>
+            The campus destination or event page you're searching for has moved or does not exist.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
             <Link to="/">
-              <Button variant="primary" icon={Home}>Back to Home</Button>
+              <Button variant="primary" icon={Home}>Campus Home</Button>
             </Link>
             <Link to="/events">
               <Button variant="secondary" icon={Compass}>Explore Events</Button>
@@ -32,4 +34,3 @@ export const NotFoundPage = () => {
 };
 
 export default NotFoundPage;
-

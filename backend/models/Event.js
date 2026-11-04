@@ -91,3 +91,4 @@ eventSchema.virtual('isFull').get(function () {
 });
 
 module.exports = mongoose.model('Event', eventSchema);
+

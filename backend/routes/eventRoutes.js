@@ -13,3 +13,4 @@ router.get('/', getAllEvents);
 router.get('/:id', getEventById);
 
 module.exports = router;
+

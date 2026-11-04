@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Heart } from 'lucide-react';
+import { Sparkles, ArrowUpRight, Compass, ShieldCheck } from 'lucide-react';
 
 export const PublicFooter = () => {
   return (
@@ -8,97 +8,153 @@ export const PublicFooter = () => {
       style={{
         background: 'var(--bg-secondary)',
         borderTop: '1px solid var(--border-subtle)',
-        paddingTop: 'var(--space-12)',
-        paddingBottom: 'var(--space-8)',
+        paddingTop: 'var(--space-16)',
+        paddingBottom: 'var(--space-10)',
         marginTop: 'auto',
       }}
     >
       <div className="container">
+        {/* Main Editorial Grid */}
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 'var(--space-8)',
-            marginBottom: 'var(--space-10)',
+            gap: 'var(--space-10)',
+            marginBottom: 'var(--space-12)',
           }}
         >
           {/* Brand Column */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--space-3)' }}>
+          <div style={{ maxWidth: '300px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--space-4)' }}>
               <div
                 style={{
                   width: '32px',
                   height: '32px',
                   borderRadius: 'var(--radius-sm)',
-                  background: 'linear-gradient(135deg, var(--primary), var(--accent-secondary))',
+                  background: 'var(--bg-elevated)',
+                  border: '1.5px solid var(--primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#ffffff',
+                  color: 'var(--primary)',
+                  fontWeight: '900',
+                  fontSize: '1rem',
                 }}
               >
-                <Sparkles size={16} />
+                G
               </div>
               <span
                 style={{
                   fontFamily: 'var(--font-heading)',
-                  fontSize: 'var(--text-lg)',
-                  fontWeight: 'var(--weight-extrabold)',
+                  fontSize: '1.25rem',
+                  fontWeight: '800',
+                  letterSpacing: '-0.02em',
                   color: 'var(--text-primary)',
                 }}
               >
-                GATHER<span className="text-gradient">LY</span>
+                GATHERLY
               </span>
             </div>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Discover. Connect. Celebrate. The responsive campus event discovery and management platform.
+
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 'var(--space-4)' }}>
+              Discover. Connect. Celebrate. The unified campus event discovery and registration platform engineered for university ecosystems.
             </p>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }} />
+              <span>Campus Services Operational</span>
+            </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Directory Column */}
           <div>
-            <h4 style={{ fontSize: 'var(--text-sm)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-4)', color: 'var(--text-primary)' }}>
-              Explore
+            <h4
+              style={{
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+                marginBottom: 'var(--space-4)',
+                color: 'var(--primary)',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              Event Directory
             </h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               <li>
                 <Link to="/events" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>All Events</Link>
               </li>
               <li>
-                <Link to="/categories" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Event Categories</Link>
+                <Link to="/categories" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Browse Categories</Link>
               </li>
               <li>
-                <Link to="/about" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>About GATHERLY</Link>
+                <Link to="/events?sort=popularity" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Popular Fests</Link>
+              </li>
+              <li>
+                <Link to="/events?sort=date" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Upcoming Timeline</Link>
               </li>
             </ul>
           </div>
 
-          {/* Student Hub */}
+          {/* Student Hub Column */}
           <div>
-            <h4 style={{ fontSize: 'var(--text-sm)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-4)', color: 'var(--text-primary)' }}>
-              Student Hub
+            <h4
+              style={{
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+                marginBottom: 'var(--space-4)',
+                color: 'var(--primary)',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              Student Portal
             </h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               <li>
-                <Link to="/login" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Student Login</Link>
+                <Link to="/login" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Student Sign In</Link>
               </li>
               <li>
-                <Link to="/signup" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Sign Up</Link>
+                <Link to="/signup" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Create Account</Link>
               </li>
               <li>
-                <Link to="/app/overview" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>My Dashboard</Link>
+                <Link to="/app/overview" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>My Passes & Schedule</Link>
+              </li>
+              <li>
+                <Link to="/about" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Campus Society Guidelines</Link>
               </li>
             </ul>
           </div>
 
-          {/* Academic Info */}
+          {/* Academic Statement */}
           <div>
-            <h4 style={{ fontSize: 'var(--text-sm)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-4)', color: 'var(--text-primary)' }}>
-              Semester Project
+            <h4
+              style={{
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+                marginBottom: 'var(--space-4)',
+                color: 'var(--primary)',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              Academic Submission
             </h4>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              Designed & developed as a university semester submission project adhering strictly to the examiner's problem statement.
-            </p>
+            <div
+              style={{
+                padding: 'var(--space-4)',
+                borderRadius: 'var(--radius-lg)',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                Semester Project
+              </div>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+                Strictly developed according to university examiner requirements with independent editorial design and full-stack architecture.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -114,12 +170,11 @@ export const PublicFooter = () => {
             gap: 'var(--space-4)',
             fontSize: 'var(--text-xs)',
             color: 'var(--text-muted)',
+            fontFamily: 'var(--font-mono)',
           }}
         >
-          <span>&copy; {new Date().getFullYear()} GATHERLY. All rights reserved.</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            Built with <Heart size={13} color="var(--highlight-pink)" fill="var(--highlight-pink)" /> for Campus Life
-          </span>
+          <span>&copy; {new Date().getFullYear()} GATHERLY &bull; All campus rights reserved.</span>
+          <span>Engineered with React + Vite + Express + MongoDB</span>
         </div>
       </div>
     </footer>
@@ -127,4 +182,3 @@ export const PublicFooter = () => {
 };
 
 export default PublicFooter;
-

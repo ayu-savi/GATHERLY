@@ -15,12 +15,12 @@ export const Card = ({
       case 'none':
         return 0;
       case 'sm':
-        return 'var(--space-3)';
+        return 'var(--space-4)';
       case 'lg':
         return 'var(--space-8)';
       case 'md':
       default:
-        return 'var(--space-5)';
+        return 'var(--space-6)';
     }
   };
 
@@ -30,22 +30,30 @@ export const Card = ({
       className={`gatherly-card ${className}`}
       style={{
         background: glass ? 'var(--bg-glass)' : 'var(--bg-secondary)',
-        backdropFilter: glass ? 'blur(12px)' : 'none',
-        WebkitBackdropFilter: glass ? 'blur(12px)' : 'none',
+        backdropFilter: glass ? 'blur(14px)' : 'none',
+        WebkitBackdropFilter: glass ? 'blur(14px)' : 'none',
         border: '1px solid var(--border-subtle)',
-        borderRadius: 'var(--radius-lg)',
+        borderRadius: 'var(--radius-xl)',
         padding: getPadding(),
         boxShadow: 'var(--shadow-sm)',
         transition: 'all var(--transition-base)',
         cursor: onClick ? 'pointer' : 'default',
-        ...(hoverable && {
-          ':hover': {
-            borderColor: 'var(--border-strong)',
-            transform: 'translateY(-3px)',
-            boxShadow: 'var(--shadow-md)',
-          },
-        }),
+        position: 'relative',
         ...style,
+      }}
+      onMouseEnter={(e) => {
+        if (hoverable) {
+          e.currentTarget.style.borderColor = 'var(--primary)';
+          e.currentTarget.style.transform = 'translateY(-3px)';
+          e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (hoverable) {
+          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+        }
       }}
       {...props}
     >
@@ -55,4 +63,3 @@ export const Card = ({
 };
 
 export default Card;
-

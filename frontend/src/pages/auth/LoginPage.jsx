@@ -5,7 +5,7 @@ import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Badge } from '../../components/common/Badge';
 import { useAuth } from '../../hooks/useAuth';
-import { LogIn, Sparkles, UserCheck } from 'lucide-react';
+import { LogIn, Sparkles, UserCheck, Shield } from 'lucide-react';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('aarav.sharma@campus.edu');
@@ -25,14 +25,19 @@ export const LoginPage = () => {
   };
 
   return (
-    <div style={{ padding: 'var(--space-12) 0', flex: 1, display: 'flex', alignItems: 'center' }}>
+    <div style={{ padding: 'var(--space-16) 0', flex: 1, display: 'flex', alignItems: 'center' }}>
       <div className="container" style={{ maxWidth: '440px' }}>
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
-          <Badge variant="primary" icon={Sparkles} style={{ marginBottom: 'var(--space-3)' }}>
-            Student Portal
-          </Badge>
-          <h2>Welcome Back</h2>
-          <p>Sign in to your GATHERLY student dashboard</p>
+          <div className="editorial-eyebrow" style={{ justifyContent: 'center' }}>
+            <Shield size={13} />
+            <span>Student Authentication</span>
+          </div>
+          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: '900', letterSpacing: '-0.02em', marginBottom: '6px' }}>
+            Sign In to GATHERLY
+          </h2>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+            Access your campus passes, bookmarks & registrations
+          </p>
         </div>
 
         <Card glass style={{ padding: 'var(--space-8)' }}>
@@ -52,7 +57,7 @@ export const LoginPage = () => {
               required
             />
 
-            <Button fullWidth variant="primary" type="submit" loading={loading} icon={LogIn}>
+            <Button fullWidth variant="primary" size="md" type="submit" loading={loading} icon={LogIn}>
               Sign In to Dashboard
             </Button>
           </form>
@@ -62,7 +67,7 @@ export const LoginPage = () => {
             style={{
               marginTop: 'var(--space-6)',
               padding: 'var(--space-4)',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-lg)',
               background: 'var(--bg-elevated)',
               border: '1px solid var(--border-subtle)',
               fontSize: 'var(--text-xs)',
@@ -70,17 +75,17 @@ export const LoginPage = () => {
             }}
           >
             <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              <UserCheck size={14} color="var(--accent-cyan)" /> Demo Credentials Ready
+              <UserCheck size={14} color="var(--primary)" /> Demo Credentials Loaded
             </div>
-            <p style={{ fontSize: '0.75rem', margin: 0, color: 'var(--text-muted)' }}>
-              Clicking "Sign In" will authenticate you with pre-filled demo student credentials.
+            <p style={{ fontSize: '0.72rem', margin: 0, color: 'var(--text-muted)' }}>
+              Click "Sign In" to immediately authenticate with verified demo student credentials.
             </p>
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: 'var(--space-6)', fontSize: 'var(--text-sm)' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>Don't have an account? </span>
+          <div style={{ textAlign: 'center', marginTop: 'var(--space-6)', fontSize: 'var(--text-xs)' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>Need an account? </span>
             <Link to="/signup" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>
-              Sign Up
+              Create Account
             </Link>
           </div>
         </Card>
@@ -90,4 +95,3 @@ export const LoginPage = () => {
 };
 
 export default LoginPage;
-

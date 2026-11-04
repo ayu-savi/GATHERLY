@@ -5,6 +5,7 @@ export const Badge = ({
   variant = 'default',
   size = 'md',
   icon: Icon,
+  mono = false,
   className = '',
   style = {},
 }) => {
@@ -14,35 +15,30 @@ export const Badge = ({
         return {
           background: 'rgba(var(--primary-rgb), 0.15)',
           color: 'var(--primary)',
-          border: '1px solid rgba(var(--primary-rgb), 0.3)',
+          border: '1px solid rgba(var(--primary-rgb), 0.35)',
         };
       case 'secondary':
+      case 'accent':
       case 'cyan':
       case 'turquoise':
         return {
-          background: 'rgba(var(--accent-secondary-rgb), 0.18)',
+          background: 'rgba(var(--accent-secondary-rgb), 0.16)',
           color: 'var(--accent-secondary)',
           border: '1px solid rgba(var(--accent-secondary-rgb), 0.35)',
         };
-      case 'pink':
       case 'highlight':
+      case 'pink':
         return {
           background: 'rgba(var(--highlight-rgb), 0.18)',
           color: 'var(--highlight)',
           border: '1px solid rgba(var(--highlight-rgb), 0.35)',
         };
-      case 'peach':
-        return {
-          background: 'var(--bg-elevated)',
-          color: 'var(--text-primary)',
-          border: '1px solid var(--border-subtle)',
-        };
       case 'featured':
         return {
           background: 'linear-gradient(135deg, var(--primary), var(--accent-secondary))',
-          color: '#ffffff',
+          color: 'var(--text-inverse)',
           border: 'none',
-          boxShadow: '0 2px 10px rgba(var(--primary-rgb), 0.3)',
+          boxShadow: '0 2px 8px rgba(var(--primary-rgb), 0.3)',
         };
       case 'success':
         return {
@@ -62,6 +58,12 @@ export const Badge = ({
           color: 'var(--error)',
           border: '1px solid var(--error)',
         };
+      case 'peach':
+        return {
+          background: 'var(--bg-elevated)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border-subtle)',
+        };
       case 'default':
       default:
         return {
@@ -77,20 +79,20 @@ export const Badge = ({
       case 'sm':
         return {
           padding: '2px 8px',
-          fontSize: '0.7rem',
+          fontSize: '0.68rem',
           borderRadius: 'var(--radius-sm)',
         };
       case 'lg':
         return {
-          padding: '6px 14px',
-          fontSize: 'var(--text-sm)',
+          padding: '5px 12px',
+          fontSize: 'var(--text-xs)',
           borderRadius: 'var(--radius-md)',
         };
       case 'md':
       default:
         return {
-          padding: '4px 10px',
-          fontSize: 'var(--text-xs)',
+          padding: '3px 10px',
+          fontSize: '0.72rem',
           borderRadius: 'var(--radius-sm)',
         };
     }
@@ -103,19 +105,20 @@ export const Badge = ({
         display: 'inline-flex',
         alignItems: 'center',
         gap: '5px',
-        fontWeight: 'var(--weight-semibold)',
-        letterSpacing: '0.02em',
-        lineHeight: 1,
+        fontWeight: 'var(--weight-bold)',
+        letterSpacing: mono ? '0.04em' : '0.02em',
+        fontFamily: mono ? 'var(--font-mono)' : 'var(--font-heading)',
+        lineHeight: 1.2,
+        textTransform: 'uppercase',
         ...getVariantStyles(),
         ...getSizeStyles(),
         ...style,
       }}
     >
-      {Icon && <Icon size={size === 'sm' ? 11 : size === 'lg' ? 15 : 13} />}
+      {Icon && <Icon size={size === 'sm' ? 11 : size === 'lg' ? 14 : 12} />}
       <span>{children}</span>
     </span>
   );
 };
 
 export default Badge;
-

@@ -52,3 +52,4 @@ const getCategories = async (req, res, next) => {
 module.exports = {
   getCategories,
 };
+

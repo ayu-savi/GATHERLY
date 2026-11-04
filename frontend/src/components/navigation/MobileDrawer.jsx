@@ -2,7 +2,6 @@ import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import {
   X,
-  Sparkles,
   LayoutDashboard,
   Compass,
   Calendar,
@@ -12,6 +11,7 @@ import {
   User,
   Settings,
   LogOut,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -22,15 +22,15 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
 
   const navSections = [
     {
-      title: 'MAIN',
+      title: 'DISCOVERY',
       items: [
-        { name: 'Overview', path: '/app/overview', icon: LayoutDashboard },
-        { name: 'Discover Events', path: '/app/discover', icon: Compass },
+        { name: 'Dashboard Overview', path: '/app/overview', icon: LayoutDashboard },
+        { name: 'Browse Events', path: '/app/discover', icon: Compass },
         { name: 'Event Calendar', path: '/app/calendar', icon: Calendar },
       ],
     },
     {
-      title: 'PERSONAL',
+      title: 'MY ACTIVITY',
       items: [
         { name: 'My Registrations', path: '/app/registrations', icon: Ticket },
         { name: 'Saved Events', path: '/app/saved', icon: Bookmark },
@@ -40,7 +40,7 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
     {
       title: 'ACCOUNT',
       items: [
-        { name: 'My Profile', path: '/app/profile', icon: User },
+        { name: 'Student Profile', path: '/app/profile', icon: User },
         { name: 'Settings', path: '/app/settings', icon: Settings },
       ],
     },
@@ -62,16 +62,16 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
           position: 'fixed',
           inset: 0,
           background: 'var(--bg-overlay)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
         }}
       />
 
-      {/* Drawer Container */}
+      {/* Drawer Panel */}
       <div
         style={{
           position: 'relative',
-          width: '280px',
+          width: '290px',
           maxWidth: '85vw',
           height: '100%',
           background: 'var(--bg-secondary)',
@@ -97,24 +97,27 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
           <Link
             to="/"
             onClick={onClose}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}
           >
             <div
               style={{
-                width: '32px',
-                height: '32px',
+                width: '30px',
+                height: '30px',
                 borderRadius: 'var(--radius-sm)',
-                background: 'linear-gradient(135deg, var(--primary), var(--accent-secondary))',
+                background: 'var(--bg-elevated)',
+                border: '1.5px solid var(--primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#ffffff',
+                color: 'var(--primary)',
+                fontWeight: '900',
+                fontSize: '0.95rem',
               }}
             >
-              <Sparkles size={16} />
+              G
             </div>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 'bold' }}>
-              GATHER<span className="text-gradient">LY</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--text-primary)', fontSize: '1.1rem' }}>
+              GATHERLY
             </span>
           </Link>
 
@@ -127,7 +130,7 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
               cursor: 'pointer',
             }}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
@@ -144,39 +147,42 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
         >
           <div
             style={{
-              width: '36px',
-              height: '36px',
+              width: '34px',
+              height: '34px',
               borderRadius: '50%',
               background: 'var(--primary)',
-              color: '#ffffff',
+              color: 'var(--text-inverse)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 'bold',
+              fontSize: '0.85rem',
+              flexShrink: 0,
             }}
           >
-            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'S'}
           </div>
-          <div>
-            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'bold', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
               {user?.fullName || 'Student Demo'}
             </div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
               {user?.email || 'student@campus.edu'}
             </div>
           </div>
         </div>
 
-        {/* Links */}
+        {/* Navigation Sections */}
         <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-4) var(--space-3)' }}>
           {navSections.map((sec) => (
             <div key={sec.title} style={{ marginBottom: 'var(--space-5)' }}>
               <div
                 style={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.62rem',
                   fontWeight: 'bold',
                   color: 'var(--text-muted)',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.1em',
+                  fontFamily: 'var(--font-mono)',
                   padding: '0 var(--space-3)',
                   marginBottom: 'var(--space-2)',
                 }}
@@ -194,21 +200,40 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '12px',
-                      padding: '10px 12px',
+                      padding: '9px 12px',
                       borderRadius: 'var(--radius-md)',
-                      fontSize: 'var(--text-sm)',
+                      fontSize: 'var(--text-xs)',
                       fontWeight: isActive ? 'bold' : 'normal',
                       color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                      background: isActive ? 'rgba(var(--primary-rgb), 0.12)' : 'transparent',
+                      background: isActive ? 'var(--bg-elevated)' : 'transparent',
                     })}
                   >
-                    <Icon size={18} />
+                    <Icon size={17} />
                     <span>{item.name}</span>
                   </NavLink>
                 );
               })}
             </div>
           ))}
+
+          <Link
+            to="/"
+            onClick={onClose}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '9px 12px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--bg-elevated)',
+              fontSize: 'var(--text-xs)',
+              color: 'var(--text-secondary)',
+              marginTop: 'var(--space-4)',
+            }}
+          >
+            <span>Public Website</span>
+            <ExternalLink size={13} />
+          </Link>
         </div>
 
         {/* Logout */}
@@ -223,16 +248,16 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
               alignItems: 'center',
               gap: '10px',
               width: '100%',
-              padding: '10px',
+              padding: '9px',
               borderRadius: 'var(--radius-md)',
               color: 'var(--error)',
-              fontSize: 'var(--text-sm)',
-              fontWeight: 'var(--weight-semibold)',
+              fontSize: 'var(--text-xs)',
+              fontWeight: 'var(--weight-bold)',
               cursor: 'pointer',
             }}
           >
-            <LogOut size={18} />
-            <span>Log Out</span>
+            <LogOut size={16} />
+            <span>Sign Out</span>
           </button>
         </div>
       </div>
@@ -241,4 +266,3 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
 };
 
 export default MobileDrawer;
-

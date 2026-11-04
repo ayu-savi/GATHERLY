@@ -24,6 +24,8 @@ import {
   RefreshCw,
   Clock,
   MapPin,
+  ArrowUpRight,
+  Ticket,
 } from 'lucide-react';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
@@ -34,39 +36,33 @@ import { EventCard } from '../../components/events/EventCard';
 import { eventService } from '../../services/eventService';
 import { useToast } from '../../hooks/useToast';
 
-// Icon mapping helper for categories
 const CATEGORY_ICONS = {
-  Code2: Code2,
-  Music: Music,
-  Trophy: Trophy,
-  Gamepad2: Gamepad2,
-  BookOpen: BookOpen,
-  Briefcase: Briefcase,
-  Rocket: Rocket,
-  Palette: Palette,
+  Code2,
+  Music,
+  Trophy,
+  Gamepad2,
+  BookOpen,
+  Briefcase,
+  Rocket,
+  Palette,
 };
 
 export const HomePage = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  // State management
   const [featuredEvents, setFeaturedEvents] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [stats, setStats] = useState(null);
 
-  // Loading and error states
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [loadingUpcoming, setLoadingUpcoming] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
   const [apiError, setApiError] = useState(null);
 
-  // Search input in hero
   const [heroSearchQuery, setHeroSearchQuery] = useState('');
-
-  // Host event modal state
   const [hostModalOpen, setHostModalOpen] = useState(false);
   const [hostFormData, setHostFormData] = useState({
     societyName: '',
@@ -75,11 +71,10 @@ export const HomePage = () => {
     contactEmail: '',
   });
 
-  // Fetch all initial homepage data from Express backend
   const fetchHomepageData = async () => {
     setApiError(null);
 
-    // 1. Fetch featured events
+    // 1. Featured Events
     try {
       setLoadingFeatured(true);
       const featured = await eventService.getFeaturedEvents(4);
@@ -91,7 +86,7 @@ export const HomePage = () => {
       setLoadingFeatured(false);
     }
 
-    // 2. Fetch upcoming events
+    // 2. Upcoming Events
     try {
       setLoadingUpcoming(true);
       const upcoming = await eventService.getUpcomingEvents(3);
@@ -102,7 +97,7 @@ export const HomePage = () => {
       setLoadingUpcoming(false);
     }
 
-    // 3. Fetch categories
+    // 3. Categories
     try {
       setLoadingCategories(true);
       const cats = await eventService.getCategories();
@@ -113,7 +108,7 @@ export const HomePage = () => {
       setLoadingCategories(false);
     }
 
-    // 4. Fetch real stats
+    // 4. Statistics
     try {
       setLoadingStats(true);
       const statsData = await eventService.getHomepageStats();
@@ -129,7 +124,6 @@ export const HomePage = () => {
     fetchHomepageData();
   }, []);
 
-  // Handle Hero Search submission
   const handleHeroSearch = (e) => {
     e.preventDefault();
     if (heroSearchQuery.trim()) {
@@ -139,292 +133,361 @@ export const HomePage = () => {
     }
   };
 
-  // Handle Host Event Mock Submit
   const handleHostSubmit = (e) => {
     e.preventDefault();
     setHostModalOpen(false);
-    showToast(`Society proposal submitted for "${hostFormData.eventTitle}". Pending faculty approval!`, 'success');
+    showToast(`Proposal registered for "${hostFormData.eventTitle}". We will notify you!`, 'success');
     setHostFormData({ societyName: '', eventTitle: '', category: 'Technical', contactEmail: '' });
   };
 
+  // Lead featured event + side featured events
+  const leadFeatured = featuredEvents.length > 0 ? featuredEvents[0] : null;
+  const secondaryFeatured = featuredEvents.length > 1 ? featuredEvents.slice(1, 4) : [];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-16)', paddingBottom: 'var(--space-16)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-20)', paddingBottom: 'var(--space-20)' }}>
       {/* =========================================================================
-          1. HERO SECTION
+          1. ASYMMETRIC EDITORIAL HERO SECTION
           ========================================================================= */}
       <section
         style={{
           position: 'relative',
-          paddingTop: 'var(--space-16)',
-          paddingBottom: 'var(--space-12)',
+          paddingTop: 'var(--space-12)',
+          paddingBottom: 'var(--space-6)',
           overflow: 'hidden',
-          background: 'radial-gradient(ellipse at 50% 0%, rgba(var(--primary-rgb), 0.18) 0%, transparent 70%)',
         }}
       >
-        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ maxWidth: '860px', margin: '0 auto', textAlign: 'center' }}>
-            {/* Top pill badge */}
-            <div style={{ display: 'inline-flex', marginBottom: 'var(--space-4)' }}>
-              <Badge variant="featured" size="lg" icon={Sparkles}>
-                Campus Event Discovery & Management
-              </Badge>
+        <div className="container">
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: 'var(--space-10)',
+              alignItems: 'center',
+            }}
+          >
+            {/* Left Column: Bold Editorial Typography & Direct Action */}
+            <div style={{ maxWidth: '620px' }}>
+              <div className="editorial-eyebrow">
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />
+                <span>The Unified Campus Stage</span>
+              </div>
+
+              <h1
+                style={{
+                  fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
+                  fontWeight: '900',
+                  lineHeight: 1.08,
+                  letterSpacing: '-0.04em',
+                  marginBottom: 'var(--space-5)',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                Where campus ideas meet their{' '}
+                <span className="text-gradient">spotlight.</span>
+              </h1>
+
+              <p
+                style={{
+                  fontSize: 'clamp(1rem, 1.8vw, 1.15rem)',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.65,
+                  marginBottom: 'var(--space-8)',
+                }}
+              >
+                Explore student hackathons, cultural spectacles, sports tournaments, and technical summits.
+                Real-time schedules, verified digital passes, and club collaboration.
+              </p>
+
+              {/* Integrated Search Bar with Quick Filter Chips */}
+              <div style={{ marginBottom: 'var(--space-8)' }}>
+                <form
+                  onSubmit={handleHeroSearch}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: 'var(--bg-secondary)',
+                    border: '1.5px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '6px 8px 6px 16px',
+                    boxShadow: 'var(--shadow-sm)',
+                    transition: 'all var(--transition-fast)',
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border-subtle)')}
+                >
+                  <Search size={18} color="var(--primary)" style={{ marginRight: '10px', flexShrink: 0 }} />
+                  <input
+                    type="text"
+                    placeholder="Search events, clubs, venues, or keywords..."
+                    value={heroSearchQuery}
+                    onChange={(e) => setHeroSearchQuery(e.target.value)}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      color: 'var(--text-primary)',
+                      fontSize: 'var(--text-sm)',
+                    }}
+                  />
+                  <Button type="submit" variant="primary" size="sm">
+                    Search
+                  </Button>
+                </form>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  <span>Quick tags:</span>
+                  <button onClick={() => navigate('/events?category=technical')} style={{ color: 'var(--text-secondary)', textDecoration: 'underline' }}>Hackathons</button>
+                  <span>&bull;</span>
+                  <button onClick={() => navigate('/events?category=cultural')} style={{ color: 'var(--text-secondary)', textDecoration: 'underline' }}>Concerts</button>
+                  <span>&bull;</span>
+                  <button onClick={() => navigate('/events?category=sports')} style={{ color: 'var(--text-secondary)', textDecoration: 'underline' }}>Derbies</button>
+                </div>
+              </div>
+
+              {/* Primary Actions */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-4)' }}>
+                <Link to="/events">
+                  <Button size="lg" variant="primary" icon={Compass} iconPosition="right">
+                    Explore Season Schedule
+                  </Button>
+                </Link>
+
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  icon={PlusCircle}
+                  onClick={() => setHostModalOpen(true)}
+                >
+                  Host with Us
+                </Button>
+              </div>
             </div>
 
-            {/* Main Headline */}
-            <h1
-              style={{
-                fontSize: 'clamp(2.5rem, 5.5vw, 4.2rem)',
-                fontWeight: 'var(--weight-extrabold)',
-                letterSpacing: '-0.03em',
-                lineHeight: 1.12,
-                marginBottom: 'var(--space-5)',
-              }}
-            >
-              Discover. Connect.{' '}
-              <span className="text-gradient-festive">Celebrate.</span>
-            </h1>
-
-            {/* Supporting Subtitle */}
-            <p
-              style={{
-                fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-                color: 'var(--text-secondary)',
-                lineHeight: 1.6,
-                maxWidth: '680px',
-                margin: '0 auto var(--space-8)',
-              }}
-            >
-              The unified campus hub for university students. Discover upcoming hackathons,
-              cultural galas, sports tournaments, and workshops — with verified instant registration.
-            </p>
-
-            {/* Interactive Hero Search Bar */}
-            <form
-              onSubmit={handleHeroSearch}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                maxWidth: '580px',
-                margin: '0 auto var(--space-8)',
-                background: 'var(--bg-secondary)',
-                border: '1.5px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-full)',
-                padding: '6px 8px 6px 18px',
-                boxShadow: 'var(--shadow-md)',
-                transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast)',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = 'var(--primary)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-glow)';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-              }}
-            >
-              <Search size={18} color="var(--primary)" style={{ marginRight: '10px', flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="Search hackathons, fests, robotics, workshops..."
-                value={heroSearchQuery}
-                onChange={(e) => setHeroSearchQuery(e.target.value)}
+            {/* Right Column: Layered Editorial Visual Montage */}
+            <div style={{ position: 'relative' }}>
+              <div
                 style={{
-                  flex: 1,
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: 'var(--text-primary)',
-                  fontSize: 'var(--text-sm)',
+                  position: 'relative',
+                  borderRadius: 'var(--radius-2xl)',
+                  overflow: 'hidden',
+                  border: '1.5px solid var(--border-subtle)',
+                  boxShadow: 'var(--shadow-lg)',
+                  aspectRatio: '4/3',
+                  maxHeight: '440px',
                 }}
-              />
-              <Button type="submit" variant="primary" size="sm">
-                Search Events
-              </Button>
-            </form>
-
-            {/* Primary & Secondary Action CTAs */}
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 'var(--space-4)',
-              }}
-            >
-              <Link to="/events">
-                <Button size="lg" variant="primary" icon={Compass} iconPosition="left">
-                  Explore All Events
-                </Button>
-              </Link>
-
-              <Button
-                size="lg"
-                variant="secondary"
-                icon={PlusCircle}
-                iconPosition="left"
-                onClick={() => setHostModalOpen(true)}
               >
-                Host an Event
-              </Button>
+                <img
+                  src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=900&auto=format&fit=crop&q=80"
+                  alt="Campus Event Energy"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+
+                {/* Layered Gradient Overlay */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(to top, rgba(23, 23, 25, 0.92) 0%, rgba(23, 23, 25, 0.2) 60%, transparent 100%)',
+                  }}
+                />
+
+                {/* Floating Live Badge Top Left */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '16px',
+                    left: '16px',
+                    background: 'var(--bg-glass)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid var(--border-strong)',
+                    borderRadius: 'var(--radius-full)',
+                    padding: '5px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '0.72rem',
+                    fontWeight: 'bold',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--primary)' }} />
+                  <span>2026 Campus Semester Edition</span>
+                </div>
+
+                {/* Floating Event Brief Card Bottom Left */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '16px',
+                    left: '16px',
+                    right: '16px',
+                    background: 'var(--bg-glass)',
+                    backdropFilter: 'blur(14px)',
+                    WebkitBackdropFilter: 'blur(14px)',
+                    border: '1px solid var(--border-strong)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 'var(--space-4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 'var(--space-4)',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--primary)', fontWeight: 'bold' }}>
+                      FEATURED THIS MONTH
+                    </div>
+                    <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      HackNexa 2026 &bull; 36-Hr Hackathon
+                    </div>
+                  </div>
+
+                  <Link to="/events">
+                    <Button variant="primary" size="sm" icon={ArrowUpRight}>
+                      View
+                    </Button>
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          2. CAMPUS HIGHLIGHTS & REAL STATISTICS
+          2. ASYMMETRIC BENTO STATISTICS (REAL BACKEND DATA)
           ========================================================================= */}
       <section className="container">
-        {loadingStats ? (
-          <div style={{ textAlign: 'center', padding: 'var(--space-6)', color: 'var(--text-muted)' }}>
-            Loading live campus metrics...
-          </div>
-        ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 'var(--space-4)',
+          }}
+        >
+          {/* Bento Card 1: Active Events */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: 'var(--space-4)',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-xl)',
+              padding: 'var(--space-6)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '160px',
             }}
           >
-            {/* Stat 1: Total Events */}
-            <Card glass hoverable style={{ textAlign: 'center', padding: 'var(--space-6)' }}>
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'rgba(var(--primary-rgb), 0.15)',
-                  color: 'var(--primary)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 'var(--space-3)',
-                }}
-              >
-                <Calendar size={22} />
-              </div>
-              <div
-                style={{
-                  fontSize: 'var(--text-3xl)',
-                  fontWeight: 'var(--weight-extrabold)',
-                  color: 'var(--text-primary)',
-                  lineHeight: 1,
-                  marginBottom: '6px',
-                }}
-              >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                SCHEDULED
+              </span>
+              <Calendar size={18} color="var(--primary)" />
+            </div>
+            <div>
+              <div style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--text-primary)', lineHeight: 1 }}>
                 {stats?.totalEvents ?? '8'}+
               </div>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                Active Campus Events
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Active Campus Activities
               </div>
-            </Card>
+            </div>
+          </div>
 
-            {/* Stat 2: Registered Participants */}
-            <Card glass hoverable style={{ textAlign: 'center', padding: 'var(--space-6)' }}>
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'rgba(var(--accent-secondary-rgb), 0.18)',
-                  color: 'var(--accent-secondary)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 'var(--space-3)',
-                }}
-              >
-                <Users size={22} />
-              </div>
-              <div
-                style={{
-                  fontSize: 'var(--text-3xl)',
-                  fontWeight: 'var(--weight-extrabold)',
-                  color: 'var(--text-primary)',
-                  lineHeight: 1,
-                  marginBottom: '6px',
-                }}
-              >
+          {/* Bento Card 2: Registered Students */}
+          <div
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-xl)',
+              padding: 'var(--space-6)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '160px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                STUDENT PARTICIPATION
+              </span>
+              <Users size={18} color="var(--accent-secondary)" />
+            </div>
+            <div>
+              <div style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--text-primary)', lineHeight: 1 }}>
                 {stats?.totalParticipants ?? '2,300'}+
               </div>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                Registered Students
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Verified Student Signups
               </div>
-            </Card>
+            </div>
+          </div>
 
-            {/* Stat 3: Event Domains */}
-            <Card glass hoverable style={{ textAlign: 'center', padding: 'var(--space-6)' }}>
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'rgba(var(--highlight-rgb), 0.18)',
-                  color: 'var(--highlight)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 'var(--space-3)',
-                }}
-              >
-                <Layers size={22} />
-              </div>
-              <div
-                style={{
-                  fontSize: 'var(--text-3xl)',
-                  fontWeight: 'var(--weight-extrabold)',
-                  color: 'var(--text-primary)',
-                  lineHeight: 1,
-                  marginBottom: '6px',
-                }}
-              >
+          {/* Bento Card 3: Domains */}
+          <div
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-xl)',
+              padding: 'var(--space-6)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '160px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                EVENT SPECTRUM
+              </span>
+              <Layers size={18} color="var(--highlight)" />
+            </div>
+            <div>
+              <div style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--text-primary)', lineHeight: 1 }}>
                 {stats?.totalCategories ?? '8'}
               </div>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                Activity Categories
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Distinct Campus Domains
               </div>
-            </Card>
+            </div>
+          </div>
 
-            {/* Stat 4: Student Societies */}
-            <Card glass hoverable style={{ textAlign: 'center', padding: 'var(--space-6)' }}>
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'rgba(var(--primary-rgb), 0.15)',
-                  color: 'var(--primary)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 'var(--space-3)',
-                }}
-              >
-                <TrendingUp size={22} />
-              </div>
-              <div
-                style={{
-                  fontSize: 'var(--text-3xl)',
-                  fontWeight: 'var(--weight-extrabold)',
-                  color: 'var(--text-primary)',
-                  lineHeight: 1,
-                  marginBottom: '6px',
-                }}
-              >
+          {/* Bento Card 4: Student Societies */}
+          <div
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-xl)',
+              padding: 'var(--space-6)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '160px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                ORGANIZER NETWORK
+              </span>
+              <TrendingUp size={18} color="var(--primary)" />
+            </div>
+            <div>
+              <div style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--text-primary)', lineHeight: 1 }}>
                 {stats?.totalSocieties ?? '14'}+
               </div>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                Campus Clubs & Societies
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Clubs, Cells & Chapters
               </div>
-            </Card>
+            </div>
           </div>
-        )}
+        </div>
       </section>
 
       {/* =========================================================================
-          3. FEATURED EVENTS SECTION
+          3. FEATURED EVENTS SHOWCASE (Varied Layout: Lead Banner + Grid)
           ========================================================================= */}
       <section className="container">
         <div
@@ -438,159 +501,161 @@ export const HomePage = () => {
           }}
         >
           <div>
-            <Badge variant="featured" icon={Sparkles} style={{ marginBottom: 'var(--space-2)' }}>
-              Curated Highlights
-            </Badge>
-            <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-extrabold)' }}>
-              Featured Campus Events
+            <div className="editorial-eyebrow">
+              <Sparkles size={14} />
+              <span>Curated Headliners</span>
+            </div>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: '900', letterSpacing: '-0.03em' }}>
+              Featured Campus Showcases
             </h2>
-            <p style={{ color: 'var(--text-secondary)' }}>
-              Handpicked major fests, competitive hackathons, and signature symposiums.
-            </p>
           </div>
 
           <Link to="/events">
             <Button variant="secondary" size="md" icon={ArrowRight} iconPosition="right">
-              View All Events
+              View Full Schedule
             </Button>
           </Link>
         </div>
 
         {/* Loading State */}
         {loadingFeatured && (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: 'var(--space-6)',
-            }}
-          >
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i} glass style={{ height: '380px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
-                  Loading featured event #{i}...
-                </span>
-              </Card>
-            ))}
+          <div style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'var(--text-muted)' }}>
+            Retrieving featured campus events...
           </div>
         )}
 
         {/* Error State */}
         {!loadingFeatured && apiError && (
           <Card glass style={{ padding: 'var(--space-8)', textAlign: 'center' }}>
-            <AlertCircle size={36} color="var(--error)" style={{ margin: '0 auto 12px' }} />
-            <h3 style={{ fontSize: 'var(--text-lg)', marginBottom: '8px' }}>Backend Service Notice</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-4)', maxWidth: '500px', margin: '0 auto 16px' }}>
-              {apiError}
-            </p>
+            <AlertCircle size={32} color="var(--error)" style={{ margin: '0 auto 10px' }} />
+            <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>{apiError}</p>
             <Button variant="secondary" size="sm" icon={RefreshCw} onClick={fetchHomepageData}>
               Retry Connection
             </Button>
           </Card>
         )}
 
-        {/* Success Grid */}
-        {!loadingFeatured && !apiError && featuredEvents.length > 0 && (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: 'var(--space-6)',
-            }}
-          >
-            {featuredEvents.map((evt) => (
-              <EventCard key={evt.id || evt._id} event={evt} featured={true} />
-            ))}
-          </div>
-        )}
+        {/* Visually Varied Showcase */}
+        {!loadingFeatured && !apiError && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
+            {/* 1. Large Lead Feature Panel */}
+            {leadFeatured && (
+              <EventCard event={leadFeatured} layout="featured-hero" />
+            )}
 
-        {/* Empty State */}
-        {!loadingFeatured && !apiError && featuredEvents.length === 0 && (
-          <Card glass style={{ textAlign: 'center', padding: 'var(--space-10)' }}>
-            <Calendar size={42} color="var(--text-muted)" style={{ margin: '0 auto 12px' }} />
-            <h3>No Featured Events Available</h3>
-            <p>Check back soon or explore our complete catalog.</p>
-          </Card>
+            {/* 2. Secondary Feature Cards Grid */}
+            {secondaryFeatured.length > 0 && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                  gap: 'var(--space-6)',
+                }}
+              >
+                {secondaryFeatured.map((evt) => (
+                  <EventCard key={evt.id || evt._id} event={evt} layout="card" />
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </section>
 
       {/* =========================================================================
-          4. CATEGORIES SECTION
+          4. CATEGORIES SECTION (Editorial Panels)
           ========================================================================= */}
       <section className="container">
-        <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto var(--space-10)' }}>
-          <Badge variant="cyan" icon={Layers} style={{ marginBottom: 'var(--space-2)' }}>
-            Browse by Interest
-          </Badge>
-          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-extrabold)', marginBottom: 'var(--space-2)' }}>
-            Explore Event Categories
+        <div style={{ maxWidth: '640px', marginBottom: 'var(--space-8)' }}>
+          <div className="editorial-eyebrow">
+            <Layers size={14} />
+            <span>Campus Domains</span>
+          </div>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: '900', letterSpacing: '-0.03em' }}>
+            Browse by Passion & Track
           </h2>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Find activities tailored to your academic domain, technical passions, and creative hobbies.
+          <p style={{ color: 'var(--text-secondary)', marginTop: 'var(--space-2)' }}>
+            From competitive coding circuits to cultural stages and sports arenas.
           </p>
         </div>
 
         {loadingCategories ? (
-          <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--text-muted)' }}>
-            Loading categories from backend...
+          <div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--text-muted)' }}>
+            Loading categories...
           </div>
         ) : (
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
               gap: 'var(--space-4)',
             }}
           >
-            {categories.map((cat) => {
+            {categories.map((cat, idx) => {
               const IconComp = CATEGORY_ICONS[cat.icon] || Sparkles;
               return (
-                <Card
+                <div
                   key={cat.id || cat.slug}
-                  glass
-                  hoverable
-                  style={{ cursor: 'pointer', padding: 'var(--space-5)' }}
                   onClick={() => navigate(`/events?category=${encodeURIComponent(cat.slug || cat.name)}`)}
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 'var(--space-6)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    transition: 'all var(--transition-base)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--primary)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.background = 'var(--bg-elevated)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.background = 'var(--bg-secondary)';
+                  }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-4)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
                     <div
                       style={{
-                        width: '44px',
-                        height: '44px',
+                        width: '38px',
+                        height: '38px',
                         borderRadius: 'var(--radius-md)',
-                        background: 'rgba(var(--primary-rgb), 0.15)',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-subtle)',
                         color: 'var(--primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        flexShrink: 0,
                       }}
                     >
-                      <IconComp size={22} />
+                      <IconComp size={18} />
                     </div>
 
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--weight-bold)' }}>
-                          {cat.name}
-                        </h3>
-                        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--primary)', fontWeight: 'bold' }}>
-                          {cat.eventCount || 0} events
-                        </span>
-                      </div>
-                      <p
-                        style={{
-                          fontSize: 'var(--text-xs)',
-                          color: 'var(--text-secondary)',
-                          lineHeight: 1.4,
-                          marginTop: '4px',
-                        }}
-                      >
-                        {cat.description}
-                      </p>
-                    </div>
+                    <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', fontWeight: 'bold', color: 'var(--primary)' }}>
+                      0{idx + 1}
+                    </span>
                   </div>
-                </Card>
+
+                  <div>
+                    <h3 style={{ fontSize: 'var(--text-base)', fontWeight: '800', marginBottom: '4px', color: 'var(--text-primary)' }}>
+                      {cat.name}
+                    </h3>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                      {cat.description}
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--space-4)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                      {cat.eventCount || 0} scheduled
+                    </span>
+                    <ArrowUpRight size={14} color="var(--primary)" />
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -598,7 +663,7 @@ export const HomePage = () => {
       </section>
 
       {/* =========================================================================
-          5. UPCOMING EVENTS PREVIEW SECTION
+          5. UPCOMING HORIZONTAL AGENDA (Numbered Chronological View)
           ========================================================================= */}
       {upcomingEvents.length > 0 && (
         <section className="container">
@@ -613,187 +678,141 @@ export const HomePage = () => {
             }}
           >
             <div>
-              <Badge variant="peach" icon={Clock} style={{ marginBottom: 'var(--space-2)' }}>
-                Upcoming Schedule
-              </Badge>
-              <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-extrabold)' }}>
-                Happening Soon on Campus
+              <div className="editorial-eyebrow">
+                <Clock size={14} />
+                <span>Immediate Schedule</span>
+              </div>
+              <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: '900', letterSpacing: '-0.03em' }}>
+                Next on the University Stage
               </h2>
-              <p style={{ color: 'var(--text-secondary)' }}>
-                Chronological timeline of confirmed upcoming activities.
-              </p>
             </div>
 
             <Link to="/events?sort=date">
               <Button variant="secondary" size="md">
-                Full Calendar Schedule &rarr;
+                Full Calendar &rarr;
               </Button>
             </Link>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: 'var(--space-6)',
-            }}
-          >
-            {upcomingEvents.map((evt) => (
-              <EventCard key={`up-${evt.id || evt._id}`} event={evt} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            {upcomingEvents.map((evt, idx) => (
+              <div
+                key={evt.id || evt._id}
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: 'var(--space-5) var(--space-6)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 'var(--space-4)',
+                  transition: 'all var(--transition-fast)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--primary)';
+                  e.currentTarget.style.background = 'var(--bg-elevated)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.background = 'var(--bg-secondary)';
+                }}
+              >
+                {/* Left: Number + Title */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)', flex: 1, minWidth: '260px' }}>
+                  <span
+                    style={{
+                      fontSize: '1.25rem',
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: '900',
+                      color: 'var(--primary)',
+                      opacity: 0.8,
+                    }}
+                  >
+                    0{idx + 1}
+                  </span>
+
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                      <Badge variant="peach" size="sm">{evt.category}</Badge>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{evt.date}</span>
+                    </div>
+                    <Link
+                      to={`/events/${evt.id || evt._id}`}
+                      style={{ fontSize: 'var(--text-base)', fontWeight: '800', color: 'var(--text-primary)' }}
+                    >
+                      {evt.title}
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Center: Venue & Time */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Clock size={13} color="var(--primary)" />
+                    <span>{evt.time}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MapPin size={13} color="var(--primary)" />
+                    <span>{evt.venue}</span>
+                  </div>
+                </div>
+
+                {/* Right: Register Action */}
+                <Link to={`/events/${evt.id || evt._id}`}>
+                  <Button variant="secondary" size="sm" icon={Ticket}>
+                    Get Ticket
+                  </Button>
+                </Link>
+              </div>
             ))}
           </div>
         </section>
       )}
 
       {/* =========================================================================
-          6. CAMPUS COMMUNITY & BENEFITS ("Why GATHERLY")
-          ========================================================================= */}
-      <section className="container">
-        <Card
-          glass
-          style={{
-            padding: 'var(--space-12) var(--space-8)',
-            borderRadius: 'var(--radius-2xl)',
-            background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.12) 0%, rgba(var(--accent-secondary-rgb), 0.1) 100%)',
-            borderColor: 'var(--border-strong)',
-          }}
-        >
-          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto var(--space-10)' }}>
-            <Badge variant="primary" icon={ShieldCheck} style={{ marginBottom: 'var(--space-2)' }}>
-              Campus Ecosystem
-            </Badge>
-            <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-extrabold)', marginBottom: 'var(--space-3)' }}>
-              Built Exclusively for University Life
-            </h2>
-            <p style={{ color: 'var(--text-secondary)' }}>
-              GATHERLY connects students, faculty advisors, and society organizers into an organized event network.
-            </p>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-              gap: 'var(--space-6)',
-            }}
-          >
-            {/* Benefit 1 */}
-            <div style={{ padding: 'var(--space-4)' }}>
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(var(--primary-rgb), 0.2)',
-                  color: 'var(--primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 'var(--space-3)',
-                }}
-              >
-                <CheckCircle2 size={22} />
-              </div>
-              <h3 style={{ fontSize: 'var(--text-lg)', marginBottom: '8px' }}>
-                Instant Verified Registrations
-              </h3>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Register in seconds with client-side form validation and receive a digital confirmation pass for event check-in.
-              </p>
-            </div>
-
-            {/* Benefit 2 */}
-            <div style={{ padding: 'var(--space-4)' }}>
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(var(--accent-secondary-rgb), 0.2)',
-                  color: 'var(--accent-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 'var(--space-3)',
-                }}
-              >
-                <Calendar size={22} />
-              </div>
-              <h3 style={{ fontSize: 'var(--text-lg)', marginBottom: '8px' }}>
-                Unified Academic Calendar
-              </h3>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Never miss overlapping events again. Track all registered and bookmarked events in your personal student dashboard.
-              </p>
-            </div>
-
-            {/* Benefit 3 */}
-            <div style={{ padding: 'var(--space-4)' }}>
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(var(--highlight-rgb), 0.2)',
-                  color: 'var(--highlight)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 'var(--space-3)',
-                }}
-              >
-                <Users size={22} />
-              </div>
-              <h3 style={{ fontSize: 'var(--text-lg)', marginBottom: '8px' }}>
-                Society Organizer Portal
-              </h3>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Empower student clubs to publish fests, track real-time attendee capacities, and manage event schedules.
-              </p>
-            </div>
-          </div>
-        </Card>
-      </section>
-
-      {/* =========================================================================
-          7. HOST AN EVENT CALL TO ACTION
+          6. COMMUNITY & SOCIETY HOST CTA BANNER
           ========================================================================= */}
       <section className="container">
         <div
           style={{
             background: 'var(--bg-secondary)',
             border: '1.5px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-xl)',
-            padding: 'var(--space-10) var(--space-8)',
-            display: 'flex',
-            flexWrap: 'wrap',
+            borderRadius: 'var(--radius-2xl)',
+            padding: 'var(--space-12) var(--space-8)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 'var(--space-8)',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 'var(--space-6)',
-            boxShadow: 'var(--shadow-md)',
           }}
         >
-          <div style={{ maxWidth: '580px' }}>
-            <Badge variant="cyan" icon={PlusCircle} style={{ marginBottom: 'var(--space-2)' }}>
-              For Campus Societies & Clubs
-            </Badge>
-            <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-extrabold)', marginBottom: 'var(--space-2)' }}>
-              Are you planning a campus event?
+          <div>
+            <div className="editorial-eyebrow">
+              <ShieldCheck size={14} />
+              <span>Society & Club Leadership</span>
+            </div>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', fontWeight: '900', letterSpacing: '-0.03em', marginBottom: 'var(--space-3)' }}>
+              Ready to launch your next campus fest?
             </h2>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Whether you are organizing an inter-university cultural night, a coding hackathon, or a sports derby,
-              GATHERLY provides the ticketing and discovery tools your club needs.
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '520px' }}>
+              Publish verified tickets, manage attendee capacities, broadcast agenda updates, and reach over 2,300 active campus participants.
             </p>
           </div>
 
-          <Button
-            variant="primary"
-            size="lg"
-            icon={PlusCircle}
-            onClick={() => setHostModalOpen(true)}
-          >
-            Submit an Event Proposal
-          </Button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', alignItems: 'flex-start' }}>
+            <Button
+              variant="primary"
+              size="lg"
+              icon={PlusCircle}
+              onClick={() => setHostModalOpen(true)}
+            >
+              Draft Event Proposal
+            </Button>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              Faculty council approval required for major hall bookings.
+            </span>
+          </div>
         </div>
       </section>
 
@@ -807,12 +826,12 @@ export const HomePage = () => {
         maxWidth="520px"
       >
         <form onSubmit={handleHostSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-            Submit your club's event draft. Approved proposals will appear immediately on the live campus feed.
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+            Submit your student society's event proposal. Approved drafts appear immediately in the live discovery catalog.
           </p>
 
           <Input
-            label="Club / Student Society Name"
+            label="Club / Student Society"
             placeholder="e.g. Turing Computing Society"
             value={hostFormData.societyName}
             onChange={(e) => setHostFormData({ ...hostFormData, societyName: e.target.value })}
@@ -820,16 +839,16 @@ export const HomePage = () => {
           />
 
           <Input
-            label="Event Title"
-            placeholder="e.g. Inter-College Battle of the Bands"
+            label="Event Headline"
+            placeholder="e.g. 2026 Inter-College Robotics Challenge"
             value={hostFormData.eventTitle}
             onChange={(e) => setHostFormData({ ...hostFormData, eventTitle: e.target.value })}
             required
           />
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)', color: 'var(--text-secondary)' }}>
-              Event Category
+            <label style={{ fontSize: 'var(--text-sm)', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+              Domain Category
             </label>
             <select
               value={hostFormData.category}
@@ -841,7 +860,7 @@ export const HomePage = () => {
                 border: '1.5px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-md)',
                 color: 'var(--text-primary)',
-                fontSize: 'var(--text-base)',
+                fontSize: 'var(--text-sm)',
                 outline: 'none',
               }}
             >
@@ -854,9 +873,9 @@ export const HomePage = () => {
           </div>
 
           <Input
-            label="Lead Organizer Email"
+            label="Lead Organizer Campus Email"
             type="email"
-            placeholder="organizer@campus.edu"
+            placeholder="lead@campus.edu"
             value={hostFormData.contactEmail}
             onChange={(e) => setHostFormData({ ...hostFormData, contactEmail: e.target.value })}
             required
@@ -867,7 +886,7 @@ export const HomePage = () => {
               Cancel
             </Button>
             <Button variant="primary" type="submit">
-              Submit Event Draft
+              Submit Event Proposal
             </Button>
           </div>
         </form>
