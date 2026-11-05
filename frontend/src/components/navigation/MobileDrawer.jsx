@@ -4,10 +4,9 @@ import {
   X,
   LayoutDashboard,
   Compass,
-  Calendar,
+  CalendarCheck,
   Ticket,
-  Bookmark,
-  Image,
+  ShieldCheck,
   User,
   Settings,
   LogOut,
@@ -22,24 +21,23 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
 
   const navSections = [
     {
-      title: 'DISCOVERY',
+      title: 'CAMPUS HUB',
       items: [
-        { name: 'Dashboard Overview', path: '/app/overview', icon: LayoutDashboard },
-        { name: 'Browse Events', path: '/app/discover', icon: Compass },
-        { name: 'Event Calendar', path: '/app/calendar', icon: Calendar },
+        { name: 'Overview', path: '/app/overview', icon: LayoutDashboard },
+        { name: 'Discover Events', path: '/events', icon: Compass },
       ],
     },
     {
       title: 'MY ACTIVITY',
       items: [
-        { name: 'My Registrations', path: '/app/registrations', icon: Ticket },
-        { name: 'Saved Events', path: '/app/saved', icon: Bookmark },
-        { name: 'Event Gallery', path: '/app/gallery', icon: Image },
+        { name: 'My Registrations', path: '/app/registrations', icon: CalendarCheck },
+        { name: 'My Digital Passes', path: '/app/passes', icon: Ticket },
       ],
     },
     {
-      title: 'ACCOUNT',
+      title: 'TOOLS & PROFILE',
       items: [
+        { name: 'Gate Verifier', path: '/app/pass-verifier', icon: ShieldCheck },
         { name: 'Student Profile', path: '/app/profile', icon: User },
         { name: 'Settings', path: '/app/settings', icon: Settings },
       ],
@@ -103,162 +101,152 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
               style={{
                 width: '30px',
                 height: '30px',
-                borderRadius: 'var(--radius-sm)',
+                borderRadius: 'var(--radius-md)',
                 background: 'var(--bg-elevated)',
-                border: '1.5px solid var(--primary)',
+                border: '1px solid var(--primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'var(--primary)',
+                fontFamily: 'var(--font-heading)',
                 fontWeight: '900',
-                fontSize: '0.95rem',
               }}
             >
               G
             </div>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: '800', color: 'var(--text-primary)', fontSize: '1.1rem' }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-heading)',
+                fontWeight: '800',
+                fontSize: '1.15rem',
+                color: 'var(--text-primary)',
+              }}
+            >
               GATHERLY
             </span>
           </Link>
 
           <button
+            type="button"
             onClick={onClose}
-            aria-label="Close drawer"
             style={{
-              padding: '6px',
-              color: 'var(--text-secondary)',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
+              padding: '6px',
             }}
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
-        {/* User Card */}
+        {/* Links */}
         <div
           style={{
-            padding: 'var(--space-4) var(--space-5)',
-            background: 'var(--bg-elevated)',
-            borderBottom: '1px solid var(--border-subtle)',
+            flex: 1,
+            overflowY: 'auto',
+            padding: 'var(--space-5) var(--space-4)',
             display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
+            flexDirection: 'column',
+            gap: 'var(--space-6)',
           }}
         >
-          <div
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              background: 'var(--primary)',
-              color: 'var(--text-inverse)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: '0.85rem',
-              flexShrink: 0,
-            }}
-          >
-            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'S'}
-          </div>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'bold', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-              {user?.fullName || 'Student Demo'}
-            </div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-              {user?.email || 'student@campus.edu'}
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Sections */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-4) var(--space-3)' }}>
-          {navSections.map((sec) => (
-            <div key={sec.title} style={{ marginBottom: 'var(--space-5)' }}>
-              <div
+          {navSections.map((section) => (
+            <div key={section.title}>
+              <p
                 style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 'bold',
+                  fontSize: '0.68rem',
+                  fontWeight: '700',
+                  letterSpacing: '0.12em',
                   color: 'var(--text-muted)',
-                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
                   fontFamily: 'var(--font-mono)',
-                  padding: '0 var(--space-3)',
+                  padding: '0 var(--space-2)',
                   marginBottom: 'var(--space-2)',
                 }}
               >
-                {sec.title}
+                {section.title}
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={onClose}
+                      style={({ isActive }) => ({
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-md)',
+                        fontSize: 'var(--text-xs)',
+                        fontWeight: isActive ? 'var(--weight-bold)' : 'var(--weight-medium)',
+                        color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                        background: isActive ? 'var(--bg-elevated)' : 'transparent',
+                        textDecoration: 'none',
+                      })}
+                    >
+                      <Icon size={18} />
+                      <span>{item.name}</span>
+                    </NavLink>
+                  );
+                })}
               </div>
-              {sec.items.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    onClick={onClose}
-                    style={({ isActive }) => ({
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '9px 12px',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: 'var(--text-xs)',
-                      fontWeight: isActive ? 'bold' : 'normal',
-                      color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                      background: isActive ? 'var(--bg-elevated)' : 'transparent',
-                    })}
-                  >
-                    <Icon size={17} />
-                    <span>{item.name}</span>
-                  </NavLink>
-                );
-              })}
             </div>
           ))}
-
-          <Link
-            to="/"
-            onClick={onClose}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '9px 12px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-elevated)',
-              fontSize: 'var(--text-xs)',
-              color: 'var(--text-secondary)',
-              marginTop: 'var(--space-4)',
-            }}
-          >
-            <span>Public Website</span>
-            <ExternalLink size={13} />
-          </Link>
         </div>
 
-        {/* Logout */}
-        <div style={{ padding: 'var(--space-4)', borderTop: '1px solid var(--border-subtle)' }}>
-          <button
-            onClick={() => {
-              logout();
-              onClose();
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              width: '100%',
-              padding: '9px',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--error)',
-              fontSize: 'var(--text-xs)',
-              fontWeight: 'var(--weight-bold)',
-              cursor: 'pointer',
-            }}
-          >
-            <LogOut size={16} />
-            <span>Sign Out</span>
-          </button>
+        {/* Footer User & Logout */}
+        <div
+          style={{
+            padding: 'var(--space-4)',
+            borderTop: '1px solid var(--border-subtle)',
+            background: 'var(--bg-primary)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <p
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 'var(--weight-bold)',
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                }}
+              >
+                {user?.fullName || 'Campus Student'}
+              </p>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
+                {user?.studentId || 'STU-2026-089'}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                onClose();
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--error)',
+                cursor: 'pointer',
+                fontSize: 'var(--text-xs)',
+                fontWeight: '600',
+              }}
+            >
+              <LogOut size={16} />
+              <span>Exit</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

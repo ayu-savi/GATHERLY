@@ -1,13 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, MapPin, ArrowUpRight, Users, Sparkles } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, Sparkles } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
 
 export const EventCard = ({
   event,
-  onRegister,
-  layout = 'card', // 'card' | 'featured-hero' | 'compact-row'
+  layout = 'card', // 'card' | 'featured-hero'
   className = '',
   style = {},
 }) => {
@@ -15,6 +14,8 @@ export const EventCard = ({
 
   const {
     id,
+    _id,
+    slug,
     title,
     tagline,
     description,
@@ -23,31 +24,27 @@ export const EventCard = ({
     date,
     time,
     venue,
-    capacity = 100,
-    registeredCount = 0,
     registrationStatus = 'Open',
-    isFeatured = false,
+    registrationFee = 0,
   } = event;
 
-  const fillPercentage = Math.min(100, Math.round((registeredCount / capacity) * 100));
+  const eventIdentifier = slug || id || _id;
 
-  // Category badge variant helper
-  const getCategoryBadgeVariant = (cat) => {
-    switch ((cat || '').toLowerCase()) {
-      case 'technical':
-        return 'primary';
-      case 'cultural':
-      case 'arts & entertainment':
-        return 'highlight';
-      case 'sports':
-      case 'gaming':
-        return 'secondary';
-      default:
-        return 'peach';
+  // Format date helper: "2026-11-20" -> "Nov 20, 2026"
+  const formatDate = (dateString) => {
+    try {
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return dateString;
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch (e) {
+      return dateString;
     }
   };
 
-  // Status badge variant helper (NO ORANGE)
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Filling Fast':
@@ -61,31 +58,13 @@ export const EventCard = ({
     }
   };
 
-  // Format date parts (e.g. "2026-11-20" -> { month: "NOV", day: "20" })
-  const getDateParts = (dateString) => {
-    try {
-      const d = new Date(dateString);
-      if (isNaN(d.getTime())) {
-        return { month: 'DATE', day: dateString };
-      }
-      return {
-        month: d.toLocaleString('en-US', { month: 'short' }).toUpperCase(),
-        day: d.getDate(),
-      };
-    } catch (e) {
-      return { month: 'CAMPUS', day: '2026' };
-    }
-  };
-
-  const { month, day } = getDateParts(date);
-
   // =========================================================================
-  // LAYOUT 1: FEATURED HERO BANNER (Asymmetric Large Lead Event)
+  // 1. FEATURED HERO WIDESCREEN LAYOUT
   // =========================================================================
   if (layout === 'featured-hero') {
     return (
-      <div
-        className={`gatherly-event-hero ${className}`}
+      <article
+        className={`gatherly-featured-hero ${className}`}
         style={{
           background: 'var(--bg-secondary)',
           border: '1.5px solid var(--border-subtle)',
@@ -95,7 +74,7 @@ export const EventCard = ({
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           boxShadow: 'var(--shadow-md)',
           position: 'relative',
-          transition: 'all var(--transition-base)',
+          transition: 'transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease',
           ...style,
         }}
         onMouseEnter={(e) => {
@@ -107,180 +86,153 @@ export const EventCard = ({
           e.currentTarget.style.boxShadow = 'var(--shadow-md)';
         }}
       >
-        {/* Left: Large Image with Date Block */}
-        <div style={{ position: 'relative', minHeight: '340px', overflow: 'hidden' }}>
+        {/* Left Hero Media Banner */}
+        <div style={{ position: 'relative', minHeight: '320px', overflow: 'hidden' }}>
           <img
             src={image}
             alt={title}
-            loading="lazy"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              transition: 'transform var(--transition-smooth)',
-            }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
-
-          {/* Date Block Stamp */}
           <div
             style={{
               position: 'absolute',
               top: '16px',
               left: '16px',
-              background: 'var(--bg-glass)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid var(--border-strong)',
-              borderRadius: 'var(--radius-md)',
-              padding: '8px 12px',
-              textAlign: 'center',
-              boxShadow: 'var(--shadow-md)',
+              display: 'flex',
+              gap: '8px',
             }}
           >
-            <div
+            <span
               style={{
-                fontSize: '0.65rem',
+                padding: '4px 12px',
+                borderRadius: 'var(--radius-full)',
+                background: 'var(--bg-glass)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid var(--border-strong)',
+                fontSize: '0.72rem',
+                fontWeight: '700',
                 fontFamily: 'var(--font-mono)',
-                fontWeight: '800',
-                letterSpacing: '0.1em',
                 color: 'var(--primary)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
               }}
             >
-              {month}
-            </div>
-            <div
+              {category}
+            </span>
+            <span
               style={{
-                fontSize: '1.4rem',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: '900',
-                color: 'var(--text-primary)',
-                lineHeight: 1,
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                background: registrationFee > 0 ? 'var(--bg-elevated)' : 'var(--success-bg)',
+                color: registrationFee > 0 ? 'var(--text-primary)' : 'var(--success)',
+                border: '1px solid var(--border-subtle)',
+                fontSize: '0.72rem',
+                fontWeight: '700',
+                fontFamily: 'var(--font-mono)',
               }}
             >
-              {day}
-            </div>
-          </div>
-
-          {/* Badges Top Right */}
-          <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '6px' }}>
-            <Badge variant="featured" icon={Sparkles}>Signature Fest</Badge>
-            {getStatusBadge(registrationStatus)}
+              {registrationFee > 0 ? `Entry: ₹${registrationFee}` : 'FREE ENTRY'}
+            </span>
           </div>
         </div>
 
-        {/* Right: Rich Editorial Content */}
-        <div style={{ padding: 'var(--space-8)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--space-3)' }}>
-            <Badge variant={getCategoryBadgeVariant(category)}>{category}</Badge>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              Campus Flagship
-            </span>
-          </div>
-
-          <h3
-            style={{
-              fontSize: 'clamp(1.4rem, 2.5vw, 1.85rem)',
-              fontWeight: '800',
-              lineHeight: 1.25,
-              marginBottom: 'var(--space-3)',
-              color: 'var(--text-primary)',
-            }}
-          >
-            <Link to={`/events/${id}`} style={{ color: 'inherit' }}>
-              {title}
-            </Link>
-          </h3>
-
-          <p
-            style={{
-              fontSize: 'var(--text-sm)',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.6,
-              marginBottom: 'var(--space-6)',
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {description || tagline}
-          </p>
-
-          {/* Schedule & Venue Meta */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 'var(--space-5)',
-              fontSize: 'var(--text-xs)',
-              color: 'var(--text-secondary)',
-              padding: 'var(--space-4) 0',
-              borderTop: '1px solid var(--border-subtle)',
-              borderBottom: '1px solid var(--border-subtle)',
-              marginBottom: 'var(--space-6)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Clock size={14} color="var(--primary)" />
-              <span>{time}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <MapPin size={14} color="var(--primary)" />
-              <span>{venue}</span>
-            </div>
-          </div>
-
-          {/* Capacity Meter & CTAs */}
-          <div style={{ marginTop: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '6px' }}>
-              <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Users size={12} /> {registeredCount} / {capacity} Registered
+        {/* Right Editorial Info */}
+        <div
+          style={{
+            padding: 'var(--space-8)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span
+                style={{
+                  fontSize: '0.68rem',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--primary)',
+                  fontWeight: '800',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Lead Campus Feature
               </span>
-              <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{fillPercentage}% Capacity</span>
+              {getStatusBadge(registrationStatus)}
             </div>
 
-            <div
+            <h3
               style={{
-                width: '100%',
-                height: '6px',
-                borderRadius: 'var(--radius-full)',
-                background: 'var(--bg-elevated)',
-                overflow: 'hidden',
+                fontSize: 'clamp(1.4rem, 2.5vw, 1.85rem)',
+                fontWeight: '800',
+                lineHeight: 1.25,
+                color: 'var(--text-primary)',
+                marginBottom: '10px',
+                fontFamily: 'var(--font-heading)',
+              }}
+            >
+              <Link to={`/events/${eventIdentifier}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                {title}
+              </Link>
+            </h3>
+
+            <p
+              style={{
+                fontSize: 'var(--text-sm)',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.6,
                 marginBottom: 'var(--space-6)',
               }}
             >
-              <div
-                style={{
-                  width: `${fillPercentage}%`,
-                  height: '100%',
-                  background: 'linear-gradient(90deg, var(--primary), var(--accent-secondary))',
-                  borderRadius: 'var(--radius-full)',
-                }}
-              />
-            </div>
+              {tagline || description}
+            </p>
 
-            <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-              <Link to={`/events/${id}`} style={{ flex: 1 }}>
-                <Button fullWidth variant="primary" size="md" icon={ArrowUpRight} iconPosition="right">
-                  View Full Agenda
-                </Button>
-              </Link>
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => (onRegister ? onRegister(event) : (window.location.href = `/events/${id}`))}
-              >
-                Register Pass
-              </Button>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                gap: '12px',
+                padding: '14px',
+                borderRadius: 'var(--radius-lg)',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-subtle)',
+                marginBottom: 'var(--space-6)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Calendar size={16} style={{ color: 'var(--primary)' }} />
+                <div>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block' }}>Date</span>
+                  <strong style={{ fontSize: '0.78rem', color: 'var(--text-primary)' }}>{formatDate(date)}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MapPin size={16} style={{ color: 'var(--accent-secondary)' }} />
+                <div>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block' }}>Venue</span>
+                  <strong style={{ fontSize: '0.78rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', maxWidth: '140px' }}>
+                    {venue}
+                  </strong>
+                </div>
+              </div>
             </div>
           </div>
+
+          <Link to={`/events/${eventIdentifier}`} style={{ textDecoration: 'none' }}>
+            <Button variant="primary" size="md" fullWidth icon={ArrowRight} iconPosition="right">
+              View Complete Event Profile
+            </Button>
+          </Link>
         </div>
-      </div>
+      </article>
     );
   }
 
   // =========================================================================
-  // LAYOUT 2: STANDARD EDITORIAL CARD
+  // 2. STANDARD STREAMLINED CARD LAYOUT
   // =========================================================================
   return (
     <article
@@ -293,63 +245,45 @@ export const EventCard = ({
         display: 'flex',
         flexDirection: 'column',
         boxShadow: 'var(--shadow-sm)',
-        transition: 'transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base)',
+        transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease',
         position: 'relative',
+        height: '100%',
         ...style,
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-3px)';
+        e.currentTarget.style.transform = 'translateY(-4px)';
         e.currentTarget.style.borderColor = 'var(--primary)';
         e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+        const img = e.currentTarget.querySelector('.event-card-img');
+        if (img) img.style.transform = 'scale(1.06)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.borderColor = 'var(--border-subtle)';
         e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+        const img = e.currentTarget.querySelector('.event-card-img');
+        if (img) img.style.transform = 'scale(1)';
       }}
     >
-      {/* Banner Image Container */}
-      <div style={{ position: 'relative', width: '100%', height: '190px', overflow: 'hidden' }}>
+      {/* 16:9 Image container with zoom hover */}
+      <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', overflow: 'hidden' }}>
         <img
+          className="event-card-img"
           src={image}
           alt={title}
           loading="lazy"
           style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            transition: 'transform var(--transition-smooth)',
+            transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         />
 
-        {/* Date Stamp Pill */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '12px',
-            left: '12px',
-            background: 'var(--bg-glass)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid var(--border-strong)',
-            borderRadius: 'var(--radius-md)',
-            padding: '4px 10px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: 'var(--shadow-sm)',
-          }}
-        >
-          <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: '800', color: 'var(--primary)' }}>
-            {month}
-          </span>
-          <span style={{ width: '1px', height: '10px', background: 'var(--border-subtle)' }} />
-          <span style={{ fontSize: '0.85rem', fontFamily: 'var(--font-heading)', fontWeight: '900', color: 'var(--text-primary)' }}>
-            {day}
-          </span>
-        </div>
-
-        {/* Top Badges */}
+        {/* Top Floating Badges */}
         <div
           style={{
             position: 'absolute',
@@ -359,21 +293,58 @@ export const EventCard = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '6px',
+            gap: '8px',
             pointerEvents: 'none',
           }}
         >
-          <div style={{ pointerEvents: 'auto' }}>
-            <Badge variant={getCategoryBadgeVariant(category)}>{category}</Badge>
-          </div>
-          <div style={{ display: 'flex', gap: '4px', pointerEvents: 'auto' }}>
+          <span
+            style={{
+              padding: '3px 9px',
+              borderRadius: 'var(--radius-full)',
+              background: 'var(--bg-glass)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid var(--border-strong)',
+              fontSize: '0.68rem',
+              fontWeight: '700',
+              fontFamily: 'var(--font-mono)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--primary)',
+            }}
+          >
+            {category}
+          </span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                padding: '3px 8px',
+                borderRadius: 'var(--radius-full)',
+                background: registrationFee > 0 ? 'var(--bg-elevated)' : 'var(--success-bg)',
+                color: registrationFee > 0 ? 'var(--text-primary)' : 'var(--success)',
+                border: '1px solid var(--border-subtle)',
+                fontSize: '0.68rem',
+                fontWeight: '700',
+                fontFamily: 'var(--font-mono)',
+              }}
+            >
+              {registrationFee > 0 ? `₹${registrationFee}` : 'FREE'}
+            </span>
             {getStatusBadge(registrationStatus)}
           </div>
         </div>
       </div>
 
-      {/* Body Content */}
-      <div style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column', flex: 1 }}>
+      {/* Streamlined Body */}
+      <div
+        style={{
+          padding: 'var(--space-5)',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+        }}
+      >
         <h3
           style={{
             fontSize: 'var(--text-base)',
@@ -387,7 +358,10 @@ export const EventCard = ({
             overflow: 'hidden',
           }}
         >
-          <Link to={`/events/${id}`} style={{ color: 'inherit' }}>
+          <Link
+            to={`/events/${eventIdentifier}`}
+            style={{ color: 'inherit', textDecoration: 'none' }}
+          >
             {title}
           </Link>
         </h3>
@@ -404,92 +378,46 @@ export const EventCard = ({
             overflow: 'hidden',
           }}
         >
-          {description || tagline}
+          {tagline || description}
         </p>
 
-        {/* Venue & Time Meta */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '5px',
-            fontSize: '0.72rem',
+            gap: '6px',
+            fontSize: '0.75rem',
             color: 'var(--text-muted)',
-            marginBottom: 'var(--space-4)',
+            marginBottom: 'var(--space-5)',
+            marginTop: 'auto',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Clock size={12} color="var(--primary)" />
-            <span>{time}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <Calendar size={13} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+            <span style={{ fontWeight: '500' }}>{formatDate(date)}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <MapPin size={12} color="var(--primary)" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <MapPin size={13} style={{ color: 'var(--accent-secondary)', flexShrink: 0 }} />
             <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {venue}
             </span>
           </div>
         </div>
 
-        {/* Capacity Bar */}
-        <div style={{ marginTop: 'auto', marginBottom: 'var(--space-4)' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              fontSize: '0.68rem',
-              color: 'var(--text-muted)',
-              marginBottom: '4px',
-            }}
-          >
-            <span>Seats: {registeredCount} / {capacity}</span>
-            <span style={{ fontWeight: 'bold', color: 'var(--text-secondary)' }}>{fillPercentage}%</span>
-          </div>
-          <div
-            style={{
-              width: '100%',
-              height: '4px',
-              borderRadius: 'var(--radius-full)',
-              background: 'var(--bg-elevated)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: `${fillPercentage}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, var(--primary), var(--accent-secondary))',
-                borderRadius: 'var(--radius-full)',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Card Actions */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-            paddingTop: 'var(--space-3)',
-            borderTop: '1px solid var(--border-subtle)',
-          }}
+        <Link
+          to={`/events/${eventIdentifier}`}
+          style={{ textDecoration: 'none', display: 'block' }}
         >
-          <Link to={`/events/${id}`} style={{ flex: 1 }}>
-            <Button fullWidth variant="secondary" size="sm">
-              Details
-            </Button>
-          </Link>
           <Button
             variant="primary"
             size="sm"
-            style={{ flex: 1 }}
-            disabled={registrationStatus === 'Closed'}
-            onClick={() => (onRegister ? onRegister(event) : (window.location.href = `/events/${id}`))}
+            fullWidth
+            icon={ArrowRight}
+            iconPosition="right"
           >
-            {registrationStatus === 'Closed' ? 'Closed' : 'Register'}
+            View Event Details
           </Button>
-        </div>
+        </Link>
       </div>
     </article>
   );

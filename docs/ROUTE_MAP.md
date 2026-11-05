@@ -23,21 +23,18 @@ All navigation links are strictly wired to real routes. There are **zero dead-en
 | :--- | :--- | :--- | :--- | :--- |
 | `/` | `PublicLayout` | Public | `HomePage.jsx` | Engaging hero, platform overview, featured & upcoming events, category showcases, statistics. |
 | `/events` | `PublicLayout` | Public | `ExplorePage.jsx` | Full-scale event exploration with live keyword search, category filters, sorting, and responsive grid/list. |
-| `/events/:id` | `PublicLayout` | Public | `EventDetailPage.jsx` | Dedicated event profile with complete description, schedule, venue info, organizer details, countdown timer, and register CTA. |
-| `/categories` | `PublicLayout` | Public | `CategoriesPage.jsx` | Directory of all 8 campus event categories with counts, descriptions, and direct links to filtered event listings. |
-| `/categories/:categorySlug` | `PublicLayout` | Public | `ExplorePage.jsx` | Deep-link filtered exploration displaying only events in the specified category. |
+| `/events/:id` | `PublicLayout` | Public | `EventDetailsPage.jsx` | Dedicated event profile with complete description, logistics matrix, rules, prizes, organizing committee, financial model, schedule, and registration modal. |
+| `/categories` | `PublicLayout` | Public | `CategoriesPage.jsx` | Directory of all 8 campus domains with academic affiliations, student societies, and direct category filters. |
 | `/about` | `PublicLayout` | Public | `AboutPage.jsx` | Academic project overview, campus mission, platform advantages, and developer credits. |
-| `/login` | `PublicLayout` | Public | `LoginPage.jsx` | Student authentication portal with one-click demo login credentials and password visibility toggle. |
-| `/signup` | `PublicLayout` | Public | `SignupPage.jsx` | Student onboarding registration with validation (name, email, phone, student ID, password). |
+| `/login` | `PublicLayout` | Public | `LoginPage.jsx` | Student authentication portal with one-click demo login credentials and redirect preservation. |
+| `/signup` | `PublicLayout` | Public | `SignupPage.jsx` | Student onboarding registration with validation (name, email, phone, student ID, department). |
 | `/app` | `AppLayout` | Protected | Redirect -> `/app/overview` | Base application root redirecting straight to student overview. |
-| `/app/overview` | `AppLayout` | Protected | `OverviewPage.jsx` | Personalized student dashboard: statistics, active registrations, saved bookmarks, upcoming agenda. |
-| `/app/discover` | `AppLayout` | Protected | `DiscoverPage.jsx` | In-app event discovery workspace with quick registration triggers and category chips. |
-| `/app/calendar` | `AppLayout` | Protected | `CalendarPage.jsx` | Interactive monthly calendar displaying campus events and highlighting user's registered dates. |
-| `/app/registrations`| `AppLayout` | Protected | `RegistrationsPage.jsx`| Management of student registrations, digital ticket pass view/print, and cancellation triggers. |
-| `/app/saved` | `AppLayout` | Protected | `SavedEventsPage.jsx` | Bookmarked event wishlist with one-click removal and direct registration triggers. |
-| `/app/gallery` | `AppLayout` | Protected | `GalleryPage.jsx` | Visual campus event photograph archive with category filtering and full-screen lightbox preview. |
-| `/app/profile` | `AppLayout` | Protected | `ProfilePage.jsx` | Student profile viewer and editor (academic department, year, bio, contact details). |
-| `/app/settings` | `AppLayout` | Protected | `SettingsPage.jsx` | Appearance switcher (Dark/Light), notification preferences, LocalStorage reset controls. |
+| `/app/overview` | `AppLayout` | Protected | `OverviewPage.jsx` | Personalized student dashboard: welcome banner, metrics bento, registered events cards, and recommendations. |
+| `/app/registrations`| `AppLayout` | Protected | `RegistrationsPage.jsx`| Management of student registrations, status tabs (all, confirmed, attended, cancelled), and cancellation action. |
+| `/app/passes` | `AppLayout` | Protected | `PassesPage.jsx` | Dedicated Digital Passes hub with perforated ticket cards, scannable QR Code SVG, and Print/Download actions. |
+| `/app/pass-verifier` | `AppLayout` | Protected | `PassVerifierPage.jsx` | Campus Gate Admission & QR Verifier for security/organizers with check-in and double-entry prevention. |
+| `/app/profile` | `AppLayout` | Protected | `ProfilePage.jsx` | Student profile viewer and editor (academic department, phone, contact details, student ID). |
+| `/app/settings` | `AppLayout` | Protected | `ProfilePage.jsx` | Student settings, profile preferences, and account configuration. |
 | `*` | `PublicLayout` | Public | `NotFoundPage.jsx` | Branded 404 error page with clear navigation buttons back to Home or Discover. |
 
 ---

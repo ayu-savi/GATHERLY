@@ -9,6 +9,7 @@ import ProtectedRoute from './layouts/ProtectedRoute';
 // Public Pages
 import HomePage from './pages/public/HomePage';
 import ExplorePage from './pages/public/ExplorePage';
+import EventDetailsPage from './pages/public/EventDetailsPage';
 import CategoriesPage from './pages/public/CategoriesPage';
 import AboutPage from './pages/public/AboutPage';
 import NotFoundPage from './pages/public/NotFoundPage';
@@ -17,8 +18,12 @@ import NotFoundPage from './pages/public/NotFoundPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
 
-// App Pages
+// Student Dashboard Pages
 import OverviewPage from './pages/app/OverviewPage';
+import RegistrationsPage from './pages/app/RegistrationsPage';
+import PassesPage from './pages/app/PassesPage';
+import PassVerifierPage from './pages/app/PassVerifierPage';
+import ProfilePage from './pages/app/ProfilePage';
 
 // Simple Scroll to top helper
 const ScrollToTop = () => {
@@ -38,7 +43,7 @@ export const App = () => {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/events" element={<ExplorePage />} />
-          <Route path="/events/:id" element={<ExplorePage />} />
+          <Route path="/events/:id" element={<EventDetailsPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -46,18 +51,16 @@ export const App = () => {
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 
-        {/* Protected Application Routes */}
+        {/* Protected Student Dashboard Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/app" element={<Navigate to="/app/overview" replace />} />
             <Route path="/app/overview" element={<OverviewPage />} />
-            <Route path="/app/discover" element={<ExplorePage />} />
-            <Route path="/app/calendar" element={<OverviewPage />} />
-            <Route path="/app/registrations" element={<OverviewPage />} />
-            <Route path="/app/saved" element={<OverviewPage />} />
-            <Route path="/app/gallery" element={<OverviewPage />} />
-            <Route path="/app/profile" element={<OverviewPage />} />
-            <Route path="/app/settings" element={<OverviewPage />} />
+            <Route path="/app/registrations" element={<RegistrationsPage />} />
+            <Route path="/app/passes" element={<PassesPage />} />
+            <Route path="/app/pass-verifier" element={<PassVerifierPage />} />
+            <Route path="/app/profile" element={<ProfilePage />} />
+            <Route path="/app/settings" element={<ProfilePage />} />
           </Route>
         </Route>
       </Routes>
@@ -66,4 +69,3 @@ export const App = () => {
 };
 
 export default App;
-

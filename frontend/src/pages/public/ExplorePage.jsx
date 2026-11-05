@@ -362,7 +362,7 @@ export const ExplorePage = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
                     <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{evt.venue}</span>
-                    <Link to={`/events/${evt.id || evt._id}`}>
+                    <Link to={`/events/${evt.slug || evt.id || evt._id}`}>
                       <Button variant="secondary" size="sm">
                         View
                       </Button>

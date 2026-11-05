@@ -14,7 +14,7 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/app/overview';
+  const from = typeof location.state?.from === 'string' ? location.state.from : (location.state?.from?.pathname || '/app/overview');
 
   const handleSubmit = async (e) => {
     e.preventDefault();

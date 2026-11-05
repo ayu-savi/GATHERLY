@@ -13,11 +13,9 @@ export const AppTopbar = ({ onMobileToggle }) => {
   const getPageInfo = () => {
     const path = location.pathname;
     if (path.includes('/overview')) return { title: 'Dashboard Overview', category: 'Personal Center' };
-    if (path.includes('/discover')) return { title: 'Browse Events', category: 'Explore Schedule' };
-    if (path.includes('/calendar')) return { title: 'Event Calendar', category: 'Timeline' };
     if (path.includes('/registrations')) return { title: 'My Registrations', category: 'Tickets & Passes' };
-    if (path.includes('/saved')) return { title: 'Saved Events', category: 'Wishlist' };
-    if (path.includes('/gallery')) return { title: 'Campus Memories', category: 'Archive' };
+    if (path.includes('/passes')) return { title: 'My Digital Passes', category: 'Gate Vouchers' };
+    if (path.includes('/pass-verifier')) return { title: 'Gate Pass Verifier', category: 'Organizer Security' };
     if (path.includes('/profile')) return { title: 'Student Profile', category: 'Account' };
     if (path.includes('/settings')) return { title: 'Application Settings', category: 'Preferences' };
     return { title: 'Dashboard', category: 'Campus Portal' };

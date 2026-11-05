@@ -48,12 +48,6 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Event venue is required'],
     },
-    organizer: {
-      name: { type: String, required: true },
-      contactEmail: { type: String },
-      contactPhone: { type: String },
-      societyLogo: { type: String },
-    },
     capacity: {
       type: Number,
       required: true,
@@ -78,6 +72,54 @@ const eventSchema = new mongoose.Schema(
       enum: ['Open', 'Filling Fast', 'Waitlist', 'Closed'],
       default: 'Open',
     },
+    registrationFee: {
+      type: Number,
+      default: 0,
+    },
+    currency: {
+      type: String,
+      default: 'INR',
+    },
+    registrationDeadline: {
+      type: String,
+    },
+    teamPolicy: {
+      allowed: { type: Boolean, default: false },
+      minSize: { type: Number, default: 1 },
+      maxSize: { type: Number, default: 1 },
+      note: { type: String },
+    },
+    rules: [{ type: String }],
+    prizes: {
+      first: { type: String },
+      second: { type: String },
+      third: { type: String },
+      total: { type: String },
+      perks: { type: String },
+    },
+    organizingCommittee: {
+      societyName: { type: String, required: true },
+      organizerName: { type: String },
+      contactPerson: { type: String, required: true },
+      contactPhone: { type: String, required: true },
+      contactEmail: { type: String, required: true },
+      officeLocation: { type: String },
+    },
+    financialConfig: {
+      feePerParticipant: { type: Number, default: 0 },
+      maxSpots: { type: Number, default: 0 },
+      expectedRevenue: { type: Number, default: 0 },
+      prizePoolAmount: { type: Number, default: 0 },
+      collegeAllocation: { type: Number, default: 0 },
+      organizerAllocation: { type: Number, default: 0 },
+    },
+    schedule: [
+      {
+        time: { type: String },
+        activity: { type: String },
+        speakerOrVenue: { type: String },
+      },
+    ],
     tags: [{ type: String }],
   },
   {
@@ -90,5 +132,9 @@ eventSchema.virtual('isFull').get(function () {
   return this.registeredCount >= this.capacity;
 });
 
-module.exports = mongoose.model('Event', eventSchema);
+// Virtual for free vs paid
+eventSchema.virtual('isPaid').get(function () {
+  return this.registrationFee > 0;
+});
 
+module.exports = mongoose.model('Event', eventSchema);

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -20,59 +21,78 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Validate session on initial load
+  useEffect(() => {
+    const verifySession = async () => {
+      const savedToken = localStorage.getItem('gatherly_token');
+      if (!savedToken) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await authService.getMe();
+        if (res && res.data) {
+          setUser(res.data);
+          localStorage.setItem('gatherly_user', JSON.stringify(res.data));
+        }
+      } catch (err) {
+        // Token expired or invalid
+        console.warn('Session verification error:', err.message);
+        logout();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifySession();
+  }, []);
 
   const login = async (credentials) => {
     setLoading(true);
     try {
-      // In Phase 1 foundation: mock / sample user support for testing
-      const mockUser = {
-        id: 'usr_student_01',
-        fullName: credentials.email ? credentials.email.split('@')[0] : 'Demo Student',
-        email: credentials.email || 'aarav.sharma@campus.edu',
-        department: 'Computer Science & Engineering',
-        role: 'student',
-      };
-      const mockToken = 'mock_jwt_token_phase_1_' + Date.now();
+      const res = await authService.login(credentials);
+      if (res && res.data) {
+        const { token: receivedToken, user: receivedUser } = res.data;
+        setUser(receivedUser);
+        setToken(receivedToken);
 
-      setUser(mockUser);
-      setToken(mockToken);
+        localStorage.setItem('gatherly_user', JSON.stringify(receivedUser));
+        localStorage.setItem('gatherly_token', receivedToken);
 
-      localStorage.setItem('gatherly_user', JSON.stringify(mockUser));
-      localStorage.setItem('gatherly_token', mockToken);
-
-      setLoading(false);
-      return { success: true, user: mockUser };
+        setLoading(false);
+        return { success: true, user: receivedUser };
+      }
+      throw new Error(res.message || 'Authentication failed');
     } catch (error) {
       setLoading(false);
-      return { success: false, message: error.message };
+      const message = error.response?.data?.message || error.message || 'Login failed';
+      return { success: false, message };
     }
   };
 
   const register = async (userData) => {
     setLoading(true);
     try {
-      const newUser = {
-        id: 'usr_' + Date.now(),
-        fullName: userData.fullName || 'New Student',
-        email: userData.email,
-        phone: userData.phone,
-        department: userData.department || 'General',
-        role: 'student',
-      };
-      const newToken = 'mock_jwt_token_' + Date.now();
+      const res = await authService.register(userData);
+      if (res && res.data) {
+        const { token: receivedToken, user: receivedUser } = res.data;
+        setUser(receivedUser);
+        setToken(receivedToken);
 
-      setUser(newUser);
-      setToken(newToken);
+        localStorage.setItem('gatherly_user', JSON.stringify(receivedUser));
+        localStorage.setItem('gatherly_token', receivedToken);
 
-      localStorage.setItem('gatherly_user', JSON.stringify(newUser));
-      localStorage.setItem('gatherly_token', newToken);
-
-      setLoading(false);
-      return { success: true, user: newUser };
+        setLoading(false);
+        return { success: true, user: receivedUser };
+      }
+      throw new Error(res.message || 'Registration failed');
     } catch (error) {
       setLoading(false);
-      return { success: false, message: error.message };
+      const message = error.response?.data?.message || error.message || 'Registration failed';
+      return { success: false, message };
     }
   };
 
@@ -96,7 +116,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         token,
-        isAuthenticated: !!token,
+        isAuthenticated: !!token && !!user,
         loading,
         login,
         register,
@@ -118,4 +138,3 @@ export const useAuth = () => {
 };
 
 export default AuthContext;
-
