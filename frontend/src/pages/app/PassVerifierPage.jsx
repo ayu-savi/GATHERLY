@@ -327,3 +327,4 @@ export const PassVerifierPage = () => {
 };
 
 export default PassVerifierPage;
+

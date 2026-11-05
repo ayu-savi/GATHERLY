@@ -353,3 +353,4 @@ Present this pass at campus gate for admission.
 };
 
 export default PassesPage;
+

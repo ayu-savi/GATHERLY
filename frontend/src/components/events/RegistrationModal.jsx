@@ -772,3 +772,4 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
 };
 
 export default RegistrationModal;
+

@@ -14,3 +14,4 @@ router.post('/verify', verifyPass);
 router.post('/checkin', checkInPass);
 
 module.exports = router;
+

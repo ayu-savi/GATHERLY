@@ -258,3 +258,4 @@ export const RegistrationsPage = () => {
 };
 
 export default RegistrationsPage;
+

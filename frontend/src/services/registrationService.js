@@ -16,6 +16,13 @@ export const registrationService = {
   },
 
   /**
+   * Get compact student activity overview statistics and registered events
+   */
+  getDashboardSummary: async () => {
+    return await api.get('/registrations/dashboard-summary');
+  },
+
+  /**
    * Get single registration details
    */
   getRegistrationById: async (id) => {

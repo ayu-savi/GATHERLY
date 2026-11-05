@@ -889,3 +889,4 @@ export const EventDetailsPage = () => {
 };
 
 export default EventDetailsPage;
+

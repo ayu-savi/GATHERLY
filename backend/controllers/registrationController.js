@@ -340,9 +340,157 @@ const cancelRegistration = async (req, res, next) => {
   }
 };
 
+/**
+ * Helper to evaluate entry status and lifecycle for a registration
+ */
+const computeRegistrationLifecycle = (reg) => {
+  const isCancelled = reg.status === 'cancelled';
+  const isCheckedIn = Boolean(reg.checkedIn);
+
+  const now = new Date();
+  let eventEndDate = reg.eventEndDate || reg.eventDate;
+  let isCompleted = false;
+
+  if (eventEndDate) {
+    const endDateTime = new Date(`${eventEndDate}T23:59:59`);
+    if (!isNaN(endDateTime.getTime()) && endDateTime < now) {
+      isCompleted = true;
+    }
+  }
+
+  const isUpcoming = !isCompleted && !isCancelled;
+
+  let entryStatus = {
+    code: 'ready_for_entry',
+    label: 'Ready for Entry',
+    badgeVariant: 'success',
+    canEnter: true,
+  };
+
+  if (isCancelled) {
+    entryStatus = {
+      code: 'cancelled',
+      label: 'Cancelled',
+      badgeVariant: 'error',
+      canEnter: false,
+    };
+  } else if (isCheckedIn) {
+    entryStatus = {
+      code: 'checked_in',
+      label: 'Checked In',
+      badgeVariant: 'primary',
+      canEnter: false,
+      checkedInAt: reg.checkedInAt,
+    };
+  } else if (isCompleted) {
+    entryStatus = {
+      code: 'event_completed',
+      label: 'Event Completed',
+      badgeVariant: 'muted',
+      canEnter: false,
+    };
+  }
+
+  return {
+    isCancelled,
+    isCheckedIn,
+    isCompleted,
+    isUpcoming,
+    entryStatus,
+  };
+};
+
+/**
+ * @route   GET /api/registrations/dashboard-summary
+ * @desc    Get compact student activity overview statistics and registered events
+ * @access  Protected
+ */
+const getDashboardSummary = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const dbStatus = getDBStatus();
+
+    let registrations = [];
+
+    if (dbStatus.connected) {
+      registrations = await Registration.find({ user: userId })
+        .sort({ createdAt: -1 })
+        .lean();
+    } else {
+      registrations = inMemoryRegistrations.filter(
+        (r) => r.user === userId || r.participantEmail === req.user.email
+      );
+    }
+
+    // Process all registrations
+    let registeredCount = 0;
+    let upcomingCount = 0;
+    let admittedCount = 0;
+    let completedCount = 0;
+
+    const enrichedEvents = registrations.map((reg) => {
+      const lifecycle = computeRegistrationLifecycle(reg);
+
+      if (!lifecycle.isCancelled) {
+        registeredCount += 1;
+        if (lifecycle.isUpcoming) upcomingCount += 1;
+        if (lifecycle.isCompleted) completedCount += 1;
+      }
+
+      if (lifecycle.isCheckedIn) {
+        admittedCount += 1;
+      }
+
+      return {
+        ...reg,
+        entryStatus: lifecycle.entryStatus,
+        isCompleted: lifecycle.isCompleted,
+        isUpcoming: lifecycle.isUpcoming,
+      };
+    });
+
+    // Sort registered events: Upcoming first (by eventDate asc), then Completed, then Cancelled
+    enrichedEvents.sort((a, b) => {
+      if (a.isUpcoming && !b.isUpcoming) return -1;
+      if (!a.isUpcoming && b.isUpcoming) return 1;
+      if (a.isCompleted && !b.isCompleted) return -1;
+      if (!a.isCompleted && b.isCompleted) return 1;
+      return new Date(a.eventDate) - new Date(b.eventDate);
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Student dashboard summary retrieved successfully',
+      meta: {
+        databaseConnected: dbStatus.connected,
+        totalRecords: registrations.length,
+      },
+      data: {
+        student: {
+          id: req.user.id,
+          fullName: req.user.fullName,
+          email: req.user.email,
+          role: req.user.role,
+        },
+        stats: {
+          registeredEvents: registeredCount,
+          upcomingEvents: upcomingCount,
+          admittedEvents: admittedCount,
+          completedEvents: completedCount,
+        },
+        registeredEvents: enrichedEvents,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerForEvent,
   getMyRegistrations,
   getRegistrationById,
   cancelRegistration,
+  getDashboardSummary,
 };
+

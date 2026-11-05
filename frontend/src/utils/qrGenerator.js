@@ -91,3 +91,4 @@ export function generateQRCodeSVG(text, options = {}) {
     ${rects}
   </svg>`;
 }
+
