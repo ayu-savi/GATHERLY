@@ -13,11 +13,9 @@ export const ExplorePage = () => {
   // Search and filter states
   const initialCategory = searchParams.get('category') || 'all';
   const initialQuery = searchParams.get('q') || '';
-  const initialSort = searchParams.get('sort') || 'date';
 
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeCategory, setActiveCategory] = useState(initialCategory);
-  const [activeSort, setActiveSort] = useState(initialSort);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
 
   const [events, setEvents] = useState([]);
@@ -50,7 +48,7 @@ export const ExplorePage = () => {
     loadCategories();
   }, []);
 
-  // Fetch filtered events from backend
+  // Fetch filtered events from backend (automatically in chronological order)
   const loadEvents = async () => {
     try {
       setLoading(true);
@@ -59,10 +57,42 @@ export const ExplorePage = () => {
       const params = {};
       if (searchQuery.trim()) params.q = searchQuery.trim();
       if (activeCategory && activeCategory !== 'all') params.category = activeCategory;
-      if (activeSort) params.sort = activeSort;
 
       const res = await eventService.getEvents(params);
-      setEvents(res.data || []);
+      const fetchedEvents = res.data || [];
+
+      // Guarantee chronological order: earliest upcoming event first
+      const now = new Date();
+      const parseTime = (e) => {
+        if (!e || !e.date) return new Date(9999, 11, 31);
+        let timeStr = '00:00:00';
+        if (e.time) {
+          const match = e.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+          if (match) {
+            let hours = parseInt(match[1], 10);
+            const minutes = match[2];
+            const ampm = match[3].toUpperCase();
+            if (ampm === 'PM' && hours < 12) hours += 12;
+            if (ampm === 'AM' && hours === 12) hours = 0;
+            timeStr = `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+          }
+        }
+        return new Date(`${e.date}T${timeStr}`);
+      };
+
+      const sorted = [...fetchedEvents].sort((a, b) => {
+        const startA = parseTime(a);
+        const startB = parseTime(b);
+        const isPastA = startA < now;
+        const isPastB = startB < now;
+
+        if (!isPastA && isPastB) return -1;
+        if (isPastA && !isPastB) return 1;
+        if (!isPastA && !isPastB) return startA - startB;
+        return startB - startA;
+      });
+
+      setEvents(sorted);
     } catch (err) {
       console.warn('Failed to load events:', err.message);
       setError(err.message || 'Unable to load events from server.');
@@ -73,7 +103,7 @@ export const ExplorePage = () => {
 
   useEffect(() => {
     loadEvents();
-  }, [activeCategory, activeSort]);
+  }, [activeCategory]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -93,7 +123,6 @@ export const ExplorePage = () => {
   const handleResetFilters = () => {
     setSearchQuery('');
     setActiveCategory('all');
-    setActiveSort('date');
     setSearchParams({});
   };
 
@@ -163,30 +192,8 @@ export const ExplorePage = () => {
               </Button>
             </form>
 
-            {/* Sort & View Mode Toggle */}
+            {/* View Mode Toggle */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Sort:</span>
-                <select
-                  value={activeSort}
-                  onChange={(e) => setActiveSort(e.target.value)}
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '6px 10px',
-                    color: 'var(--text-primary)',
-                    fontSize: 'var(--text-xs)',
-                    outline: 'none',
-                  }}
-                >
-                  <option value="date">Date: Earliest First</option>
-                  <option value="popularity">Most Registered</option>
-                  <option value="title">Alphabetical (A-Z)</option>
-                </select>
-              </div>
-
-              {/* View Mode */}
               <div
                 style={{
                   display: 'flex',

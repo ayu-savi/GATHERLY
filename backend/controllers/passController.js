@@ -47,24 +47,42 @@ const getMyPasses = async (req, res, next) => {
 
 /**
  * @route   GET /api/passes/:passId
- * @desc    Get details of a single digital pass
- * @access  Public / Protected
+ * @desc    Get details of a single digital pass with strict student ownership enforcement
+ * @access  Protected
  */
 const getPassByPassId = async (req, res, next) => {
   try {
     const { passId } = req.params;
+    const userId = req.user?.id;
+    const userEmail = req.user?.email;
     const dbStatus = getDBStatus();
 
     let pass = null;
 
     if (dbStatus.connected) {
-      pass = await Registration.findOne({ passId }).lean();
+      const orConditions = [{ passId: passId }, { registrationId: passId }];
+      if (passId.match(/^[0-9a-fA-F]{24}$/)) {
+        orConditions.push({ _id: passId });
+      }
+      pass = await Registration.findOne({ $or: orConditions }).lean();
     } else {
-      pass = inMemoryRegistrations.find((r) => r.passId === passId);
+      pass = inMemoryRegistrations.find(
+        (r) => r.passId === passId || r.registrationId === passId || r._id === passId
+      );
     }
 
     if (!pass) {
-      return sendError(res, 'Digital pass not found', 404);
+      return sendError(res, 'Digital pass not found or invalid identifier', 404);
+    }
+
+    // Ownership verification: Ensure authenticated student owns the requested pass
+    const isOwner =
+      (userId && pass.user === userId) ||
+      (userEmail && pass.participantEmail && pass.participantEmail.toLowerCase() === userEmail.toLowerCase());
+    const isPrivileged = req.user && (req.user.role === 'organizer' || req.user.role === 'admin');
+
+    if (!isOwner && !isPrivileged) {
+      return sendError(res, 'Unauthorized: You do not have permission to access this digital pass', 403);
     }
 
     return sendSuccess(res, 'Digital pass retrieved successfully', pass);

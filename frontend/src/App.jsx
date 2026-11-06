@@ -58,6 +58,7 @@ export const App = () => {
             <Route path="/app/overview" element={<OverviewPage />} />
             <Route path="/app/registrations" element={<RegistrationsPage />} />
             <Route path="/app/passes" element={<PassesPage />} />
+            <Route path="/app/passes/:passId" element={<PassesPage />} />
             <Route path="/app/pass-verifier" element={<PassVerifierPage />} />
             <Route path="/app/profile" element={<ProfilePage />} />
             <Route path="/app/settings" element={<ProfilePage />} />

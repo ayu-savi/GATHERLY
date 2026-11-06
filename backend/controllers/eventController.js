@@ -93,13 +93,59 @@ const getUpcomingEvents = async (req, res, next) => {
 };
 
 /**
+ * Helper to parse exact start date and time of an event
+ */
+const parseEventStartDateTime = (event) => {
+  if (!event || !event.date) return new Date(9999, 11, 31);
+  let timeStr = '00:00:00';
+  if (event.time) {
+    const match = event.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (match) {
+      let hours = parseInt(match[1], 10);
+      const minutes = match[2];
+      const ampm = match[3].toUpperCase();
+      if (ampm === 'PM' && hours < 12) hours += 12;
+      if (ampm === 'AM' && hours === 12) hours = 0;
+      timeStr = `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+    }
+  }
+  return new Date(`${event.date}T${timeStr}`);
+};
+
+/**
+ * Helper to sort events in chronological order (earliest upcoming first)
+ */
+const sortEventsChronologically = (eventsList) => {
+  const now = new Date();
+  return [...eventsList].sort((a, b) => {
+    const startA = parseEventStartDateTime(a);
+    const startB = parseEventStartDateTime(b);
+
+    const isPastA = startA < now;
+    const isPastB = startB < now;
+
+    // Upcoming events come first
+    if (!isPastA && isPastB) return -1;
+    if (isPastA && !isPastB) return 1;
+
+    // Both upcoming: earliest first
+    if (!isPastA && !isPastB) {
+      return startA - startB;
+    }
+
+    // Both past: most recent past first
+    return startB - startA;
+  });
+};
+
+/**
  * @route   GET /api/events
- * @desc    Get all events with search, category filtering, and sorting
+ * @desc    Get all events with search, category filtering, and automatic chronological ordering
  * @access  Public
  */
 const getAllEvents = async (req, res, next) => {
   try {
-    const { q, category, sort } = req.query;
+    const { q, category } = req.query;
     const limit = parseInt(req.query.limit, 10) || 20;
     const page = parseInt(req.query.page, 10) || 1;
     const skip = (page - 1) * limit;
@@ -124,27 +170,25 @@ const getAllEvents = async (req, res, next) => {
         ];
       }
 
-      let sortOption = { date: 1 };
-      if (sort === 'popularity') sortOption = { registeredCount: -1 };
-      if (sort === 'title') sortOption = { title: 1 };
-
       const total = await Event.countDocuments(query);
-      const events = await Event.find(query)
-        .sort(sortOption)
-        .skip(skip)
-        .limit(limit)
+      const rawEvents = await Event.find(query)
+        .sort({ date: 1, time: 1 })
         .lean();
+
+      // Ensure exact chronological order with start time and upcoming-first priority
+      const sortedEvents = sortEventsChronologically(rawEvents);
+      const paginatedEvents = sortedEvents.slice(skip, skip + limit);
 
       return res.status(200).json({
         success: true,
-        message: 'Events retrieved from MongoDB',
+        message: 'Events retrieved from MongoDB (Chronological order: Earliest first)',
         meta: {
           total,
           page,
           totalPages: Math.ceil(total / limit),
           databaseConnected: true,
         },
-        data: events,
+        data: paginatedEvents,
       });
     }
 
@@ -168,17 +212,12 @@ const getAllEvents = async (req, res, next) => {
       );
     }
 
-    if (sort === 'popularity') {
-      results.sort((a, b) => b.registeredCount - a.registeredCount);
-    } else if (sort === 'title') {
-      results.sort((a, b) => a.title.localeCompare(b.title));
-    } else {
-      results.sort((a, b) => new Date(a.date) - new Date(b.date));
-    }
+    // Automatically sort chronologically: earliest upcoming event first
+    results = sortEventsChronologically(results);
 
     return res.status(200).json({
       success: true,
-      message: 'Events retrieved (Development Fallback Data)',
+      message: 'Events retrieved (Development Fallback Data - Chronological: Earliest first)',
       meta: {
         total: results.length,
         page: 1,

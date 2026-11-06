@@ -9,7 +9,7 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/my', protect, getMyPasses);
-router.get('/:passId', getPassByPassId);
+router.get('/:passId', protect, getPassByPassId);
 router.post('/verify', verifyPass);
 router.post('/checkin', checkInPass);
 

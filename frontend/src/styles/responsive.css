@@ -17,6 +17,15 @@
   .hide-on-mobile {
     display: none !important;
   }
+
+  /* Single Ticket Card stacks vertically on mobile */
+  .single-ticket-card {
+    grid-template-columns: 1fr !important;
+  }
+  .single-ticket-card .ticket-qr-stub {
+    border-left: none !important;
+    border-top: 2px dashed var(--border-strong) !important;
+  }
 }
 
 /* Tablet viewports (640px to 1023px) */

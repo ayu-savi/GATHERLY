@@ -224,7 +224,7 @@ export const RegistrationsPage = () => {
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '140px' }}>
-                <Link to="/app/passes" style={{ textDecoration: 'none' }}>
+                <Link to={`/app/passes/${reg.passId || reg.registrationId}`} style={{ textDecoration: 'none' }}>
                   <Button variant="primary" size="sm" fullWidth icon={Ticket}>
                     Digital Pass
                   </Button>

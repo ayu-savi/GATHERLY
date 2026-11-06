@@ -918,7 +918,7 @@ export const OverviewPage = () => {
                         size="sm"
                         fullWidth
                         icon={Ticket}
-                        onClick={() => navigate('/app/passes')}
+                        onClick={() => navigate(`/app/passes/${event.passId || event.registrationId}`)}
                         style={{
                           fontSize: 'var(--text-xs)',
                           padding: '6px 12px',
