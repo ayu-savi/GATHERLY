@@ -13,8 +13,6 @@ import {
   RefreshCw,
   Sparkles,
   Check,
-  Activity,
-  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { registrationService } from '../../services/registrationService';
@@ -36,8 +34,6 @@ export const OverviewPage = () => {
     registeredEvents: [],
     upcomingSchedule: [],
     totalUpcomingSchedule: 0,
-    recentActivity: [],
-    activitySummary: null,
   });
 
   const loadDashboard = async () => {
@@ -60,8 +56,16 @@ export const OverviewPage = () => {
     loadDashboard();
   }, []);
 
-  const { stats, registeredEvents, upcomingSchedule, totalUpcomingSchedule, recentActivity } = dashboardData;
+  const { stats, registeredEvents, upcomingSchedule, totalUpcomingSchedule } = dashboardData;
   const studentName = user?.fullName || dashboardData.student?.fullName || 'Student';
+
+  // Calculate balanced card distribution across 60:40 layout:
+  // Left column (60%) shows initial registered events in a 2-column grid.
+  // Right column (40%) shows Your Schedule at top, and continues displaying
+  // normal registered event cards stacked below it to naturally balance column heights without empty space.
+  const rightCardsCount = registeredEvents.length > 2 ? Math.min(2, registeredEvents.length - 2) : 0;
+  const leftEvents = registeredEvents.slice(0, registeredEvents.length - rightCardsCount);
+  const rightEvents = registeredEvents.slice(registeredEvents.length - rightCardsCount);
 
   // Date formatting helper
   const formatDate = (dateString) => {
@@ -192,6 +196,200 @@ export const OverviewPage = () => {
       </span>
     );
   };
+
+  // Render identical Registered Event Card across both Left (60%) and Right (40%) columns
+  const renderRegisteredEventCard = (event) => (
+    <div
+      key={event._id || event.registrationId}
+      style={{
+        background: 'var(--bg-secondary)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-xl)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'all var(--transition-normal)',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'var(--primary)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+        e.currentTarget.style.transform = 'translateY(-3px)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+        e.currentTarget.style.transform = 'translateY(0)';
+      }}
+    >
+      {/* Event Image Banner (135px height, compact crop) */}
+      <div
+        style={{
+          height: '135px',
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'var(--bg-elevated)',
+        }}
+      >
+        <img
+          src={event.eventImage}
+          alt={event.eventTitle}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transition: 'transform 0.4s ease',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          onError={(e) => {
+            e.currentTarget.src =
+              'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80';
+          }}
+        />
+
+        {/* Category Ribbon */}
+        <span
+          style={{
+            position: 'absolute',
+            top: '10px',
+            left: '10px',
+            padding: '3px 8px',
+            borderRadius: 'var(--radius-full)',
+            background: 'rgba(23, 23, 25, 0.75)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            color: '#FFF',
+            fontSize: '0.65rem',
+            fontWeight: '700',
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
+          {event.eventCategory || 'Campus'}
+        </span>
+      </div>
+
+      {/* Event Details Content */}
+      <div
+        style={{
+          padding: 'var(--space-4)',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          justifyContent: 'space-between',
+          gap: '12px',
+        }}
+      >
+        <div>
+          {/* Event Title */}
+          <h3
+            style={{
+              fontSize: 'var(--text-sm)',
+              fontWeight: '800',
+              color: 'var(--text-primary)',
+              fontFamily: 'var(--font-heading)',
+              margin: '0 0 8px',
+              lineHeight: 1.3,
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+            title={event.eventTitle}
+          >
+            {event.eventTitle}
+          </h3>
+
+          {/* Meta: Date, Time & Venue */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '5px',
+              fontSize: '0.74rem',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Calendar size={13} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+              <span style={{ fontWeight: '600' }}>{formatDate(event.eventDate)}</span>
+              <span style={{ color: 'var(--text-muted)' }}>•</span>
+              <Clock size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+              <span style={{ color: 'var(--text-muted)' }}>
+                {event.eventTime ? event.eventTime.split('-')[0].trim() : 'TBA'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <MapPin size={13} style={{ color: 'var(--accent-secondary)', flexShrink: 0 }} />
+              <span
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '220px',
+                }}
+              >
+                {event.eventVenue || 'Campus Grounds'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Info: Pass Number & Entry Status */}
+        <div
+          style={{
+            paddingTop: '8px',
+            borderTop: '1px solid var(--border-subtle)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.68rem',
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--text-muted)',
+                background: 'var(--bg-elevated)',
+                padding: '2px 6px',
+                borderRadius: 'var(--radius-sm)',
+              }}
+            >
+              #{event.passId || event.registrationId}
+            </span>
+
+            {renderEntryStatus(event.entryStatus)}
+          </div>
+
+          {/* View Digital Pass Button */}
+          <Button
+            variant="secondary"
+            size="sm"
+            fullWidth
+            icon={Ticket}
+            onClick={() => navigate(`/app/passes/${event.passId || event.registrationId}`)}
+            style={{
+              fontSize: 'var(--text-xs)',
+              padding: '6px 12px',
+            }}
+          >
+            View Digital Pass
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -738,203 +936,12 @@ export const OverviewPage = () => {
                 gap: 'var(--space-4)',
               }}
             >
-              {registeredEvents.map((event) => (
-                <div
-                  key={event._id || event.registrationId}
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-xl)',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    boxShadow: 'var(--shadow-sm)',
-                    transition: 'all var(--transition-normal)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--primary)';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  {/* Event Image Banner (135px height, compact crop) */}
-                  <div
-                    style={{
-                      height: '135px',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      background: 'var(--bg-elevated)',
-                    }}
-                  >
-                    <img
-                      src={event.eventImage}
-                      alt={event.eventTitle}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        transition: 'transform 0.4s ease',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80';
-                      }}
-                    />
-
-                    {/* Category Ribbon */}
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '10px',
-                        left: '10px',
-                        padding: '3px 8px',
-                        borderRadius: 'var(--radius-full)',
-                        background: 'rgba(23, 23, 25, 0.75)',
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                        color: '#FFF',
-                        fontSize: '0.65rem',
-                        fontWeight: '700',
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                        fontFamily: 'var(--font-mono)',
-                      }}
-                    >
-                      {event.eventCategory || 'Campus'}
-                    </span>
-                  </div>
-
-                  {/* Event Details Content */}
-                  <div
-                    style={{
-                      padding: 'var(--space-4)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      flex: 1,
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                    }}
-                  >
-                    <div>
-                      {/* Event Title */}
-                      <h3
-                        style={{
-                          fontSize: 'var(--text-sm)',
-                          fontWeight: '800',
-                          color: 'var(--text-primary)',
-                          fontFamily: 'var(--font-heading)',
-                          margin: '0 0 8px',
-                          lineHeight: 1.3,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                        title={event.eventTitle}
-                      >
-                        {event.eventTitle}
-                      </h3>
-
-                      {/* Meta: Date, Time & Venue */}
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '5px',
-                          fontSize: '0.74rem',
-                          color: 'var(--text-secondary)',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Calendar size={13} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                          <span style={{ fontWeight: '600' }}>{formatDate(event.eventDate)}</span>
-                          <span style={{ color: 'var(--text-muted)' }}>•</span>
-                          <Clock size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                          <span style={{ color: 'var(--text-muted)' }}>
-                            {event.eventTime ? event.eventTime.split('-')[0].trim() : 'TBA'}
-                          </span>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <MapPin size={13} style={{ color: 'var(--accent-secondary)', flexShrink: 0 }} />
-                          <span
-                            style={{
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              maxWidth: '220px',
-                            }}
-                          >
-                            {event.eventVenue || 'Campus Grounds'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bottom Info: Pass Number & Entry Status */}
-                    <div
-                      style={{
-                        paddingTop: '8px',
-                        borderTop: '1px solid var(--border-subtle)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '10px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '8px',
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: '0.68rem',
-                            fontFamily: 'var(--font-mono)',
-                            color: 'var(--text-muted)',
-                            background: 'var(--bg-elevated)',
-                            padding: '2px 6px',
-                            borderRadius: 'var(--radius-sm)',
-                          }}
-                        >
-                          #{event.passId || event.registrationId}
-                        </span>
-
-                        {renderEntryStatus(event.entryStatus)}
-                      </div>
-
-                      {/* View Digital Pass Button */}
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        fullWidth
-                        icon={Ticket}
-                        onClick={() => navigate(`/app/passes/${event.passId || event.registrationId}`)}
-                        style={{
-                          fontSize: 'var(--text-xs)',
-                          padding: '6px 12px',
-                        }}
-                      >
-                        View Digital Pass
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {leftEvents.map((event) => renderRegisteredEventCard(event))}
             </div>
           )}
         </div>
 
-        {/* RIGHT COLUMN — 40%: YOUR SCHEDULE + YOUR EVENT ACTIVITY */}
+        {/* RIGHT COLUMN — 40%: YOUR SCHEDULE + REGISTERED EVENT CARDS */}
         <div
           style={{
             display: 'flex',
@@ -1240,321 +1247,18 @@ export const OverviewPage = () => {
             </div>
           </div>
 
-          {/* 2. SECONDARY SECTION: YOUR EVENT ACTIVITY (FILLS EMPTY SPACE INTELLIGENTLY) */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-3)',
-            }}
-          >
-            {/* Activity Header */}
+          {/* 2. REGISTERED EVENT CARDS BELOW YOUR SCHEDULE */}
+          {rightEvents && rightEvents.length > 0 && (
             <div
               style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '8px',
-              }}
-            >
-              <div>
-                <h3
-                  style={{
-                    fontSize: 'var(--text-base)',
-                    fontWeight: '800',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'var(--font-heading)',
-                    margin: 0,
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  Your Event Activity
-                </h3>
-                <p
-                  style={{
-                    fontSize: 'var(--text-xs)',
-                    color: 'var(--text-secondary)',
-                    margin: '2px 0 0',
-                  }}
-                >
-                  Recent milestones, attendance & active passes.
-                </p>
-              </div>
-
-              <Link
-                to="/app/passes"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  fontSize: 'var(--text-xs)',
-                  fontWeight: '700',
-                  color: 'var(--primary)',
-                  textDecoration: 'none',
-                }}
-              >
-                <span>All Passes</span>
-                <ArrowRight size={12} />
-              </Link>
-            </div>
-
-            {/* Activity Card */}
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-xl)',
-                padding: 'var(--space-4)',
-                boxShadow: 'var(--shadow-sm)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '14px',
+                gap: 'var(--space-4)',
               }}
             >
-              {/* Mini Summary Stats Row */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '8px',
-                  paddingBottom: '12px',
-                  borderBottom: '1px solid var(--border-subtle)',
-                }}
-              >
-                {/* Mini Stat 1: Attendance Rate */}
-                <div
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    padding: '8px 10px',
-                    borderRadius: 'var(--radius-md)',
-                    textAlign: 'center',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: '1.1rem',
-                      fontWeight: '800',
-                      color: 'var(--primary)',
-                      fontFamily: 'var(--font-heading)',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {stats.registeredEvents > 0
-                      ? `${Math.round((stats.admittedEvents / stats.registeredEvents) * 100)}%`
-                      : '0%'}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.62rem',
-                      color: 'var(--text-muted)',
-                      marginTop: '4px',
-                      fontWeight: '600',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    Attendance
-                  </div>
-                </div>
-
-                {/* Mini Stat 2: Active Passes */}
-                <div
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    padding: '8px 10px',
-                    borderRadius: 'var(--radius-md)',
-                    textAlign: 'center',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: '1.1rem',
-                      fontWeight: '800',
-                      color: 'var(--success)',
-                      fontFamily: 'var(--font-heading)',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {stats.upcomingEvents}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.62rem',
-                      color: 'var(--text-muted)',
-                      marginTop: '4px',
-                      fontWeight: '600',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    Active Passes
-                  </div>
-                </div>
-
-                {/* Mini Stat 3: Completed */}
-                <div
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    padding: '8px 10px',
-                    borderRadius: 'var(--radius-md)',
-                    textAlign: 'center',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: '1.1rem',
-                      fontWeight: '800',
-                      color: 'var(--text-primary)',
-                      fontFamily: 'var(--font-heading)',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {stats.completedEvents}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.62rem',
-                      color: 'var(--text-muted)',
-                      marginTop: '4px',
-                      fontWeight: '600',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    Completed
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Activity Log */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div
-                  style={{
-                    fontSize: '0.68rem',
-                    fontWeight: '700',
-                    color: 'var(--text-muted)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  Recent Milestones
-                </div>
-
-                {recentActivity && recentActivity.length > 0 ? (
-                  recentActivity.map((act) => (
-                    <div
-                      key={act.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '10px',
-                        fontSize: '0.75rem',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '50%',
-                          background: act.type === 'checked_in' ? 'var(--success-bg)' : 'var(--bg-elevated)',
-                          border:
-                            act.type === 'checked_in'
-                              ? '1px solid var(--success)'
-                              : '1px solid var(--border-subtle)',
-                          color: act.type === 'checked_in' ? 'var(--success)' : 'var(--primary)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          marginTop: '1px',
-                        }}
-                      >
-                        {act.type === 'checked_in' ? <CheckCircle2 size={13} /> : <Ticket size={13} />}
-                      </div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '6px',
-                          }}
-                        >
-                          <span style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '0.72rem' }}>
-                            {act.title}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '0.65rem',
-                              color: 'var(--text-muted)',
-                              fontFamily: 'var(--font-mono)',
-                            }}
-                          >
-                            #{act.passId ? act.passId.split('-').slice(-2).join('-') : 'PASS'}
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            color: 'var(--text-secondary)',
-                            fontSize: '0.7rem',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            marginTop: '1px',
-                          }}
-                          title={act.eventTitle}
-                        >
-                          {act.eventTitle}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div
-                    style={{
-                      fontSize: '0.72rem',
-                      color: 'var(--text-muted)',
-                      textAlign: 'center',
-                      padding: '8px 0',
-                    }}
-                  >
-                    No recent milestones recorded yet.
-                  </div>
-                )}
-              </div>
-
-              {/* Campus Discovery Banner Action */}
-              <div
-                style={{
-                  marginTop: '2px',
-                  padding: '10px 12px',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '10px',
-                }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-                    Explore More Campus Events
-                  </div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                    Discover hackathons, concerts & sports
-                  </div>
-                </div>
-                <Link to="/events" style={{ textDecoration: 'none', flexShrink: 0 }}>
-                  <Button variant="ghost" size="xs" icon={Compass}>
-                    Browse
-                  </Button>
-                </Link>
-              </div>
+              {rightEvents.map((event) => renderRegisteredEventCard(event))}
             </div>
-          </div>
+          )}
         </div>
       </section>
     </div>
