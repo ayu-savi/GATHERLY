@@ -74,24 +74,36 @@ export const EventCard = ({
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           boxShadow: 'var(--shadow-md)',
           position: 'relative',
-          transition: 'transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease',
+          transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.3s ease',
           ...style,
         }}
         onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-4px)';
           e.currentTarget.style.borderColor = 'var(--primary)';
-          e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+          e.currentTarget.style.boxShadow = '0 16px 36px rgba(15, 118, 110, 0.14), var(--shadow-lg)';
+          const img = e.currentTarget.querySelector('.featured-hero-img');
+          if (img) img.style.transform = 'scale(1.04)';
         }}
         onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
           e.currentTarget.style.borderColor = 'var(--border-subtle)';
           e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+          const img = e.currentTarget.querySelector('.featured-hero-img');
+          if (img) img.style.transform = 'scale(1)';
         }}
       >
         {/* Left Hero Media Banner */}
         <div style={{ position: 'relative', minHeight: '320px', overflow: 'hidden' }}>
           <img
+            className="featured-hero-img"
             src={image}
             alt={title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
           />
           <div
             style={{

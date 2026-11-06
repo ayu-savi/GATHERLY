@@ -12,7 +12,6 @@ import {
   ShieldAlert,
   ArrowLeft,
   CheckCircle2,
-  DollarSign,
   Building,
   UserCheck,
   Share2,
@@ -506,49 +505,6 @@ export const EventDetailsPage = () => {
                     * {event.prizes.perks}
                   </p>
                 )}
-              </section>
-            )}
-
-            {/* FINANCIAL & PLANNING MODEL (for prize competitions) */}
-            {isPaid && event.financialConfig?.expectedRevenue > 0 && (
-              <section
-                style={{
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-xl)',
-                  padding: 'var(--space-6)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <DollarSign size={18} style={{ color: 'var(--primary)' }} />
-                  <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 'bold', color: 'var(--text-primary)', margin: 0 }}>
-                    Event Financial & Prize Allocation Model
-                  </h3>
-                </div>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0 0 14px' }}>
-                  Transparent collegiate prize distribution based on expected entry registration spots:
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  <div style={{ padding: '10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block' }}>Expected Revenue</span>
-                    <strong style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                      ₹{event.financialConfig.expectedRevenue.toLocaleString()}
-                    </strong>
-                  </div>
-                  <div style={{ padding: '10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--primary)', display: 'block' }}>Prize Pool (~76%)</span>
-                    <strong style={{ fontSize: 'var(--text-xs)', color: 'var(--primary)', fontFamily: 'var(--font-mono)' }}>
-                      ₹{event.financialConfig.prizePoolAmount.toLocaleString()}
-                    </strong>
-                  </div>
-                  <div style={{ padding: '10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block' }}>Campus Allocation</span>
-                    <strong style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-                      ₹{(event.financialConfig.collegeAllocation + event.financialConfig.organizerAllocation).toLocaleString()}
-                    </strong>
-                  </div>
-                </div>
               </section>
             )}
 

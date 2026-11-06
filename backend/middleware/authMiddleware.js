@@ -31,7 +31,33 @@ const protect = async (req, res, next) => {
   }
 };
 
+/**
+ * Optional authentication - populates req.user if valid token exists, otherwise proceeds as guest
+ */
+const optionalProtect = async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'gatherly_super_secret_jwt_key_2026_dev_env'
+      );
+      req.user = decoded;
+    } catch (error) {
+      // Ignore token failure for optional auth
+    }
+  }
+
+  return next();
+};
+
 module.exports = {
   protect,
+  optionalProtect,
 };
 

@@ -12,6 +12,7 @@ import ExplorePage from './pages/public/ExplorePage';
 import EventDetailsPage from './pages/public/EventDetailsPage';
 import CategoriesPage from './pages/public/CategoriesPage';
 import AboutPage from './pages/public/AboutPage';
+import HostEventPage from './pages/public/HostEventPage';
 import NotFoundPage from './pages/public/NotFoundPage';
 
 // Auth Pages
@@ -46,6 +47,7 @@ export const App = () => {
           <Route path="/events/:id" element={<EventDetailsPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/host-event" element={<HostEventPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="*" element={<NotFoundPage />} />

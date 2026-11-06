@@ -20,79 +20,6 @@ const ensureEventsSeeded = async () => {
 };
 
 /**
- * @route   GET /api/events/featured
- * @desc    Get featured campus events for homepage
- * @access  Public
- */
-const getFeaturedEvents = async (req, res, next) => {
-  try {
-    const limit = parseInt(req.query.limit, 10) || 4;
-    const dbStatus = getDBStatus();
-
-    if (dbStatus.connected) {
-      await ensureEventsSeeded();
-      const events = await Event.find({ isFeatured: true })
-        .limit(limit)
-        .sort({ date: 1 })
-        .lean();
-
-      return sendSuccess(res, 'Featured events retrieved from MongoDB', events);
-    }
-
-    // Database is not connected: Return clearly identified development fallback
-    const featured = fallbackEvents.filter((e) => e.isFeatured).slice(0, limit);
-    return res.status(200).json({
-      success: true,
-      message: 'Featured events retrieved (Development Fallback Data)',
-      meta: {
-        fallback: true,
-        databaseConnected: false,
-        note: 'MongoDB is offline or MONGO_URI is not configured. Serving local development seed data.',
-      },
-      data: featured,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * @route   GET /api/events/upcoming
- * @desc    Get upcoming events for homepage
- * @access  Public
- */
-const getUpcomingEvents = async (req, res, next) => {
-  try {
-    const limit = parseInt(req.query.limit, 10) || 6;
-    const dbStatus = getDBStatus();
-
-    if (dbStatus.connected) {
-      await ensureEventsSeeded();
-      const events = await Event.find({ isUpcoming: true })
-        .sort({ date: 1 })
-        .limit(limit)
-        .lean();
-
-      return sendSuccess(res, 'Upcoming events retrieved from MongoDB', events);
-    }
-
-    // Fallback
-    const upcoming = fallbackEvents.filter((e) => e.isUpcoming).slice(0, limit);
-    return res.status(200).json({
-      success: true,
-      message: 'Upcoming events retrieved (Development Fallback Data)',
-      meta: {
-        fallback: true,
-        databaseConnected: false,
-      },
-      data: upcoming,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
  * Helper to parse exact start date and time of an event
  */
 const parseEventStartDateTime = (event) => {
@@ -110,6 +37,101 @@ const parseEventStartDateTime = (event) => {
     }
   }
   return new Date(`${event.date}T${timeStr}`);
+};
+
+/**
+ * Helper to strip internal financial & organizer accounting data from public-facing responses
+ * Preserves all student-facing information (title, rules, prizes, schedule, fee, spots, etc.)
+ */
+const sanitizePublicEvent = (event) => {
+  if (!event) return null;
+  const raw = event.toObject ? event.toObject() : { ...event };
+  const { financialConfig, internalNotes, budgetProposals, ...publicData } = raw;
+  return publicData;
+};
+
+/**
+ * @route   GET /api/events/featured
+ * @desc    Get featured campus events for homepage
+ * @access  Public
+ */
+const getFeaturedEvents = async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 4;
+    const dbStatus = getDBStatus();
+
+    if (dbStatus.connected) {
+      await ensureEventsSeeded();
+      const events = await Event.find({ isFeatured: true })
+        .limit(limit)
+        .sort({ date: 1 })
+        .lean();
+
+      return sendSuccess(res, 'Featured events retrieved from MongoDB', events.map(sanitizePublicEvent));
+    }
+
+    // Database is not connected: Return clearly identified development fallback
+    const featured = fallbackEvents.filter((e) => e.isFeatured).slice(0, limit).map(sanitizePublicEvent);
+    return res.status(200).json({
+      success: true,
+      message: 'Featured events retrieved (Development Fallback Data)',
+      meta: {
+        fallback: true,
+        databaseConnected: false,
+        note: 'MongoDB is offline or MONGO_URI is not configured. Serving local development seed data.',
+      },
+      data: featured,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @route   GET /api/events/upcoming
+ * @desc    Get upcoming events for homepage (strictly upcoming, chronologically ordered, max 3)
+ * @access  Public
+ */
+const getUpcomingEvents = async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 3;
+    const dbStatus = getDBStatus();
+    const now = new Date();
+
+    if (dbStatus.connected) {
+      await ensureEventsSeeded();
+      const rawEvents = await Event.find({ isUpcoming: true })
+        .sort({ date: 1 })
+        .lean();
+
+      const upcoming = rawEvents
+        .filter((e) => parseEventStartDateTime(e) >= now || e.isUpcoming)
+        .sort((a, b) => parseEventStartDateTime(a) - parseEventStartDateTime(b))
+        .slice(0, limit)
+        .map(sanitizePublicEvent);
+
+      return sendSuccess(res, 'Upcoming events retrieved from MongoDB', upcoming);
+    }
+
+    // Fallback
+    const upcoming = fallbackEvents
+      .filter((e) => parseEventStartDateTime(e) >= now || e.isUpcoming)
+      .sort((a, b) => parseEventStartDateTime(a) - parseEventStartDateTime(b))
+      .slice(0, limit)
+      .map(sanitizePublicEvent);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Upcoming events retrieved (Development Fallback Data)',
+      meta: {
+        fallback: true,
+        databaseConnected: false,
+      },
+      data: upcoming,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -188,7 +210,7 @@ const getAllEvents = async (req, res, next) => {
           totalPages: Math.ceil(total / limit),
           databaseConnected: true,
         },
-        data: paginatedEvents,
+        data: paginatedEvents.map(sanitizePublicEvent),
       });
     }
 
@@ -225,7 +247,7 @@ const getAllEvents = async (req, res, next) => {
         fallback: true,
         databaseConnected: false,
       },
-      data: results.slice(skip, skip + limit),
+      data: results.slice(skip, skip + limit).map(sanitizePublicEvent),
     });
   } catch (error) {
     next(error);
@@ -234,7 +256,7 @@ const getAllEvents = async (req, res, next) => {
 
 /**
  * @route   GET /api/events/:id
- * @desc    Get single event by id or slug
+ * @desc    Get single event by id or slug (sanitized for public viewing)
  * @access  Public
  */
 const getEventById = async (req, res, next) => {
@@ -257,7 +279,7 @@ const getEventById = async (req, res, next) => {
         return sendError(res, 'Event not found', 404);
       }
 
-      return sendSuccess(res, 'Event details retrieved from MongoDB', event);
+      return sendSuccess(res, 'Event details retrieved from MongoDB', sanitizePublicEvent(event));
     }
 
     // Fallback
@@ -270,7 +292,7 @@ const getEventById = async (req, res, next) => {
       success: true,
       message: 'Event details retrieved (Development Fallback Data)',
       meta: { fallback: true, databaseConnected: false },
-      data: event,
+      data: sanitizePublicEvent(event),
     });
   } catch (error) {
     next(error);

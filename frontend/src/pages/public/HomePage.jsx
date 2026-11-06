@@ -25,14 +25,12 @@ import {
   Clock,
   MapPin,
   ArrowUpRight,
-  Ticket,
 } from 'lucide-react';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { Card } from '../../components/common/Card';
-import { Modal } from '../../components/common/Modal';
-import { Input } from '../../components/common/Input';
 import { EventCard } from '../../components/events/EventCard';
+import { HostEventModal } from '../../components/events/HostEventModal';
 import { eventService } from '../../services/eventService';
 import { useToast } from '../../hooks/useToast';
 
@@ -64,12 +62,6 @@ export const HomePage = () => {
 
   const [heroSearchQuery, setHeroSearchQuery] = useState('');
   const [hostModalOpen, setHostModalOpen] = useState(false);
-  const [hostFormData, setHostFormData] = useState({
-    societyName: '',
-    eventTitle: '',
-    category: 'Technical',
-    contactEmail: '',
-  });
 
   const fetchHomepageData = async () => {
     setApiError(null);
@@ -133,13 +125,6 @@ export const HomePage = () => {
     }
   };
 
-  const handleHostSubmit = (e) => {
-    e.preventDefault();
-    setHostModalOpen(false);
-    showToast(`Proposal registered for "${hostFormData.eventTitle}". We will notify you!`, 'success');
-    setHostFormData({ societyName: '', eventTitle: '', category: 'Technical', contactEmail: '' });
-  };
-
   // Lead featured event + side featured events
   const leadFeatured = featuredEvents.length > 0 ? featuredEvents[0] : null;
   const secondaryFeatured = featuredEvents.length > 1 ? featuredEvents.slice(1, 4) : [];
@@ -147,17 +132,49 @@ export const HomePage = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-20)', paddingBottom: 'var(--space-20)' }}>
       {/* =========================================================================
-          1. ASYMMETRIC EDITORIAL HERO SECTION
+          1. ASYMMETRIC EDITORIAL HERO SECTION (Enhanced Animations & Depth)
           ========================================================================= */}
       <section
         style={{
           position: 'relative',
           paddingTop: 'var(--space-12)',
-          paddingBottom: 'var(--space-6)',
+          paddingBottom: 'var(--space-8)',
           overflow: 'hidden',
         }}
       >
-        <div className="container">
+        {/* Ambient Glowing Background Elements */}
+        <div
+          className="animate-pulse-glow"
+          style={{
+            position: 'absolute',
+            top: '-60px',
+            left: '5%',
+            width: '450px',
+            height: '450px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(217, 87, 112, 0.14) 0%, rgba(217, 87, 112, 0) 70%)',
+            pointerEvents: 'none',
+            zIndex: 0,
+            filter: 'blur(50px)',
+          }}
+        />
+        <div
+          className="animate-float"
+          style={{
+            position: 'absolute',
+            top: '15%',
+            right: '0%',
+            width: '420px',
+            height: '420px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(15, 118, 110, 0.16) 0%, rgba(15, 118, 110, 0) 70%)',
+            pointerEvents: 'none',
+            zIndex: 0,
+            filter: 'blur(60px)',
+          }}
+        />
+
+        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
           <div
             style={{
               display: 'grid',
@@ -167,13 +184,14 @@ export const HomePage = () => {
             }}
           >
             {/* Left Column: Bold Editorial Typography & Direct Action */}
-            <div style={{ maxWidth: '620px' }}>
+            <div className="animate-slide-up" style={{ maxWidth: '620px' }}>
               <div className="editorial-eyebrow">
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 8px var(--primary)' }} />
                 <span>The Unified Campus Stage</span>
               </div>
 
               <h1
+                className="animate-slide-up delay-1"
                 style={{
                   fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
                   fontWeight: '900',
@@ -188,6 +206,7 @@ export const HomePage = () => {
               </h1>
 
               <p
+                className="animate-slide-up delay-2"
                 style={{
                   fontSize: 'clamp(1rem, 1.8vw, 1.15rem)',
                   color: 'var(--text-secondary)',
@@ -200,7 +219,7 @@ export const HomePage = () => {
               </p>
 
               {/* Integrated Search Bar with Quick Filter Chips */}
-              <div style={{ marginBottom: 'var(--space-8)' }}>
+              <div className="animate-slide-up delay-3" style={{ marginBottom: 'var(--space-8)' }}>
                 <form
                   onSubmit={handleHeroSearch}
                   style={{
@@ -211,10 +230,16 @@ export const HomePage = () => {
                     borderRadius: 'var(--radius-lg)',
                     padding: '6px 8px 6px 16px',
                     boxShadow: 'var(--shadow-sm)',
-                    transition: 'all var(--transition-fast)',
+                    transition: 'all var(--transition-base)',
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border-subtle)')}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--primary)';
+                    e.currentTarget.style.boxShadow = '0 0 16px rgba(15, 118, 110, 0.16)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                  }}
                 >
                   <Search size={18} color="var(--primary)" style={{ marginRight: '10px', flexShrink: 0 }} />
                   <input
@@ -247,7 +272,7 @@ export const HomePage = () => {
               </div>
 
               {/* Primary Actions */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-4)' }}>
+              <div className="animate-slide-up delay-3" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-4)' }}>
                 <Link to="/events">
                   <Button size="lg" variant="primary" icon={Compass} iconPosition="right">
                     Explore Season Schedule
@@ -266,16 +291,25 @@ export const HomePage = () => {
             </div>
 
             {/* Right Column: Layered Editorial Visual Montage */}
-            <div style={{ position: 'relative' }}>
+            <div className="animate-slide-up delay-2" style={{ position: 'relative' }}>
               <div
                 style={{
                   position: 'relative',
                   borderRadius: 'var(--radius-2xl)',
                   overflow: 'hidden',
                   border: '1.5px solid var(--border-subtle)',
-                  boxShadow: 'var(--shadow-lg)',
+                  boxShadow: 'var(--shadow-xl)',
                   aspectRatio: '4/3',
                   maxHeight: '440px',
+                  transition: 'transform 0.4s ease, box-shadow 0.4s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.25)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-xl)';
                 }}
               >
                 <img
@@ -295,6 +329,7 @@ export const HomePage = () => {
 
                 {/* Floating Live Badge Top Left */}
                 <div
+                  className="animate-float"
                   style={{
                     position: 'absolute',
                     top: '16px',
@@ -311,9 +346,10 @@ export const HomePage = () => {
                     fontSize: '0.72rem',
                     fontWeight: 'bold',
                     color: 'var(--text-primary)',
+                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
                   }}
                 >
-                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--primary)' }} />
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 6px var(--primary)' }} />
                   <span>2026 Campus Semester Edition</span>
                 </div>
 
@@ -334,6 +370,7 @@ export const HomePage = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: 'var(--space-4)',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
                   }}
                 >
                   <div>
@@ -379,6 +416,17 @@ export const HomePage = () => {
               flexDirection: 'column',
               justifyContent: 'space-between',
               minHeight: '160px',
+              transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.borderColor = 'var(--primary)';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 118, 110, 0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -408,6 +456,17 @@ export const HomePage = () => {
               flexDirection: 'column',
               justifyContent: 'space-between',
               minHeight: '160px',
+              transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.borderColor = 'var(--accent-secondary)';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(217, 87, 112, 0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -437,6 +496,17 @@ export const HomePage = () => {
               flexDirection: 'column',
               justifyContent: 'space-between',
               minHeight: '160px',
+              transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.borderColor = 'var(--highlight)';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(20, 184, 166, 0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -466,6 +536,17 @@ export const HomePage = () => {
               flexDirection: 'column',
               justifyContent: 'space-between',
               minHeight: '160px',
+              transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.borderColor = 'var(--primary)';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 118, 110, 0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -596,6 +677,7 @@ export const HomePage = () => {
                 <div
                   key={cat.id || cat.slug}
                   onClick={() => navigate(`/events?category=${encodeURIComponent(cat.slug || cat.name)}`)}
+                  className="category-card-interactive"
                   style={{
                     background: 'var(--bg-secondary)',
                     border: '1px solid var(--border-subtle)',
@@ -605,21 +687,11 @@ export const HomePage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    transition: 'all var(--transition-base)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--primary)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.background = 'var(--bg-elevated)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.background = 'var(--bg-secondary)';
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
                     <div
+                      className="cat-icon-box"
                       style={{
                         width: '38px',
                         height: '38px',
@@ -630,6 +702,7 @@ export const HomePage = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        transition: 'transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease',
                       }}
                     >
                       <IconComp size={18} />
@@ -663,7 +736,7 @@ export const HomePage = () => {
       </section>
 
       {/* =========================================================================
-          5. UPCOMING HORIZONTAL AGENDA (Numbered Chronological View)
+          5. UPCOMING HORIZONTAL AGENDA (Numbered Chronological View - Top 3)
           ========================================================================= */}
       {upcomingEvents.length > 0 && (
         <section className="container">
@@ -686,87 +759,75 @@ export const HomePage = () => {
                 Next on the University Stage
               </h2>
             </div>
-
-            <Link to="/events?sort=date">
-              <Button variant="secondary" size="md">
-                Full Calendar &rarr;
-              </Button>
-            </Link>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            {upcomingEvents.map((evt, idx) => (
-              <div
-                key={evt.id || evt._id}
-                style={{
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: 'var(--space-5) var(--space-6)',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 'var(--space-4)',
-                  transition: 'all var(--transition-fast)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--primary)';
-                  e.currentTarget.style.background = 'var(--bg-elevated)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.background = 'var(--bg-secondary)';
-                }}
-              >
-                {/* Left: Number + Title */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)', flex: 1, minWidth: '260px' }}>
-                  <span
-                    style={{
-                      fontSize: '1.25rem',
-                      fontFamily: 'var(--font-mono)',
-                      fontWeight: '900',
-                      color: 'var(--primary)',
-                      opacity: 0.8,
-                    }}
-                  >
-                    0{idx + 1}
-                  </span>
-
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                      <Badge variant="peach" size="sm">{evt.category}</Badge>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{evt.date}</span>
-                    </div>
-                    <Link
-                      to={`/events/${evt.id || evt._id}`}
-                      style={{ fontSize: 'var(--text-base)', fontWeight: '800', color: 'var(--text-primary)' }}
+            {upcomingEvents.slice(0, 3).map((evt, idx) => {
+              const targetUrl = `/events/${evt.slug || evt.id || evt._id}`;
+              return (
+                <div
+                  key={evt.id || evt._id}
+                  className="stage-row-interactive"
+                  onClick={() => navigate(targetUrl)}
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 'var(--space-5) var(--space-6)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 'var(--space-4)',
+                  }}
+                >
+                  {/* Left: Number + Title */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)', flex: 1, minWidth: '260px' }}>
+                    <span
+                      style={{
+                        fontSize: '1.25rem',
+                        fontFamily: 'var(--font-mono)',
+                        fontWeight: '900',
+                        color: 'var(--primary)',
+                        opacity: 0.85,
+                      }}
                     >
-                      {evt.title}
-                    </Link>
+                      0{idx + 1}
+                    </span>
+
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                        <Badge variant="peach" size="sm">{evt.category}</Badge>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{evt.date}</span>
+                      </div>
+                      <span
+                        style={{ fontSize: 'var(--text-base)', fontWeight: '800', color: 'var(--text-primary)' }}
+                      >
+                        {evt.title}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Center: Venue & Time */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Clock size={13} color="var(--primary)" />
+                      <span>{evt.time}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPin size={13} color="var(--primary)" />
+                      <span>{evt.venue}</span>
+                    </div>
+                  </div>
+
+                  {/* Right: Visual Interactive Cue (No Get Ticket Button) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                    <span>View Details</span>
+                    <ArrowRight size={15} className="stage-arrow-icon" style={{ transition: 'transform 0.2s ease, color 0.2s ease' }} />
                   </div>
                 </div>
-
-                {/* Center: Venue & Time */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Clock size={13} color="var(--primary)" />
-                    <span>{evt.time}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <MapPin size={13} color="var(--primary)" />
-                    <span>{evt.venue}</span>
-                  </div>
-                </div>
-
-                {/* Right: Register Action */}
-                <Link to={`/events/${evt.id || evt._id}`}>
-                  <Button variant="secondary" size="sm" icon={Ticket}>
-                    Get Ticket
-                  </Button>
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
@@ -817,80 +878,15 @@ export const HomePage = () => {
       </section>
 
       {/* =========================================================================
-          HOST AN EVENT MODAL (Interactive Dialog)
+          HOST AN EVENT MODAL (Multi-Step Proposal System)
           ========================================================================= */}
-      <Modal
+      <HostEventModal
         isOpen={hostModalOpen}
         onClose={() => setHostModalOpen(false)}
-        title="Host a Campus Event on GATHERLY"
-        maxWidth="520px"
-      >
-        <form onSubmit={handleHostSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-            Submit your student society's event proposal. Approved drafts appear immediately in the live discovery catalog.
-          </p>
-
-          <Input
-            label="Club / Student Society"
-            placeholder="e.g. Turing Computing Society"
-            value={hostFormData.societyName}
-            onChange={(e) => setHostFormData({ ...hostFormData, societyName: e.target.value })}
-            required
-          />
-
-          <Input
-            label="Event Headline"
-            placeholder="e.g. 2026 Inter-College Robotics Challenge"
-            value={hostFormData.eventTitle}
-            onChange={(e) => setHostFormData({ ...hostFormData, eventTitle: e.target.value })}
-            required
-          />
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: 'var(--text-sm)', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
-              Domain Category
-            </label>
-            <select
-              value={hostFormData.category}
-              onChange={(e) => setHostFormData({ ...hostFormData, category: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                background: 'var(--bg-secondary)',
-                border: '1.5px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--text-primary)',
-                fontSize: 'var(--text-sm)',
-                outline: 'none',
-              }}
-            >
-              {categories.map((c) => (
-                <option key={c.slug || c.name} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <Input
-            label="Lead Organizer Campus Email"
-            type="email"
-            placeholder="lead@campus.edu"
-            value={hostFormData.contactEmail}
-            onChange={(e) => setHostFormData({ ...hostFormData, contactEmail: e.target.value })}
-            required
-          />
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-2)' }}>
-            <Button variant="ghost" onClick={() => setHostModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit">
-              Submit Event Proposal
-            </Button>
-          </div>
-        </form>
-      </Modal>
+        onSuccess={() => {
+          showToast('Event proposal submitted for committee review!', 'success');
+        }}
+      />
     </div>
   );
 };
