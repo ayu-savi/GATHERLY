@@ -474,14 +474,92 @@ const computeRegistrationLifecycle = (reg) => {
 };
 
 /**
+ * Compute official event result retention lifecycle:
+ * Rule 1: A completed competitive event must remain accessible until ONE WEEK (7 DAYS)
+ *         AFTER ITS OFFICIAL RESULTS ANNOUNCEMENT DATE.
+ * Rule 2: If results have not yet been announced, do NOT automatically remove the completed event.
+ *         Keep it accessible under "Results Awaited" until results are announced and the 7-day window passes.
+ * Rule 3: Non-competitive events use standard 7-day post-completion retention window.
+ * Rule 4: Historical registrations are NEVER deleted and remain permanently in My Registrations.
+ */
+const computeResultRetention = (reg, lifecycle, now = new Date()) => {
+  if (!lifecycle.isCompleted) {
+    return {
+      isDashboardRetained: true,
+      retentionReason: 'upcoming_or_ongoing',
+      statusText: 'Upcoming',
+      daysRemainingInRetention: null,
+      retentionExpiryDate: null,
+    };
+  }
+
+  // If cancelled, do not display as active
+  if (lifecycle.isCancelled) {
+    return {
+      isDashboardRetained: false,
+      retentionReason: 'cancelled',
+      statusText: 'Cancelled',
+      daysRemainingInRetention: null,
+      retentionExpiryDate: null,
+    };
+  }
+
+  // Competitive event with results
+  if (reg.hasResults) {
+    // A. Results Not Yet Announced -> MUST REMAIN ACCESSIBLE (Results Awaited)
+    if (!reg.resultsPublished || !reg.resultsAnnouncementDate) {
+      return {
+        isDashboardRetained: true,
+        retentionReason: 'results_awaited',
+        statusText: 'Results Awaited',
+        daysRemainingInRetention: null,
+        retentionExpiryDate: null,
+      };
+    }
+
+    // B. Results Officially Published -> Retained for exactly 7 days from official announcement date!
+    const announcedAt = new Date(reg.resultsAnnouncementDate);
+    const retentionExpiry = new Date(announcedAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const isRetained = now <= retentionExpiry;
+    const diffMs = retentionExpiry - now;
+    const daysRemaining = Math.max(0, Math.ceil(diffMs / (24 * 60 * 60 * 1000)));
+
+    return {
+      isDashboardRetained: isRetained,
+      retentionReason: isRetained ? 'results_retention_active' : 'results_retention_expired',
+      statusText: isRetained ? 'Results Published' : 'Archived to My Registrations',
+      daysRemainingInRetention: isRetained ? daysRemaining : 0,
+      retentionExpiryDate: retentionExpiry.toISOString(),
+      announcedAt: announcedAt.toISOString(),
+    };
+  }
+
+  // Non-competitive event: standard 7-day post-completion window
+  const completedAt = lifecycle.endDateTime || new Date(reg.eventEndDate || reg.eventDate);
+  const standardExpiry = new Date(completedAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const isRetained = now <= standardExpiry;
+  const daysRemaining = Math.max(0, Math.ceil((standardExpiry - now) / (24 * 60 * 60 * 1000)));
+
+  return {
+    isDashboardRetained: isRetained,
+    retentionReason: isRetained ? 'recent_completion' : 'completion_expired',
+    statusText: isRetained ? 'Recently Completed' : 'Archived to My Registrations',
+    daysRemainingInRetention: isRetained ? daysRemaining : 0,
+    retentionExpiryDate: standardExpiry.toISOString(),
+    announcedAt: null,
+  };
+};
+
+/**
  * @route   GET /api/registrations/dashboard-summary
- * @desc    Get compact student activity overview statistics, 60:40 registered events & schedule
+ * @desc    Get student activity overview statistics, full-width registered events & result retention
  * @access  Protected
  */
 const getDashboardSummary = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const dbStatus = getDBStatus();
+    const now = new Date();
 
     let registrations = [];
 
@@ -502,7 +580,8 @@ const getDashboardSummary = async (req, res, next) => {
     let completedCount = 0;
 
     const enriched = registrations.map((reg) => {
-      const lifecycle = computeRegistrationLifecycle(reg);
+      const lifecycle = computeRegistrationLifecycle(reg, now);
+      const retention = computeResultRetention(reg, lifecycle, now);
 
       if (!lifecycle.isCancelled) {
         registeredCount += 1;
@@ -523,63 +602,41 @@ const getDashboardSummary = async (req, res, next) => {
         startDateTime: lifecycle.startDateTime ? lifecycle.startDateTime.toISOString() : null,
         endDateTime: lifecycle.endDateTime ? lifecycle.endDateTime.toISOString() : null,
         dateBadge: lifecycle.dateBadge,
+        retentionInfo: retention,
+        hasResults: Boolean(reg.hasResults),
+        resultsPublished: Boolean(reg.resultsPublished),
+        resultsAnnouncementDate: reg.resultsAnnouncementDate ? new Date(reg.resultsAnnouncementDate).toISOString() : null,
+        resultDetails: reg.resultDetails || null,
       };
     });
 
-    // 1. Registered Events (Left Column):
-    // Sort: Upcoming events first (closest start date), then recently completed, then cancelled
-    const sortedForRegistered = [...enriched].sort((a, b) => {
-      if (a.isUpcoming && !b.isUpcoming) return -1;
-      if (!a.isUpcoming && b.isUpcoming) return 1;
-      if (a.isUpcoming && b.isUpcoming) {
-        return new Date(a.startDateTime || a.eventDate) - new Date(b.startDateTime || b.eventDate);
-      }
-      return new Date(b.eventDate) - new Date(a.eventDate);
-    });
-
-    // 2. Your Schedule (Right Column):
-    // Upcoming only, sorted chronologically ascending by start date/time
+    // 1. Group A: Upcoming Events (Chronological order: earliest start date/time first)
     const upcomingEvents = enriched
       .filter((reg) => reg.isUpcoming && !reg.isCancelled)
       .sort((a, b) => new Date(a.startDateTime || a.eventDate) - new Date(b.startDateTime || b.eventDate));
 
-    // Mark the nearest upcoming event as `isNext: true`
-    const scheduleItems = upcomingEvents.slice(0, 5).map((item, idx) => ({
-      ...item,
-      isNext: idx === 0,
-    }));
+    // 2. Group B: Recently Completed Events (Retained on active dashboard)
+    // Retention rule:
+    // - If competitive with published results: within 7 days of official announcement date
+    // - If competitive with results pending: retained under "Results Awaited"
+    // - Keep ~1-2 recently completed cards visible on dashboard overview
+    const eligibleCompleted = enriched
+      .filter((reg) => reg.isCompleted && !reg.isCancelled && reg.retentionInfo?.isDashboardRetained)
+      .sort((a, b) => {
+        // Priority 1: Events with published results
+        if (a.resultsPublished && !b.resultsPublished) return -1;
+        if (!a.resultsPublished && b.resultsPublished) return 1;
+        // Priority 2: Events with results awaited
+        if (a.hasResults && !b.hasResults) return -1;
+        if (!a.hasResults && b.hasResults) return 1;
+        // Priority 3: Most recently completed
+        return new Date(b.eventDate) - new Date(a.eventDate);
+      });
 
-    // 3. Your Event Activity (Secondary Right Column section):
-    // Real milestone activity logs derived from student's registrations and gate admissions
-    const activityLogs = [];
-    registrations.forEach((reg) => {
-      // Gate admission milestone
-      if (reg.checkedIn && reg.checkedInAt) {
-        activityLogs.push({
-          id: `act-admit-${reg._id || reg.registrationId}`,
-          type: 'checked_in',
-          title: 'Admitted at Gate',
-          eventTitle: reg.eventTitle,
-          passId: reg.passId,
-          timestamp: reg.checkedInAt,
-        });
-      }
-      // Registration issuance milestone
-      if (reg.createdAt && reg.status !== 'cancelled') {
-        activityLogs.push({
-          id: `act-reg-${reg._id || reg.registrationId}`,
-          type: 'registered',
-          title: 'Digital Pass Issued',
-          eventTitle: reg.eventTitle,
-          passId: reg.passId,
-          timestamp: reg.createdAt,
-        });
-      }
-    });
+    const recentlyCompletedEvents = eligibleCompleted.slice(0, 2);
 
-    // Sort activity chronologically descending (most recent first)
-    activityLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    const recentActivity = activityLogs.slice(0, 4);
+    // Consolidated full-width registered events list (Upcoming first, then recently completed)
+    const fullWidthRegisteredEvents = [...upcomingEvents, ...recentlyCompletedEvents];
 
     return res.status(200).json({
       success: true,
@@ -587,6 +644,7 @@ const getDashboardSummary = async (req, res, next) => {
       meta: {
         databaseConnected: dbStatus.connected,
         totalRecords: registrations.length,
+        activeDashboardCount: fullWidthRegisteredEvents.length,
       },
       data: {
         student: {
@@ -603,17 +661,87 @@ const getDashboardSummary = async (req, res, next) => {
           admittedEvents: admittedCount,
           completedEvents: completedCount,
         },
-        registeredEvents: sortedForRegistered,
+        upcomingEvents,
+        recentlyCompletedEvents,
+        registeredEvents: fullWidthRegisteredEvents,
         allRegisteredCount: registeredCount,
-        upcomingSchedule: scheduleItems,
-        totalUpcomingSchedule: upcomingEvents.length,
-        recentActivity,
-        activitySummary: {
-          attendanceRate: registeredCount > 0 ? Math.round((admittedCount / registeredCount) * 100) : 0,
-          activePasses: upcomingCount,
-          eventsAttended: admittedCount,
-          completedEvents: completedCount,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @route   GET /api/registrations/:id/results
+ * @desc    Get verified event competition results for a student registration
+ * @access  Protected
+ */
+const getRegistrationResults = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const dbStatus = getDBStatus();
+
+    let reg = null;
+    if (dbStatus.connected) {
+      reg = await Registration.findOne({
+        $or: [{ registrationId: id }, { passId: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
+      }).lean();
+    } else {
+      reg = inMemoryRegistrations.find(
+        (r) => r.registrationId === id || r.passId === id || r._id === id
+      );
+    }
+
+    if (!reg) {
+      return sendError(res, 'Registration record not found', 404);
+    }
+
+    // Security check: Student can only view results of their own registration
+    if (reg.user !== userId && reg.participantEmail !== req.user.email && req.user.role !== 'admin') {
+      return sendError(res, 'Access denied: You can only view results for your own registrations', 403);
+    }
+
+    if (!reg.hasResults) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          hasResults: false,
+          status: 'Not Applicable',
+          message: 'This event does not have competition results or rankings.',
         },
+      });
+    }
+
+    if (!reg.resultsPublished) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          hasResults: true,
+          resultsPublished: false,
+          status: 'Results Awaited',
+          message: 'Official results for this event have not yet been published by the organizers.',
+        },
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Official event results retrieved successfully',
+      data: {
+        registrationId: reg.registrationId,
+        passId: reg.passId,
+        eventTitle: reg.eventTitle,
+        eventCategory: reg.eventCategory,
+        eventDate: reg.eventDate,
+        participantName: reg.participantName,
+        teamName: reg.teamName,
+        studentId: reg.studentId,
+        department: reg.department,
+        resultsPublished: true,
+        resultsAnnouncementDate: reg.resultsAnnouncementDate,
+        resultDetails: reg.resultDetails,
       },
     });
   } catch (error) {
@@ -627,5 +755,6 @@ module.exports = {
   getRegistrationById,
   cancelRegistration,
   getDashboardSummary,
+  getRegistrationResults,
 };
 

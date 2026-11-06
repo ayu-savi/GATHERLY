@@ -121,6 +121,22 @@ const eventSchema = new mongoose.Schema(
       },
     ],
     tags: [{ type: String }],
+    hasResults: {
+      type: Boolean,
+      default: false,
+    },
+    resultsPublished: {
+      type: Boolean,
+      default: false,
+    },
+    resultsAnnouncementDate: {
+      type: Date,
+      default: null,
+    },
+    resultsSummary: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

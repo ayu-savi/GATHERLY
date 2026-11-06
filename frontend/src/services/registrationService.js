@@ -35,6 +35,13 @@ export const registrationService = {
   cancelRegistration: async (id) => {
     return await api.delete(`/registrations/${id}`);
   },
+
+  /**
+   * Get verified event competition results & prize instructions
+   */
+  getRegistrationResults: async (id) => {
+    return await api.get(`/registrations/${id}/results`);
+  },
 };
 
 export default registrationService;

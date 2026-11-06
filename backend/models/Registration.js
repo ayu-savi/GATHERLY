@@ -130,6 +130,35 @@ const registrationSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Official Event Results & Prize Lifecycle
+    hasResults: {
+      type: Boolean,
+      default: false,
+    },
+    resultsPublished: {
+      type: Boolean,
+      default: false,
+    },
+    resultsAnnouncementDate: {
+      type: Date,
+      default: null,
+    },
+    resultDetails: {
+      isWinner: { type: Boolean, default: false },
+      rank: { type: String, default: null },
+      status: { type: String, default: 'Results Awaited' },
+      award: { type: String, default: null },
+      prizeWon: { type: String, default: null },
+      certificateAvailable: { type: Boolean, default: false },
+      certificateUrl: { type: String, default: null },
+      prizeCollectionStatus: {
+        type: String,
+        enum: ['Prize Won', 'Collection Pending', 'Collection Instructions Available', 'Collected', 'Not Applicable'],
+        default: 'Not Applicable',
+      },
+      prizeCollectionInstructions: { type: String, default: null },
+      announcedAt: { type: Date, default: null },
+    },
   },
   {
     timestamps: true,

@@ -316,3 +316,4 @@ const proposalSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model('Proposal', proposalSchema);
+

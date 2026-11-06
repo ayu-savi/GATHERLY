@@ -11,18 +11,22 @@ import {
   Compass,
   AlertCircle,
   RefreshCw,
-  Sparkles,
+  Trophy,
   Check,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { registrationService } from '../../services/registrationService';
 import { Button } from '../../components/common/Button';
+import { StudentResultModal } from '../../components/events/StudentResultModal';
 
 export const OverviewPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [resultModalOpen, setResultModalOpen] = useState(false);
+  const [selectedEventForResult, setSelectedEventForResult] = useState(null);
+
   const [dashboardData, setDashboardData] = useState({
     student: null,
     stats: {
@@ -31,9 +35,10 @@ export const OverviewPage = () => {
       admittedEvents: 0,
       completedEvents: 0,
     },
+    upcomingEvents: [],
+    recentlyCompletedEvents: [],
     registeredEvents: [],
-    upcomingSchedule: [],
-    totalUpcomingSchedule: 0,
+    allRegisteredCount: 0,
   });
 
   const loadDashboard = async () => {
@@ -56,16 +61,17 @@ export const OverviewPage = () => {
     loadDashboard();
   }, []);
 
-  const { stats, registeredEvents, upcomingSchedule, totalUpcomingSchedule } = dashboardData;
+  const { stats, registeredEvents } = dashboardData;
   const studentName = user?.fullName || dashboardData.student?.fullName || 'Student';
 
-  // Calculate balanced card distribution across 60:40 layout:
-  // Left column (60%) shows initial registered events in a 2-column grid.
-  // Right column (40%) shows Your Schedule at top, and continues displaying
-  // normal registered event cards stacked below it to naturally balance column heights without empty space.
-  const rightCardsCount = registeredEvents.length > 2 ? Math.min(2, registeredEvents.length - 2) : 0;
-  const leftEvents = registeredEvents.slice(0, registeredEvents.length - rightCardsCount);
-  const rightEvents = registeredEvents.slice(registeredEvents.length - rightCardsCount);
+  // Group events into Upcoming (Group A) and Recently Completed (Group B)
+  const upcomingList = dashboardData.upcomingEvents?.length > 0
+    ? dashboardData.upcomingEvents
+    : registeredEvents.filter((r) => r.isUpcoming && !r.isCancelled);
+
+  const recentlyCompletedList = dashboardData.recentlyCompletedEvents?.length > 0
+    ? dashboardData.recentlyCompletedEvents
+    : registeredEvents.filter((r) => r.isCompleted && !r.isCancelled && r.retentionInfo?.isDashboardRetained).slice(0, 2);
 
   // Date formatting helper
   const formatDate = (dateString) => {
@@ -197,199 +203,283 @@ export const OverviewPage = () => {
     );
   };
 
-  // Render identical Registered Event Card across both Left (60%) and Right (40%) columns
-  const renderRegisteredEventCard = (event) => (
-    <div
-      key={event._id || event.registrationId}
-      style={{
-        background: 'var(--bg-secondary)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: 'var(--radius-xl)',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: 'var(--shadow-sm)',
-        transition: 'all var(--transition-normal)',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--primary)';
-        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-        e.currentTarget.style.transform = 'translateY(-3px)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-        e.currentTarget.style.transform = 'translateY(0)';
-      }}
-    >
-      {/* Event Image Banner (135px height, compact crop) */}
+  // Render Full-Width Registered Event Card
+  const renderRegisteredEventCard = (event) => {
+    const isCompleted = Boolean(event.isCompleted);
+    const hasResults = Boolean(event.hasResults);
+    const resultsPublished = Boolean(event.resultsPublished);
+    const resultsAwaited = isCompleted && hasResults && !resultsPublished;
+    const isWinner = Boolean(event.resultDetails?.isWinner);
+
+    return (
       <div
+        key={event._id || event.registrationId}
         style={{
-          height: '135px',
-          position: 'relative',
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-xl)',
           overflow: 'hidden',
-          background: 'var(--bg-elevated)',
-        }}
-      >
-        <img
-          src={event.eventImage}
-          alt={event.eventTitle}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            transition: 'transform 0.4s ease',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-          onError={(e) => {
-            e.currentTarget.src =
-              'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80';
-          }}
-        />
-
-        {/* Category Ribbon */}
-        <span
-          style={{
-            position: 'absolute',
-            top: '10px',
-            left: '10px',
-            padding: '3px 8px',
-            borderRadius: 'var(--radius-full)',
-            background: 'rgba(23, 23, 25, 0.75)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            color: '#FFF',
-            fontSize: '0.65rem',
-            fontWeight: '700',
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-            fontFamily: 'var(--font-mono)',
-          }}
-        >
-          {event.eventCategory || 'Campus'}
-        </span>
-      </div>
-
-      {/* Event Details Content */}
-      <div
-        style={{
-          padding: 'var(--space-4)',
           display: 'flex',
           flexDirection: 'column',
-          flex: 1,
-          justifyContent: 'space-between',
-          gap: '12px',
+          boxShadow: 'var(--shadow-sm)',
+          transition: 'all var(--transition-normal)',
+          height: '100%',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = 'var(--primary)';
+          e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+          e.currentTarget.style.transform = 'translateY(-3px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+          e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+          e.currentTarget.style.transform = 'translateY(0)';
         }}
       >
-        <div>
-          {/* Event Title */}
-          <h3
-            style={{
-              fontSize: 'var(--text-sm)',
-              fontWeight: '800',
-              color: 'var(--text-primary)',
-              fontFamily: 'var(--font-heading)',
-              margin: '0 0 8px',
-              lineHeight: 1.3,
-              display: '-webkit-box',
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-            title={event.eventTitle}
-          >
-            {event.eventTitle}
-          </h3>
-
-          {/* Meta: Date, Time & Venue */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '5px',
-              fontSize: '0.74rem',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Calendar size={13} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-              <span style={{ fontWeight: '600' }}>{formatDate(event.eventDate)}</span>
-              <span style={{ color: 'var(--text-muted)' }}>•</span>
-              <Clock size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-              <span style={{ color: 'var(--text-muted)' }}>
-                {event.eventTime ? event.eventTime.split('-')[0].trim() : 'TBA'}
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <MapPin size={13} style={{ color: 'var(--accent-secondary)', flexShrink: 0 }} />
-              <span
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '220px',
-                }}
-              >
-                {event.eventVenue || 'Campus Grounds'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Info: Pass Number & Entry Status */}
+        {/* Event Image Banner (140px height, compact proportion) */}
         <div
           style={{
-            paddingTop: '8px',
-            borderTop: '1px solid var(--border-subtle)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
+            height: '140px',
+            position: 'relative',
+            overflow: 'hidden',
+            background: 'var(--bg-elevated)',
           }}
         >
-          <div
+          <img
+            src={event.eventImage}
+            alt={event.eventTitle}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '8px',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transition: 'transform 0.4s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onError={(e) => {
+              e.currentTarget.src =
+                'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80';
+            }}
+          />
+
+          {/* Category Ribbon */}
+          <span
+            style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              padding: '3px 8px',
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(23, 23, 25, 0.78)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              color: '#FFF',
+              fontSize: '0.65rem',
+              fontWeight: '700',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              fontFamily: 'var(--font-mono)',
             }}
           >
+            {event.eventCategory || 'Campus'}
+          </span>
+
+          {/* Winner or Results Awaited Banner on Top Right */}
+          {resultsPublished && isWinner && (
             <span
               style={{
-                fontSize: '0.68rem',
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--text-muted)',
-                background: 'var(--bg-elevated)',
-                padding: '2px 6px',
-                borderRadius: 'var(--radius-sm)',
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                padding: '3px 9px',
+                borderRadius: 'var(--radius-full)',
+                background: 'rgba(217, 119, 6, 0.9)',
+                backdropFilter: 'blur(8px)',
+                color: '#FFF',
+                fontSize: '0.65rem',
+                fontWeight: '800',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
               }}
             >
-              #{event.passId || event.registrationId}
+              <Trophy size={11} />
+              {event.resultDetails?.rank ? event.resultDetails.rank.split('(')[0].trim() : 'Award Won'}
             </span>
+          )}
 
-            {renderEntryStatus(event.entryStatus)}
+          {resultsAwaited && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                padding: '3px 9px',
+                borderRadius: 'var(--radius-full)',
+                background: 'rgba(20, 184, 166, 0.88)',
+                backdropFilter: 'blur(8px)',
+                color: '#FFF',
+                fontSize: '0.65rem',
+                fontWeight: '800',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <Clock size={11} />
+              Results Awaited
+            </span>
+          )}
+        </div>
+
+        {/* Event Details Content */}
+        <div
+          style={{
+            padding: 'var(--space-4)',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div>
+            {/* Event Title */}
+            <h3
+              style={{
+                fontSize: 'var(--text-sm)',
+                fontWeight: '800',
+                color: 'var(--text-primary)',
+                fontFamily: 'var(--font-heading)',
+                margin: '0 0 8px',
+                lineHeight: 1.35,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                minHeight: '2.7em',
+              }}
+              title={event.eventTitle}
+            >
+              {event.eventTitle}
+            </h3>
+
+            {/* Meta: Date, Time & Venue */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                fontSize: '0.74rem',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Calendar size={13} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                <span style={{ fontWeight: '600' }}>{formatDate(event.eventDate)}</span>
+                <span style={{ color: 'var(--text-muted)' }}>•</span>
+                <Clock size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                <span style={{ color: 'var(--text-muted)' }}>
+                  {event.eventTime ? event.eventTime.split('-')[0].trim() : 'TBA'}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MapPin size={13} style={{ color: 'var(--accent-secondary)', flexShrink: 0 }} />
+                <span
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '260px',
+                  }}
+                >
+                  {event.eventVenue || 'Campus Grounds'}
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* View Digital Pass Button */}
-          <Button
-            variant="secondary"
-            size="sm"
-            fullWidth
-            icon={Ticket}
-            onClick={() => navigate(`/app/passes/${event.passId || event.registrationId}`)}
+          {/* Bottom Controls: Pass ID, Entry Status & Action Buttons */}
+          <div
             style={{
-              fontSize: 'var(--text-xs)',
-              padding: '6px 12px',
+              paddingTop: '10px',
+              borderTop: '1px solid var(--border-subtle)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
             }}
           >
-            View Digital Pass
-          </Button>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '0.68rem',
+                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-muted)',
+                  background: 'var(--bg-elevated)',
+                  padding: '2px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+              >
+                #{event.passId || event.registrationId}
+              </span>
+
+              {renderEntryStatus(event.entryStatus)}
+            </div>
+
+            {/* Action Buttons: View Results (when published) + View Digital Pass */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: resultsPublished ? '1fr 1fr' : '1fr',
+                gap: '8px',
+              }}
+            >
+              {resultsPublished && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={Trophy}
+                  onClick={() => {
+                    setSelectedEventForResult(event);
+                    setResultModalOpen(true);
+                  }}
+                  style={{
+                    fontSize: 'var(--text-xs)',
+                    padding: '6px 10px',
+                  }}
+                >
+                  View Results
+                </Button>
+              )}
+
+              <Button
+                variant="secondary"
+                size="sm"
+                fullWidth={!resultsPublished}
+                icon={Ticket}
+                onClick={() => navigate(`/app/passes/${event.passId || event.registrationId}`)}
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  padding: '6px 10px',
+                }}
+              >
+                View Digital Pass
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div
@@ -457,7 +547,7 @@ export const OverviewPage = () => {
                 fontWeight: '500',
               }}
             >
-              Your campus activities at a glance.
+              Here's what's happening with your campus events.
             </p>
           </div>
         </div>
@@ -569,12 +659,7 @@ export const OverviewPage = () => {
             >
               Registered Events
             </div>
-            <div
-              style={{
-                fontSize: '0.68rem',
-                color: 'var(--text-muted)',
-              }}
-            >
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
               Total active registrations
             </div>
           </div>
@@ -639,12 +724,7 @@ export const OverviewPage = () => {
             >
               Upcoming Events
             </div>
-            <div
-              style={{
-                fontSize: '0.68rem',
-                color: 'var(--text-muted)',
-              }}
-            >
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
               Scheduled in future
             </div>
           </div>
@@ -709,12 +789,7 @@ export const OverviewPage = () => {
             >
               Admitted / Checked In
             </div>
-            <div
-              style={{
-                fontSize: '0.68rem',
-                color: 'var(--text-muted)',
-              }}
-            >
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
               Gate admissions scanned
             </div>
           </div>
@@ -779,488 +854,229 @@ export const OverviewPage = () => {
             >
               Completed Events
             </div>
-            <div
-              style={{
-                fontSize: '0.68rem',
-                color: 'var(--text-muted)',
-              }}
-            >
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
               Past events concluded
             </div>
           </div>
         </div>
       </section>
 
-      {/* 3. MAIN CONTENT AREA — 60:40 BALANCED LAYOUT */}
+      {/* 3. FULL-WIDTH PRIMARY CONTENT: MY REGISTERED EVENTS (NO 60:40, NO SCHEDULE) */}
       <section
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)',
-          gap: 'var(--space-6)',
-          alignItems: 'start',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-5)',
+          width: '100%',
         }}
-        className="dashboard-main-grid"
       >
-        {/* LEFT COLUMN — 60%: MY REGISTERED EVENTS (GROWS NATURALLY) */}
+        {/* Section Header */}
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-4)',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
           }}
         >
-          {/* Section Header */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '12px',
-            }}
-          >
-            <div>
-              <h2
-                style={{
-                  fontSize: 'var(--text-lg)',
-                  fontWeight: '800',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-heading)',
-                  margin: 0,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                My Registered Events
-              </h2>
-              <p
-                style={{
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--text-secondary)',
-                  margin: '3px 0 0',
-                }}
-              >
-                Your campus events, registrations and entry status.
-              </p>
-            </div>
-
-            <Link
-              to="/app/registrations"
+          <div>
+            <h2
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: 'var(--text-xs)',
-                fontWeight: '700',
-                color: 'var(--primary)',
-                textDecoration: 'none',
-                padding: '4px 8px',
-                borderRadius: 'var(--radius-md)',
-                transition: 'background var(--transition-fast)',
+                fontSize: 'var(--text-lg)',
+                fontWeight: '800',
+                color: 'var(--text-primary)',
+                fontFamily: 'var(--font-heading)',
+                margin: 0,
+                letterSpacing: '-0.02em',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-elevated)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             >
-              <span>View All Registrations</span>
-              <ArrowRight size={13} />
-            </Link>
+              My Registered Events
+            </h2>
+            <p
+              style={{
+                fontSize: 'var(--text-xs)',
+                color: 'var(--text-secondary)',
+                margin: '3px 0 0',
+              }}
+            >
+              Your registered campus events, digital passes and entry statuses in chronological order.
+            </p>
           </div>
 
-          {/* Registered Events 2-Column Grid (Unrestricted, grows downward seamlessly) */}
-          {loading ? (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                gap: 'var(--space-4)',
-              }}
-            >
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  style={{
-                    height: '280px',
-                    borderRadius: 'var(--radius-xl)',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    animation: 'pulse 1.5s infinite',
-                  }}
-                />
-              ))}
-            </div>
-          ) : registeredEvents.length === 0 ? (
-            <div
-              style={{
-                padding: 'var(--space-10) var(--space-6)',
-                borderRadius: 'var(--radius-xl)',
-                background: 'var(--bg-secondary)',
-                border: '1.5px dashed var(--border-subtle)',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ticket size={40} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
-              <h3
-                style={{
-                  fontSize: 'var(--text-base)',
-                  fontWeight: '700',
-                  color: 'var(--text-primary)',
-                  margin: 0,
-                }}
-              >
-                No Registrations Yet
-              </h3>
-              <p
-                style={{
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--text-secondary)',
-                  margin: '6px 0 16px',
-                  maxWidth: '360px',
-                }}
-              >
-                Explore exciting campus fests, workshops, and competitions to register and reserve your entry passes.
-              </p>
-              <Link to="/events">
-                <Button variant="primary" size="sm" icon={Compass}>
-                  Explore Events
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                gap: 'var(--space-4)',
-              }}
-            >
-              {leftEvents.map((event) => renderRegisteredEventCard(event))}
-            </div>
-          )}
+          <Link
+            to="/app/registrations"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: 'var(--text-xs)',
+              fontWeight: '700',
+              color: 'var(--primary)',
+              textDecoration: 'none',
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-subtle)',
+              transition: 'background var(--transition-fast)',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-elevated)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-secondary)')}
+          >
+            <span>View Permanent History</span>
+            <ArrowRight size={13} />
+          </Link>
         </div>
 
-        {/* RIGHT COLUMN — 40%: YOUR SCHEDULE + REGISTERED EVENT CARDS */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-6)',
-          }}
-        >
-          {/* 1. PRIMARY SECTION: YOUR SCHEDULE */}
+        {/* Loading State Skeleton */}
+        {loading ? (
+          <div className="gatherly-dashboard-grid">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                style={{
+                  height: '320px',
+                  borderRadius: 'var(--radius-xl)',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)',
+                  animation: 'pulse 1.5s infinite',
+                }}
+              />
+            ))}
+          </div>
+        ) : upcomingList.length === 0 && recentlyCompletedList.length === 0 ? (
+          /* Empty State */
           <div
             style={{
+              padding: 'var(--space-12) var(--space-6)',
+              borderRadius: 'var(--radius-xl)',
+              background: 'var(--bg-secondary)',
+              border: '1.5px dashed var(--border-subtle)',
+              textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
-              gap: 'var(--space-3)',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            {/* Schedule Header */}
-            <div
+            <Ticket size={44} style={{ color: 'var(--text-muted)', marginBottom: '14px' }} />
+            <h3
               style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '12px',
+                fontSize: 'var(--text-base)',
+                fontWeight: '700',
+                color: 'var(--text-primary)',
+                margin: 0,
               }}
             >
-              <div>
-                <h2
-                  style={{
-                    fontSize: 'var(--text-lg)',
-                    fontWeight: '800',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'var(--font-heading)',
-                    margin: 0,
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  Your Schedule
-                </h2>
-                <p
-                  style={{
-                    fontSize: 'var(--text-xs)',
-                    color: 'var(--text-secondary)',
-                    margin: '3px 0 0',
-                  }}
-                >
-                  Your upcoming registered events.
-                </p>
+              No Registered Events Yet
+            </h3>
+            <p
+              style={{
+                fontSize: 'var(--text-xs)',
+                color: 'var(--text-secondary)',
+                margin: '8px 0 18px',
+                maxWidth: '380px',
+              }}
+            >
+              Explore upcoming campus fests, workshops, coding hackathons and sports tourneys to reserve your entry pass.
+            </p>
+            <Link to="/events">
+              <Button variant="primary" size="sm" icon={Compass}>
+                Explore Campus Events
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* GROUP A: UPCOMING REGISTERED EVENTS (Chronological Order: Earliest First) */}
+            {upcomingList.length > 0 && (
+              <div className="gatherly-dashboard-grid">
+                {upcomingList.map((event) => renderRegisteredEventCard(event))}
               </div>
+            )}
 
-              {totalUpcomingSchedule > 5 && (
-                <Link
-                  to="/app/registrations"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontSize: 'var(--text-xs)',
-                    fontWeight: '700',
-                    color: 'var(--primary)',
-                    textDecoration: 'none',
-                  }}
-                >
-                  <span>View Full Schedule</span>
-                  <ArrowRight size={12} />
-                </Link>
-              )}
-            </div>
-
-            {/* Schedule Container */}
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-xl)',
-                padding: 'var(--space-4)',
-                boxShadow: 'var(--shadow-sm)',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              {loading ? (
+            {/* GROUP B: RECENTLY COMPLETED EVENTS (Retained under 7-Day Result Announcement Rule) */}
+            {recentlyCompletedList.length > 0 && (
+              <div style={{ marginTop: 'var(--space-4)' }}>
                 <div
                   style={{
-                    padding: 'var(--space-8)',
-                    textAlign: 'center',
-                    color: 'var(--text-secondary)',
-                    fontSize: 'var(--text-xs)',
-                  }}
-                >
-                  Loading upcoming schedule...
-                </div>
-              ) : upcomingSchedule.length === 0 ? (
-                <div
-                  style={{
-                    padding: 'var(--space-8) var(--space-4)',
-                    textAlign: 'center',
                     display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                    paddingTop: 'var(--space-6)',
+                    borderTop: '1px solid var(--border-subtle)',
+                    marginBottom: 'var(--space-4)',
                   }}
                 >
-                  <Calendar size={36} style={{ color: 'var(--text-muted)', marginBottom: '10px' }} />
-                  <h3
-                    style={{
-                      fontSize: 'var(--text-sm)',
-                      fontWeight: '700',
-                      color: 'var(--text-primary)',
-                      margin: 0,
-                    }}
-                  >
-                    No upcoming events
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: 'var(--text-xs)',
-                      color: 'var(--text-secondary)',
-                      margin: '6px 0 14px',
-                      maxWidth: '280px',
-                    }}
-                  >
-                    Discover campus events and register for something exciting.
-                  </p>
-                  <Link to="/events">
-                    <Button variant="primary" size="xs" icon={Compass}>
-                      Explore Events
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {upcomingSchedule.map((item, index) => {
-                    const isLast = index === upcomingSchedule.length - 1;
-
-                    return (
-                      <div
-                        key={item._id || item.registrationId}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <h3
                         style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '14px',
-                          padding: '12px 10px',
-                          borderRadius: 'var(--radius-md)',
-                          background: item.isNext ? 'var(--bg-elevated)' : 'transparent',
-                          border: item.isNext ? '1px solid var(--primary)' : '1px solid transparent',
-                          borderBottom: !isLast && !item.isNext ? '1px solid var(--border-subtle)' : undefined,
-                          marginBottom: item.isNext ? '8px' : '0',
-                          transition: 'background var(--transition-fast)',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!item.isNext) e.currentTarget.style.background = 'var(--bg-hover)';
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!item.isNext) e.currentTarget.style.background = 'transparent';
+                          fontSize: 'var(--text-base)',
+                          fontWeight: '800',
+                          color: 'var(--text-primary)',
+                          fontFamily: 'var(--font-heading)',
+                          margin: 0,
                         }}
                       >
-                        {/* Date Badge */}
-                        <div
-                          style={{
-                            width: '48px',
-                            height: '52px',
-                            borderRadius: 'var(--radius-md)',
-                            background: item.isToday
-                              ? 'linear-gradient(135deg, var(--primary) 0%, var(--accent-secondary) 100%)'
-                              : 'var(--bg-elevated)',
-                            border: item.isToday ? 'none' : '1px solid var(--border-subtle)',
-                            color: item.isToday ? 'var(--text-inverse)' : 'var(--text-primary)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                            boxShadow: item.isToday ? 'var(--shadow-sm)' : 'none',
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: '0.62rem',
-                              fontWeight: '800',
-                              letterSpacing: '0.06em',
-                              textTransform: 'uppercase',
-                              fontFamily: 'var(--font-mono)',
-                              lineHeight: 1,
-                            }}
-                          >
-                            {item.dateBadge?.month || 'DATE'}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '1.15rem',
-                              fontWeight: '800',
-                              fontFamily: 'var(--font-heading)',
-                              lineHeight: 1.1,
-                              marginTop: '2px',
-                            }}
-                          >
-                            {item.dateBadge?.day || '--'}
-                          </span>
-                        </div>
+                        Recently Completed
+                      </h3>
+                      <span
+                        style={{
+                          fontSize: '0.68rem',
+                          fontWeight: '700',
+                          color: 'var(--primary)',
+                          background: 'var(--bg-elevated)',
+                          padding: '2px 8px',
+                          borderRadius: 'var(--radius-full)',
+                          border: '1px solid var(--border-subtle)',
+                        }}
+                      >
+                        Results & Prize Access
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', margin: '3px 0 0' }}>
+                      Competitions remain accessible for one week following official result publication.
+                    </p>
+                  </div>
 
-                        {/* Event Meta */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              flexWrap: 'wrap',
-                              gap: '6px',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            {item.isToday && (
-                              <span
-                                style={{
-                                  fontSize: '0.62rem',
-                                  fontWeight: '800',
-                                  padding: '1px 6px',
-                                  borderRadius: 'var(--radius-full)',
-                                  background: 'var(--primary)',
-                                  color: 'var(--text-inverse)',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.04em',
-                                }}
-                              >
-                                Today
-                              </span>
-                            )}
-
-                            {item.isNext && !item.isToday && (
-                              <span
-                                style={{
-                                  fontSize: '0.62rem',
-                                  fontWeight: '800',
-                                  padding: '1px 6px',
-                                  borderRadius: 'var(--radius-full)',
-                                  background: 'var(--accent-secondary)',
-                                  color: 'var(--text-inverse)',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.04em',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '3px',
-                                }}
-                              >
-                                <Sparkles size={10} />
-                                Next Event
-                              </span>
-                            )}
-
-                            <h4
-                              style={{
-                                fontSize: 'var(--text-xs)',
-                                fontWeight: '700',
-                                color: 'var(--text-primary)',
-                                fontFamily: 'var(--font-heading)',
-                                margin: 0,
-                                lineHeight: 1.3,
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                flex: 1,
-                              }}
-                              title={item.eventTitle}
-                            >
-                              {item.eventTitle}
-                            </h4>
-                          </div>
-
-                          {/* Time & Venue */}
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '3px',
-                              fontSize: '0.7rem',
-                              color: 'var(--text-muted)',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <Clock size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                              <span>{item.eventTime || 'Time TBA'}</span>
-                            </div>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <MapPin size={11} style={{ color: 'var(--accent-secondary)', flexShrink: 0 }} />
-                              <span
-                                style={{
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                }}
-                              >
-                                {item.eventVenue || 'Campus Venue'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <Link
+                    to="/app/registrations"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: 'var(--text-xs)',
+                      fontWeight: '700',
+                      color: 'var(--text-muted)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <span>Archive in My Registrations</span>
+                    <ArrowRight size={12} />
+                  </Link>
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* 2. REGISTERED EVENT CARDS BELOW YOUR SCHEDULE */}
-          {rightEvents && rightEvents.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--space-4)',
-              }}
-            >
-              {rightEvents.map((event) => renderRegisteredEventCard(event))}
-            </div>
-          )}
-        </div>
+                <div className="gatherly-dashboard-grid">
+                  {recentlyCompletedList.map((event) => renderRegisteredEventCard(event))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </section>
+
+      {/* 4. OFFICIAL EVENT RESULT & PRIZE MODAL */}
+      <StudentResultModal
+        isOpen={resultModalOpen}
+        onClose={() => {
+          setResultModalOpen(false);
+          setSelectedEventForResult(null);
+        }}
+        event={selectedEventForResult}
+      />
     </div>
   );
 };

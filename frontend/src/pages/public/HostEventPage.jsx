@@ -115,3 +115,4 @@ export const HostEventPage = () => {
 };
 
 export default HostEventPage;
+

@@ -11,10 +11,12 @@ import {
   Compass,
   ArrowRight,
   Trash2,
+  Trophy,
 } from 'lucide-react';
 import { registrationService } from '../../services/registrationService';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
+import { StudentResultModal } from '../../components/events/StudentResultModal';
 
 export const RegistrationsPage = () => {
   const [registrations, setRegistrations] = useState([]);
@@ -22,6 +24,8 @@ export const RegistrationsPage = () => {
   const [filter, setFilter] = useState('all');
   const [actionError, setActionError] = useState('');
   const [cancellingId, setCancellingId] = useState(null);
+  const [resultModalOpen, setResultModalOpen] = useState(false);
+  const [selectedResultEvent, setSelectedResultEvent] = useState(null);
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -224,8 +228,24 @@ export const RegistrationsPage = () => {
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '140px' }}>
+                {reg.resultsPublished && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    fullWidth
+                    icon={Trophy}
+                    onClick={() => {
+                      setSelectedResultEvent(reg);
+                      setResultModalOpen(true);
+                    }}
+                    style={{ fontSize: 'var(--text-xs)' }}
+                  >
+                    View Results
+                  </Button>
+                )}
+
                 <Link to={`/app/passes/${reg.passId || reg.registrationId}`} style={{ textDecoration: 'none' }}>
-                  <Button variant="primary" size="sm" fullWidth icon={Ticket}>
+                  <Button variant={reg.resultsPublished ? 'secondary' : 'primary'} size="sm" fullWidth icon={Ticket}>
                     Digital Pass
                   </Button>
                 </Link>
@@ -253,6 +273,16 @@ export const RegistrationsPage = () => {
           ))}
         </div>
       )}
+
+      {/* Official Results Modal */}
+      <StudentResultModal
+        isOpen={resultModalOpen}
+        onClose={() => {
+          setResultModalOpen(false);
+          setSelectedResultEvent(null);
+        }}
+        event={selectedResultEvent}
+      />
     </div>
   );
 };
