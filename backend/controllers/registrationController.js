@@ -346,20 +346,76 @@ const cancelRegistration = async (req, res, next) => {
 const computeRegistrationLifecycle = (reg) => {
   const isCancelled = reg.status === 'cancelled';
   const isCheckedIn = Boolean(reg.checkedIn);
-
   const now = new Date();
-  let eventEndDate = reg.eventEndDate || reg.eventDate;
-  let isCompleted = false;
 
-  if (eventEndDate) {
-    const endDateTime = new Date(`${eventEndDate}T23:59:59`);
-    if (!isNaN(endDateTime.getTime()) && endDateTime < now) {
+  // Normalize dates
+  const startDateStr = reg.eventDate;
+  const endDateStr = reg.eventEndDate || reg.eventDate;
+
+  // Exact start and end datetime parsing
+  let startDateTime = null;
+  if (startDateStr) {
+    let startTimeStr = '00:00:00';
+    if (reg.eventTime) {
+      const match = reg.eventTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (match) {
+        let hours = parseInt(match[1], 10);
+        const minutes = match[2];
+        const ampm = match[3].toUpperCase();
+        if (ampm === 'PM' && hours < 12) hours += 12;
+        if (ampm === 'AM' && hours === 12) hours = 0;
+        startTimeStr = `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+      }
+    }
+    startDateTime = new Date(`${startDateStr}T${startTimeStr}`);
+  }
+
+  let endDateTime = null;
+  if (endDateStr) {
+    let endTimeStr = '23:59:59';
+    if (reg.eventTime && reg.eventTime.includes('-')) {
+      const parts = reg.eventTime.split('-');
+      const endPart = parts[1].replace(/IST|UTC|EST/i, '').trim();
+      const match = endPart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (match) {
+        let hours = parseInt(match[1], 10);
+        const minutes = match[2];
+        const ampm = match[3].toUpperCase();
+        if (ampm === 'PM' && hours < 12) hours += 12;
+        if (ampm === 'AM' && hours === 12) hours = 0;
+        endTimeStr = `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+      }
+    }
+    endDateTime = new Date(`${endDateStr}T${endTimeStr}`);
+  }
+
+  // Check if today
+  let isToday = false;
+  if (startDateStr) {
+    const todayISO = now.toISOString().split('T')[0];
+    const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    if (startDateStr === todayISO || startDateStr === localToday) {
+      isToday = true;
+    }
+  }
+
+  // Completed check: end date/time has passed
+  let isCompleted = false;
+  if (endDateTime && !isNaN(endDateTime.getTime())) {
+    if (endDateTime < now) {
+      isCompleted = true;
+    }
+  } else if (endDateStr) {
+    const defaultEnd = new Date(`${endDateStr}T23:59:59`);
+    if (!isNaN(defaultEnd.getTime()) && defaultEnd < now) {
       isCompleted = true;
     }
   }
 
+  // Upcoming check: not completed and not cancelled
   const isUpcoming = !isCompleted && !isCancelled;
 
+  // Entry status mapping strictly matching requirements
   let entryStatus = {
     code: 'ready_for_entry',
     label: 'Ready for Entry',
@@ -391,18 +447,35 @@ const computeRegistrationLifecycle = (reg) => {
     };
   }
 
+  // Prepare small date badge object
+  let dateBadge = { month: 'TBD', day: '--', weekday: '' };
+  if (startDateStr) {
+    const d = new Date(`${startDateStr}T12:00:00`);
+    if (!isNaN(d.getTime())) {
+      dateBadge = {
+        month: d.toLocaleString('en-US', { month: 'short' }).toUpperCase(),
+        day: d.toLocaleString('en-US', { day: '2-digit' }),
+        weekday: d.toLocaleString('en-US', { weekday: 'short' }),
+      };
+    }
+  }
+
   return {
     isCancelled,
     isCheckedIn,
     isCompleted,
     isUpcoming,
+    isToday,
+    startDateTime,
+    endDateTime,
     entryStatus,
+    dateBadge,
   };
 };
 
 /**
  * @route   GET /api/registrations/dashboard-summary
- * @desc    Get compact student activity overview statistics and registered events
+ * @desc    Get compact student activity overview statistics, 60:40 registered events & schedule
  * @access  Protected
  */
 const getDashboardSummary = async (req, res, next) => {
@@ -428,7 +501,7 @@ const getDashboardSummary = async (req, res, next) => {
     let admittedCount = 0;
     let completedCount = 0;
 
-    const enrichedEvents = registrations.map((reg) => {
+    const enriched = registrations.map((reg) => {
       const lifecycle = computeRegistrationLifecycle(reg);
 
       if (!lifecycle.isCancelled) {
@@ -446,17 +519,38 @@ const getDashboardSummary = async (req, res, next) => {
         entryStatus: lifecycle.entryStatus,
         isCompleted: lifecycle.isCompleted,
         isUpcoming: lifecycle.isUpcoming,
+        isToday: lifecycle.isToday,
+        startDateTime: lifecycle.startDateTime ? lifecycle.startDateTime.toISOString() : null,
+        endDateTime: lifecycle.endDateTime ? lifecycle.endDateTime.toISOString() : null,
+        dateBadge: lifecycle.dateBadge,
       };
     });
 
-    // Sort registered events: Upcoming first (by eventDate asc), then Completed, then Cancelled
-    enrichedEvents.sort((a, b) => {
+    // 1. Registered Events (Left Column preview):
+    // Sort: Upcoming events first (closest start date), then recently completed, then cancelled
+    const sortedForRegistered = [...enriched].sort((a, b) => {
       if (a.isUpcoming && !b.isUpcoming) return -1;
       if (!a.isUpcoming && b.isUpcoming) return 1;
-      if (a.isCompleted && !b.isCompleted) return -1;
-      if (!a.isCompleted && b.isCompleted) return 1;
-      return new Date(a.eventDate) - new Date(b.eventDate);
+      if (a.isUpcoming && b.isUpcoming) {
+        return new Date(a.startDateTime || a.eventDate) - new Date(b.startDateTime || b.eventDate);
+      }
+      return new Date(b.eventDate) - new Date(a.eventDate);
     });
+
+    // Limit to max 4 cards for My Registered Events preview
+    const registeredPreview = sortedForRegistered.slice(0, 4);
+
+    // 2. Your Schedule (Right Column):
+    // Upcoming only, sorted chronologically ascending by start date/time
+    const upcomingEvents = enriched
+      .filter((reg) => reg.isUpcoming && !reg.isCancelled)
+      .sort((a, b) => new Date(a.startDateTime || a.eventDate) - new Date(b.startDateTime || b.eventDate));
+
+    // Mark the nearest upcoming event as `isNext: true`
+    const scheduleItems = upcomingEvents.slice(0, 5).map((item, idx) => ({
+      ...item,
+      isNext: idx === 0,
+    }));
 
     return res.status(200).json({
       success: true,
@@ -470,6 +564,8 @@ const getDashboardSummary = async (req, res, next) => {
           id: req.user.id,
           fullName: req.user.fullName,
           email: req.user.email,
+          studentId: req.user.studentId,
+          department: req.user.department,
           role: req.user.role,
         },
         stats: {
@@ -478,7 +574,10 @@ const getDashboardSummary = async (req, res, next) => {
           admittedEvents: admittedCount,
           completedEvents: completedCount,
         },
-        registeredEvents: enrichedEvents,
+        registeredEvents: registeredPreview,
+        allRegisteredCount: registeredCount,
+        upcomingSchedule: scheduleItems,
+        totalUpcomingSchedule: upcomingEvents.length,
       },
     });
   } catch (error) {

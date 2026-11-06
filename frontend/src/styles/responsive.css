@@ -35,6 +35,11 @@
   .show-below-desktop {
     display: block !important;
   }
+
+  /* 60:40 Dashboard grid stacks gracefully on tablet/mobile */
+  .dashboard-main-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Desktop and wider (1024px and up) */

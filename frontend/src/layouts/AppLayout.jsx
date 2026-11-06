@@ -1,60 +1,47 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { AppSidebar } from '../components/navigation/AppSidebar';
-import { AppTopbar } from '../components/navigation/AppTopbar';
-import { MobileDrawer } from '../components/navigation/MobileDrawer';
+import { PublicNavbar } from '../components/navigation/PublicNavbar';
+import { PublicFooter } from '../components/navigation/PublicFooter';
 
+/**
+ * AppLayout — Unified Campus Layout for Authenticated Pages
+ * 
+ * Replaces the old left sidebar navigation with a full-width horizontal
+ * authenticated navbar layout, giving students maximum screen real estate
+ * and a cohesive experience across public and private portal areas.
+ */
 export const AppLayout = () => {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-
   return (
     <div
       style={{
         display: 'flex',
+        flexDirection: 'column',
         minHeight: '100vh',
         background: 'var(--bg-primary)',
         color: 'var(--text-primary)',
       }}
     >
-      {/* Desktop Collapsible Sidebar */}
-      <AppSidebar
-        isCollapsed={isSidebarCollapsed}
-        setIsCollapsed={setIsSidebarCollapsed}
-      />
+      {/* Horizontal Authenticated Navbar */}
+      <PublicNavbar />
 
-      {/* Mobile Drawer */}
-      <MobileDrawer
-        isOpen={isMobileDrawerOpen}
-        onClose={() => setIsMobileDrawerOpen(false)}
-      />
-
-      {/* Main Content Area */}
-      <div
+      {/* Main Full-Width Content Container */}
+      <main
         style={{
           flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          minWidth: 0,
-          overflowX: 'hidden',
+          width: '100%',
+          maxWidth: '1440px',
+          margin: '0 auto',
+          padding: 'var(--space-8) var(--space-6)',
+          boxSizing: 'border-box',
         }}
       >
-        <AppTopbar onMobileToggle={() => setIsMobileDrawerOpen(true)} />
-        <main
-          style={{
-            flex: 1,
-            padding: 'var(--space-6)',
-            maxWidth: 'var(--container-max)',
-            width: '100%',
-            margin: '0 auto',
-          }}
-        >
-          <Outlet />
-        </main>
-      </div>
+        <Outlet />
+      </main>
+
+      {/* Standard Campus Footer */}
+      <PublicFooter />
     </div>
   );
 };
 
 export default AppLayout;
-

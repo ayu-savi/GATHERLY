@@ -11,7 +11,7 @@
 
 GATHERLY utilizes a clear, predictable, and robust hierarchical route architecture. To deliver both a welcoming public website and a high-productivity student application workspace, the site implements two primary layout shells:
 1. **Public Layout (`PublicLayout.jsx`):** Transparent/glassmorphic sticky top navbar, full-width responsive landing views, and deep footer.
-2. **Application Layout (`AppLayout.jsx`):** Productive workspace featuring a collapsible desktop sidebar, sticky application topbar with breadcrumbs and global actions, mobile drawer, and dedicated page views.
+2. **Application Layout (`AppLayout.jsx`):** Unified horizontal authenticated navbar with student avatar dropdown, full-width responsive workspace (no permanent left sidebar), and standard campus footer.
 
 All navigation links are strictly wired to real routes. There are **zero dead-ends, zero empty dummy anchors (`#`), and zero placeholder links**.
 

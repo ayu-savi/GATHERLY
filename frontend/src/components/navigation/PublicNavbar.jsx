@@ -10,6 +10,7 @@ import {
   ChevronDown,
   LayoutDashboard,
   ShieldCheck,
+  Settings as SettingsIcon,
   ArrowRight,
   Menu,
   X,
@@ -352,6 +353,27 @@ export const PublicNavbar = () => {
                       </Link>
 
                       <Link
+                        to="/app/profile"
+                        onClick={() => setUserDropdownOpen(false)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '8px 10px',
+                          borderRadius: 'var(--radius-md)',
+                          fontSize: 'var(--text-xs)',
+                          color: 'var(--text-secondary)',
+                          textDecoration: 'none',
+                          transition: 'background var(--transition-fast)',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <User size={14} style={{ color: 'var(--primary)' }} />
+                        <span>Student Profile</span>
+                      </Link>
+
+                      <Link
                         to="/app/registrations"
                         onClick={() => setUserDropdownOpen(false)}
                         style={{
@@ -412,6 +434,27 @@ export const PublicNavbar = () => {
                       >
                         <ShieldCheck size={14} style={{ color: 'var(--text-muted)' }} />
                         <span>Gate Verifier</span>
+                      </Link>
+
+                      <Link
+                        to="/app/settings"
+                        onClick={() => setUserDropdownOpen(false)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '8px 10px',
+                          borderRadius: 'var(--radius-md)',
+                          fontSize: 'var(--text-xs)',
+                          color: 'var(--text-secondary)',
+                          textDecoration: 'none',
+                          transition: 'background var(--transition-fast)',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <SettingsIcon size={14} style={{ color: 'var(--text-muted)' }} />
+                        <span>Settings</span>
                       </Link>
                     </div>
 
@@ -594,6 +637,63 @@ export const PublicNavbar = () => {
                 >
                   <Ticket size={18} />
                   <span>My Digital Passes</span>
+                </NavLink>
+
+                <NavLink
+                  to="/app/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={({ isActive }) => ({
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--text-base)',
+                    fontWeight: 'var(--weight-medium)',
+                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                    textDecoration: 'none',
+                  })}
+                >
+                  <User size={18} />
+                  <span>Student Profile</span>
+                </NavLink>
+
+                <NavLink
+                  to="/app/pass-verifier"
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={({ isActive }) => ({
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--text-base)',
+                    fontWeight: 'var(--weight-medium)',
+                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                    textDecoration: 'none',
+                  })}
+                >
+                  <ShieldCheck size={18} />
+                  <span>Gate Verifier</span>
+                </NavLink>
+
+                <NavLink
+                  to="/app/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={({ isActive }) => ({
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--text-base)',
+                    fontWeight: 'var(--weight-medium)',
+                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                    textDecoration: 'none',
+                  })}
+                >
+                  <SettingsIcon size={18} />
+                  <span>Settings</span>
                 </NavLink>
               </>
             )}

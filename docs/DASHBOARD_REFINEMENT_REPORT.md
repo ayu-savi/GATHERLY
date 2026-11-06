@@ -174,3 +174,4 @@ Cards contain strictly essential information in a 150px-height image card format
 
 - **Phase 4**: Event Exploration Catalog (`/events`), category filtering, full-text keyword search, and quick-view modals.
 - **Phase 5**: Real-time capacity seat indicators and live event countdown timers.
+
