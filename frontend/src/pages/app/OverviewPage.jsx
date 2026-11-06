@@ -13,6 +13,8 @@ import {
   RefreshCw,
   Sparkles,
   Check,
+  Activity,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { registrationService } from '../../services/registrationService';
@@ -34,6 +36,8 @@ export const OverviewPage = () => {
     registeredEvents: [],
     upcomingSchedule: [],
     totalUpcomingSchedule: 0,
+    recentActivity: [],
+    activitySummary: null,
   });
 
   const loadDashboard = async () => {
@@ -56,7 +60,7 @@ export const OverviewPage = () => {
     loadDashboard();
   }, []);
 
-  const { stats, registeredEvents, upcomingSchedule, totalUpcomingSchedule } = dashboardData;
+  const { stats, registeredEvents, upcomingSchedule, totalUpcomingSchedule, recentActivity } = dashboardData;
   const studentName = user?.fullName || dashboardData.student?.fullName || 'Student';
 
   // Date formatting helper
@@ -589,7 +593,7 @@ export const OverviewPage = () => {
         </div>
       </section>
 
-      {/* 3. MAIN CONTENT AREA — 60:40 LAYOUT */}
+      {/* 3. MAIN CONTENT AREA — 60:40 BALANCED LAYOUT */}
       <section
         style={{
           display: 'grid',
@@ -599,7 +603,7 @@ export const OverviewPage = () => {
         }}
         className="dashboard-main-grid"
       >
-        {/* LEFT COLUMN — 60%: MY REGISTERED EVENTS */}
+        {/* LEFT COLUMN — 60%: MY REGISTERED EVENTS (GROWS NATURALLY) */}
         <div
           style={{
             display: 'flex',
@@ -663,7 +667,7 @@ export const OverviewPage = () => {
             </Link>
           </div>
 
-          {/* Registered Events 2x2 Grid */}
+          {/* Registered Events 2-Column Grid (Unrestricted, grows downward seamlessly) */}
           {loading ? (
             <div
               style={{
@@ -672,7 +676,7 @@ export const OverviewPage = () => {
                 gap: 'var(--space-4)',
               }}
             >
-              {[1, 2].map((i) => (
+              {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
                   style={{
@@ -930,51 +934,356 @@ export const OverviewPage = () => {
           )}
         </div>
 
-        {/* RIGHT COLUMN — 40%: YOUR SCHEDULE */}
+        {/* RIGHT COLUMN — 40%: YOUR SCHEDULE + YOUR EVENT ACTIVITY */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--space-4)',
+            gap: 'var(--space-6)',
           }}
         >
-          {/* Section Header */}
+          {/* 1. PRIMARY SECTION: YOUR SCHEDULE */}
           <div
             style={{
               display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '12px',
+              flexDirection: 'column',
+              gap: 'var(--space-3)',
             }}
           >
-            <div>
-              <h2
-                style={{
-                  fontSize: 'var(--text-lg)',
-                  fontWeight: '800',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-heading)',
-                  margin: 0,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                Your Schedule
-              </h2>
-              <p
-                style={{
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--text-secondary)',
-                  margin: '3px 0 0',
-                }}
-              >
-                Your upcoming registered events.
-              </p>
+            {/* Schedule Header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontSize: 'var(--text-lg)',
+                    fontWeight: '800',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'var(--font-heading)',
+                    margin: 0,
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  Your Schedule
+                </h2>
+                <p
+                  style={{
+                    fontSize: 'var(--text-xs)',
+                    color: 'var(--text-secondary)',
+                    margin: '3px 0 0',
+                  }}
+                >
+                  Your upcoming registered events.
+                </p>
+              </div>
+
+              {totalUpcomingSchedule > 5 && (
+                <Link
+                  to="/app/registrations"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: 'var(--text-xs)',
+                    fontWeight: '700',
+                    color: 'var(--primary)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <span>View Full Schedule</span>
+                  <ArrowRight size={12} />
+                </Link>
+              )}
             </div>
 
-            {totalUpcomingSchedule > 5 && (
+            {/* Schedule Container */}
+            <div
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-xl)',
+                padding: 'var(--space-4)',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              {loading ? (
+                <div
+                  style={{
+                    padding: 'var(--space-8)',
+                    textAlign: 'center',
+                    color: 'var(--text-secondary)',
+                    fontSize: 'var(--text-xs)',
+                  }}
+                >
+                  Loading upcoming schedule...
+                </div>
+              ) : upcomingSchedule.length === 0 ? (
+                <div
+                  style={{
+                    padding: 'var(--space-8) var(--space-4)',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Calendar size={36} style={{ color: 'var(--text-muted)', marginBottom: '10px' }} />
+                  <h3
+                    style={{
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: '700',
+                      color: 'var(--text-primary)',
+                      margin: 0,
+                    }}
+                  >
+                    No upcoming events
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: 'var(--text-xs)',
+                      color: 'var(--text-secondary)',
+                      margin: '6px 0 14px',
+                      maxWidth: '280px',
+                    }}
+                  >
+                    Discover campus events and register for something exciting.
+                  </p>
+                  <Link to="/events">
+                    <Button variant="primary" size="xs" icon={Compass}>
+                      Explore Events
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {upcomingSchedule.map((item, index) => {
+                    const isLast = index === upcomingSchedule.length - 1;
+
+                    return (
+                      <div
+                        key={item._id || item.registrationId}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '14px',
+                          padding: '12px 10px',
+                          borderRadius: 'var(--radius-md)',
+                          background: item.isNext ? 'var(--bg-elevated)' : 'transparent',
+                          border: item.isNext ? '1px solid var(--primary)' : '1px solid transparent',
+                          borderBottom: !isLast && !item.isNext ? '1px solid var(--border-subtle)' : undefined,
+                          marginBottom: item.isNext ? '8px' : '0',
+                          transition: 'background var(--transition-fast)',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!item.isNext) e.currentTarget.style.background = 'var(--bg-hover)';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!item.isNext) e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        {/* Date Badge */}
+                        <div
+                          style={{
+                            width: '48px',
+                            height: '52px',
+                            borderRadius: 'var(--radius-md)',
+                            background: item.isToday
+                              ? 'linear-gradient(135deg, var(--primary) 0%, var(--accent-secondary) 100%)'
+                              : 'var(--bg-elevated)',
+                            border: item.isToday ? 'none' : '1px solid var(--border-subtle)',
+                            color: item.isToday ? 'var(--text-inverse)' : 'var(--text-primary)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            boxShadow: item.isToday ? 'var(--shadow-sm)' : 'none',
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: '0.62rem',
+                              fontWeight: '800',
+                              letterSpacing: '0.06em',
+                              textTransform: 'uppercase',
+                              fontFamily: 'var(--font-mono)',
+                              lineHeight: 1,
+                            }}
+                          >
+                            {item.dateBadge?.month || 'DATE'}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '1.15rem',
+                              fontWeight: '800',
+                              fontFamily: 'var(--font-heading)',
+                              lineHeight: 1.1,
+                              marginTop: '2px',
+                            }}
+                          >
+                            {item.dateBadge?.day || '--'}
+                          </span>
+                        </div>
+
+                        {/* Event Meta */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              flexWrap: 'wrap',
+                              gap: '6px',
+                              marginBottom: '4px',
+                            }}
+                          >
+                            {item.isToday && (
+                              <span
+                                style={{
+                                  fontSize: '0.62rem',
+                                  fontWeight: '800',
+                                  padding: '1px 6px',
+                                  borderRadius: 'var(--radius-full)',
+                                  background: 'var(--primary)',
+                                  color: 'var(--text-inverse)',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.04em',
+                                }}
+                              >
+                                Today
+                              </span>
+                            )}
+
+                            {item.isNext && !item.isToday && (
+                              <span
+                                style={{
+                                  fontSize: '0.62rem',
+                                  fontWeight: '800',
+                                  padding: '1px 6px',
+                                  borderRadius: 'var(--radius-full)',
+                                  background: 'var(--accent-secondary)',
+                                  color: 'var(--text-inverse)',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.04em',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                }}
+                              >
+                                <Sparkles size={10} />
+                                Next Event
+                              </span>
+                            )}
+
+                            <h4
+                              style={{
+                                fontSize: 'var(--text-xs)',
+                                fontWeight: '700',
+                                color: 'var(--text-primary)',
+                                fontFamily: 'var(--font-heading)',
+                                margin: 0,
+                                lineHeight: 1.3,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                flex: 1,
+                              }}
+                              title={item.eventTitle}
+                            >
+                              {item.eventTitle}
+                            </h4>
+                          </div>
+
+                          {/* Time & Venue */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '3px',
+                              fontSize: '0.7rem',
+                              color: 'var(--text-muted)',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Clock size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                              <span>{item.eventTime || 'Time TBA'}</span>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <MapPin size={11} style={{ color: 'var(--accent-secondary)', flexShrink: 0 }} />
+                              <span
+                                style={{
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                              >
+                                {item.eventVenue || 'Campus Venue'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. SECONDARY SECTION: YOUR EVENT ACTIVITY (FILLS EMPTY SPACE INTELLIGENTLY) */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-3)',
+            }}
+          >
+            {/* Activity Header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div>
+                <h3
+                  style={{
+                    fontSize: 'var(--text-base)',
+                    fontWeight: '800',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'var(--font-heading)',
+                    margin: 0,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  Your Event Activity
+                </h3>
+                <p
+                  style={{
+                    fontSize: 'var(--text-xs)',
+                    color: 'var(--text-secondary)',
+                    margin: '2px 0 0',
+                  }}
+                >
+                  Recent milestones, attendance & active passes.
+                </p>
+              </div>
+
               <Link
-                to="/app/registrations"
+                to="/app/passes"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -985,246 +1294,266 @@ export const OverviewPage = () => {
                   textDecoration: 'none',
                 }}
               >
-                <span>View Full Schedule</span>
+                <span>All Passes</span>
                 <ArrowRight size={12} />
               </Link>
-            )}
-          </div>
+            </div>
 
-          {/* Schedule Container */}
-          <div
-            style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-xl)',
-              padding: 'var(--space-4)',
-              boxShadow: 'var(--shadow-sm)',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            {loading ? (
+            {/* Activity Card */}
+            <div
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-xl)',
+                padding: 'var(--space-4)',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+              }}
+            >
+              {/* Mini Summary Stats Row */}
               <div
                 style={{
-                  padding: 'var(--space-8)',
-                  textAlign: 'center',
-                  color: 'var(--text-secondary)',
-                  fontSize: 'var(--text-xs)',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '8px',
+                  paddingBottom: '12px',
+                  borderBottom: '1px solid var(--border-subtle)',
                 }}
               >
-                Loading upcoming schedule...
-              </div>
-            ) : upcomingSchedule.length === 0 ? (
-              <div
-                style={{
-                  padding: 'var(--space-8) var(--space-4)',
-                  textAlign: 'center',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Calendar size={36} style={{ color: 'var(--text-muted)', marginBottom: '10px' }} />
-                <h3
+                {/* Mini Stat 1: Attendance Rate */}
+                <div
                   style={{
-                    fontSize: 'var(--text-sm)',
+                    background: 'var(--bg-elevated)',
+                    padding: '8px 10px',
+                    borderRadius: 'var(--radius-md)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '1.1rem',
+                      fontWeight: '800',
+                      color: 'var(--primary)',
+                      fontFamily: 'var(--font-heading)',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {stats.registeredEvents > 0
+                      ? `${Math.round((stats.admittedEvents / stats.registeredEvents) * 100)}%`
+                      : '0%'}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.62rem',
+                      color: 'var(--text-muted)',
+                      marginTop: '4px',
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    Attendance
+                  </div>
+                </div>
+
+                {/* Mini Stat 2: Active Passes */}
+                <div
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    padding: '8px 10px',
+                    borderRadius: 'var(--radius-md)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '1.1rem',
+                      fontWeight: '800',
+                      color: 'var(--success)',
+                      fontFamily: 'var(--font-heading)',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {stats.upcomingEvents}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.62rem',
+                      color: 'var(--text-muted)',
+                      marginTop: '4px',
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    Active Passes
+                  </div>
+                </div>
+
+                {/* Mini Stat 3: Completed */}
+                <div
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    padding: '8px 10px',
+                    borderRadius: 'var(--radius-md)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '1.1rem',
+                      fontWeight: '800',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'var(--font-heading)',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {stats.completedEvents}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.62rem',
+                      color: 'var(--text-muted)',
+                      marginTop: '4px',
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    Completed
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Activity Log */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div
+                  style={{
+                    fontSize: '0.68rem',
                     fontWeight: '700',
-                    color: 'var(--text-primary)',
-                    margin: 0,
+                    color: 'var(--text-muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
                   }}
                 >
-                  No upcoming events
-                </h3>
-                <p
-                  style={{
-                    fontSize: 'var(--text-xs)',
-                    color: 'var(--text-secondary)',
-                    margin: '6px 0 14px',
-                    maxWidth: '280px',
-                  }}
-                >
-                  Discover campus events and register for something exciting.
-                </p>
-                <Link to="/events">
-                  <Button variant="primary" size="xs" icon={Compass}>
-                    Explore Events
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {upcomingSchedule.map((item, index) => {
-                  const isLast = index === upcomingSchedule.length - 1;
+                  Recent Milestones
+                </div>
 
-                  return (
+                {recentActivity && recentActivity.length > 0 ? (
+                  recentActivity.map((act) => (
                     <div
-                      key={item._id || item.registrationId}
+                      key={act.id}
                       style={{
                         display: 'flex',
                         alignItems: 'flex-start',
-                        gap: '14px',
-                        padding: '12px 10px',
-                        borderRadius: 'var(--radius-md)',
-                        background: item.isNext ? 'var(--bg-elevated)' : 'transparent',
-                        border: item.isNext ? '1px solid var(--primary)' : '1px solid transparent',
-                        borderBottom: !isLast && !item.isNext ? '1px solid var(--border-subtle)' : undefined,
-                        marginBottom: item.isNext ? '8px' : '0',
-                        transition: 'background var(--transition-fast)',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!item.isNext) e.currentTarget.style.background = 'var(--bg-hover)';
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!item.isNext) e.currentTarget.style.background = 'transparent';
+                        gap: '10px',
+                        fontSize: '0.75rem',
                       }}
                     >
-                      {/* Date Badge */}
                       <div
                         style={{
-                          width: '48px',
-                          height: '52px',
-                          borderRadius: 'var(--radius-md)',
-                          background: item.isToday
-                            ? 'linear-gradient(135deg, var(--primary) 0%, var(--accent-secondary) 100%)'
-                            : 'var(--bg-elevated)',
-                          border: item.isToday ? 'none' : '1px solid var(--border-subtle)',
-                          color: item.isToday ? 'var(--text-inverse)' : 'var(--text-primary)',
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          background: act.type === 'checked_in' ? 'var(--success-bg)' : 'var(--bg-elevated)',
+                          border:
+                            act.type === 'checked_in'
+                              ? '1px solid var(--success)'
+                              : '1px solid var(--border-subtle)',
+                          color: act.type === 'checked_in' ? 'var(--success)' : 'var(--primary)',
                           display: 'flex',
-                          flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0,
-                          boxShadow: item.isToday ? 'var(--shadow-sm)' : 'none',
+                          marginTop: '1px',
                         }}
                       >
-                        <span
-                          style={{
-                            fontSize: '0.62rem',
-                            fontWeight: '800',
-                            letterSpacing: '0.06em',
-                            textTransform: 'uppercase',
-                            fontFamily: 'var(--font-mono)',
-                            lineHeight: 1,
-                          }}
-                        >
-                          {item.dateBadge?.month || 'DATE'}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: '1.15rem',
-                            fontWeight: '800',
-                            fontFamily: 'var(--font-heading)',
-                            lineHeight: 1.1,
-                            marginTop: '2px',
-                          }}
-                        >
-                          {item.dateBadge?.day || '--'}
-                        </span>
+                        {act.type === 'checked_in' ? <CheckCircle2 size={13} /> : <Ticket size={13} />}
                       </div>
 
-                      {/* Event Meta */}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            flexWrap: 'wrap',
+                            justifyContent: 'space-between',
                             gap: '6px',
-                            marginBottom: '4px',
                           }}
                         >
-                          {item.isToday && (
-                            <span
-                              style={{
-                                fontSize: '0.62rem',
-                                fontWeight: '800',
-                                padding: '1px 6px',
-                                borderRadius: 'var(--radius-full)',
-                                background: 'var(--primary)',
-                                color: 'var(--text-inverse)',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.04em',
-                              }}
-                            >
-                              Today
-                            </span>
-                          )}
-
-                          {item.isNext && !item.isToday && (
-                            <span
-                              style={{
-                                fontSize: '0.62rem',
-                                fontWeight: '800',
-                                padding: '1px 6px',
-                                borderRadius: 'var(--radius-full)',
-                                background: 'var(--accent-secondary)',
-                                color: 'var(--text-inverse)',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.04em',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                              }}
-                            >
-                              <Sparkles size={10} />
-                              Next Event
-                            </span>
-                          )}
-
-                          <h4
+                          <span style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '0.72rem' }}>
+                            {act.title}
+                          </span>
+                          <span
                             style={{
-                              fontSize: 'var(--text-xs)',
-                              fontWeight: '700',
-                              color: 'var(--text-primary)',
-                              fontFamily: 'var(--font-heading)',
-                              margin: 0,
-                              lineHeight: 1.3,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              flex: 1,
+                              fontSize: '0.65rem',
+                              color: 'var(--text-muted)',
+                              fontFamily: 'var(--font-mono)',
                             }}
-                            title={item.eventTitle}
                           >
-                            {item.eventTitle}
-                          </h4>
+                            #{act.passId ? act.passId.split('-').slice(-2).join('-') : 'PASS'}
+                          </span>
                         </div>
-
-                        {/* Time & Venue */}
                         <div
                           style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '3px',
+                            color: 'var(--text-secondary)',
                             fontSize: '0.7rem',
-                            color: 'var(--text-muted)',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            marginTop: '1px',
                           }}
+                          title={act.eventTitle}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <Clock size={11} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                            <span>{item.eventTime || 'Time TBA'}</span>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <MapPin size={11} style={{ color: 'var(--accent-secondary)', flexShrink: 0 }} />
-                            <span
-                              style={{
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              {item.eventVenue || 'Campus Venue'}
-                            </span>
-                          </div>
+                          {act.eventTitle}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      fontSize: '0.72rem',
+                      color: 'var(--text-muted)',
+                      textAlign: 'center',
+                      padding: '8px 0',
+                    }}
+                  >
+                    No recent milestones recorded yet.
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Campus Discovery Banner Action */}
+              <div
+                style={{
+                  marginTop: '2px',
+                  padding: '10px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                    Explore More Campus Events
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                    Discover hackathons, concerts & sports
+                  </div>
+                </div>
+                <Link to="/events" style={{ textDecoration: 'none', flexShrink: 0 }}>
+                  <Button variant="ghost" size="xs" icon={Compass}>
+                    Browse
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

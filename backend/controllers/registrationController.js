@@ -526,7 +526,7 @@ const getDashboardSummary = async (req, res, next) => {
       };
     });
 
-    // 1. Registered Events (Left Column preview):
+    // 1. Registered Events (Left Column):
     // Sort: Upcoming events first (closest start date), then recently completed, then cancelled
     const sortedForRegistered = [...enriched].sort((a, b) => {
       if (a.isUpcoming && !b.isUpcoming) return -1;
@@ -536,9 +536,6 @@ const getDashboardSummary = async (req, res, next) => {
       }
       return new Date(b.eventDate) - new Date(a.eventDate);
     });
-
-    // Limit to max 4 cards for My Registered Events preview
-    const registeredPreview = sortedForRegistered.slice(0, 4);
 
     // 2. Your Schedule (Right Column):
     // Upcoming only, sorted chronologically ascending by start date/time
@@ -551,6 +548,38 @@ const getDashboardSummary = async (req, res, next) => {
       ...item,
       isNext: idx === 0,
     }));
+
+    // 3. Your Event Activity (Secondary Right Column section):
+    // Real milestone activity logs derived from student's registrations and gate admissions
+    const activityLogs = [];
+    registrations.forEach((reg) => {
+      // Gate admission milestone
+      if (reg.checkedIn && reg.checkedInAt) {
+        activityLogs.push({
+          id: `act-admit-${reg._id || reg.registrationId}`,
+          type: 'checked_in',
+          title: 'Admitted at Gate',
+          eventTitle: reg.eventTitle,
+          passId: reg.passId,
+          timestamp: reg.checkedInAt,
+        });
+      }
+      // Registration issuance milestone
+      if (reg.createdAt && reg.status !== 'cancelled') {
+        activityLogs.push({
+          id: `act-reg-${reg._id || reg.registrationId}`,
+          type: 'registered',
+          title: 'Digital Pass Issued',
+          eventTitle: reg.eventTitle,
+          passId: reg.passId,
+          timestamp: reg.createdAt,
+        });
+      }
+    });
+
+    // Sort activity chronologically descending (most recent first)
+    activityLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const recentActivity = activityLogs.slice(0, 4);
 
     return res.status(200).json({
       success: true,
@@ -574,10 +603,17 @@ const getDashboardSummary = async (req, res, next) => {
           admittedEvents: admittedCount,
           completedEvents: completedCount,
         },
-        registeredEvents: registeredPreview,
+        registeredEvents: sortedForRegistered,
         allRegisteredCount: registeredCount,
         upcomingSchedule: scheduleItems,
         totalUpcomingSchedule: upcomingEvents.length,
+        recentActivity,
+        activitySummary: {
+          attendanceRate: registeredCount > 0 ? Math.round((admittedCount / registeredCount) * 100) : 0,
+          activePasses: upcomingCount,
+          eventsAttended: admittedCount,
+          completedEvents: completedCount,
+        },
       },
     });
   } catch (error) {
