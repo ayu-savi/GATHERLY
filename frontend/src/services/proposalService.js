@@ -24,6 +24,22 @@ export const proposalService = {
     const response = await api.get(`/proposals/${id}`);
     return response.data;
   },
+
+  /**
+   * Get all proposals for administrative review (Admin only)
+   */
+  getAllProposals: async (params = {}) => {
+    const response = await api.get('/proposals', { params });
+    return response.data;
+  },
+
+  /**
+   * Update proposal review status (Admin only)
+   */
+  updateProposalStatus: async (id, status, reviewFeedback = '') => {
+    const response = await api.patch(`/proposals/${id}/status`, { status, reviewFeedback });
+    return response.data;
+  },
 };
 
 export default proposalService;

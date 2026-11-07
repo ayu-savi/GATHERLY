@@ -280,6 +280,68 @@ const createProposal = async (req, res, next) => {
 };
 
 /**
+ * Helper to strip internal financial budgets, funding requests and confidential notes
+ * from student-facing proposal views
+ */
+const sanitizeStudentProposal = (proposal) => {
+  if (!proposal) return null;
+  const raw = proposal.toObject ? proposal.toObject() : { ...proposal };
+  const {
+    budgetItems,
+    totalEstimatedBudget,
+    expectedSponsorship,
+    otherFunding,
+    expectedRegistrationRevenue,
+    requestedInstitutionalFunding,
+    financialConfig,
+    internalNotes,
+    ...studentData
+  } = raw;
+  return studentData;
+};
+
+/**
+ * @route   GET /api/proposals
+ * @desc    Get all proposals for campus administrative review
+ * @access  Protected (Admin only)
+ */
+const getAllProposals = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const dbStatus = getDBStatus();
+
+    const filter = {};
+    if (status && status !== 'all') {
+      filter.status = status;
+    }
+
+    if (dbStatus.connected) {
+      const proposals = await Proposal.find(filter)
+        .sort({ createdAt: -1 })
+        .lean();
+
+      return sendSuccess(res, 'Proposals retrieved for administrative review', proposals);
+    }
+
+    // Fallback store
+    let proposals = [...inMemoryProposals];
+    if (status && status !== 'all') {
+      proposals = proposals.filter((p) => p.status === status);
+    }
+    proposals.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+    return res.status(200).json({
+      success: true,
+      message: 'Proposals retrieved for administrative review (Development Fallback Data)',
+      meta: { databaseConnected: false, total: proposals.length },
+      data: proposals,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @route   GET /api/proposals/my
  * @desc    Get all proposals submitted by authenticated student organizer
  * @access  Protected
@@ -290,16 +352,17 @@ const getMyProposals = async (req, res, next) => {
     const dbStatus = getDBStatus();
 
     if (dbStatus.connected) {
-      const proposals = await Proposal.find({ user: userId })
+      const rawProposals = await Proposal.find({ user: userId })
         .sort({ createdAt: -1 })
         .lean();
 
-      return sendSuccess(res, 'Student proposals retrieved successfully', proposals);
+      return sendSuccess(res, 'Student proposals retrieved successfully', rawProposals.map(sanitizeStudentProposal));
     }
 
-    const proposals = inMemoryProposals.filter(
-      (p) => p.user === userId || p.leadOrganizer?.email === req.user.email
-    );
+    const proposals = inMemoryProposals
+      .filter((p) => p.user === userId || p.leadOrganizer?.email === req.user.email)
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .map(sanitizeStudentProposal);
 
     return res.status(200).json({
       success: true,
@@ -423,7 +486,8 @@ const getProposalById = async (req, res, next) => {
       return sendError(res, 'Forbidden: You are not authorized to view this proposal', 403);
     }
 
-    return sendSuccess(res, 'Proposal details retrieved successfully', proposal);
+    const responseData = isAdmin ? proposal : sanitizeStudentProposal(proposal);
+    return sendSuccess(res, 'Proposal details retrieved successfully', responseData);
   } catch (error) {
     next(error);
   }
@@ -593,6 +657,7 @@ const updateProposalStatus = async (req, res, next) => {
 
 module.exports = {
   createProposal,
+  getAllProposals,
   getMyProposals,
   getProposalById,
   updateProposalStatus,

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   createProposal,
+  getAllProposals,
   getMyProposals,
   getProposalById,
   updateProposalStatus,
@@ -11,9 +12,12 @@ const { protect, optionalProtect, authorizeRoles } = require('../middleware/auth
 // Student Organizer routes
 router.post('/', optionalProtect, createProposal);
 router.get('/my', protect, getMyProposals);
-router.get('/:id', protect, getProposalById);
 
-// Reviewer/Admin workflow route (restricted strictly to administrators)
+// Administrative review routes (restricted strictly to administrators)
+router.get('/', protect, authorizeRoles('admin'), getAllProposals);
 router.patch('/:id/status', protect, authorizeRoles('admin'), updateProposalStatus);
+
+// Details route (Accessible by owner or administrator)
+router.get('/:id', protect, getProposalById);
 
 module.exports = router;
