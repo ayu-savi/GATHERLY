@@ -34,3 +34,8 @@ Thumbs.db
 *.sln
 *.sw?
 
+# Runtime uploads (preserve default demo assets)
+backend/uploads/gallery/*
+!backend/uploads/gallery/defaults/
+
+

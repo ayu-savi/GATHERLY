@@ -12,6 +12,7 @@ import ExplorePage from './pages/public/ExplorePage';
 import EventDetailsPage from './pages/public/EventDetailsPage';
 import CategoriesPage from './pages/public/CategoriesPage';
 import AboutPage from './pages/public/AboutPage';
+import GalleryPage from './pages/public/GalleryPage';
 import HostEventPage from './pages/public/HostEventPage';
 import NotFoundPage from './pages/public/NotFoundPage';
 
@@ -27,6 +28,7 @@ import PassVerifierPage from './pages/app/PassVerifierPage';
 import ProfilePage from './pages/app/ProfilePage';
 import MyProposalsPage from './pages/app/MyProposalsPage';
 import AdminProposalsPage from './pages/app/AdminProposalsPage';
+import AdminGalleryPage from './pages/app/AdminGalleryPage';
 
 // Simple Scroll to top helper
 const ScrollToTop = () => {
@@ -49,6 +51,7 @@ export const App = () => {
           <Route path="/events/:id" element={<EventDetailsPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/host-event" element={<HostEventPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
@@ -65,6 +68,7 @@ export const App = () => {
             <Route path="/app/passes/:passId" element={<PassesPage />} />
             <Route path="/app/proposals" element={<MyProposalsPage />} />
             <Route path="/app/admin/proposals" element={<AdminProposalsPage />} />
+            <Route path="/app/admin/gallery" element={<AdminGalleryPage />} />
             <Route path="/app/pass-verifier" element={<PassVerifierPage />} />
             <Route path="/app/profile" element={<ProfilePage />} />
             <Route path="/app/settings" element={<ProfilePage />} />

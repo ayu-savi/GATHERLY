@@ -16,6 +16,7 @@ import {
   X,
   FileText,
   ClipboardCheck,
+  Camera,
 } from 'lucide-react';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { Button } from '../common/Button';
@@ -49,6 +50,7 @@ export const PublicNavbar = () => {
   const publicLinks = [
     { name: 'Home', path: '/', end: true },
     { name: 'Discover', path: '/events', end: false },
+    { name: 'Memories', path: '/gallery', end: false },
     { name: 'About Campus', path: '/about', end: false },
   ];
 
@@ -439,26 +441,49 @@ export const PublicNavbar = () => {
                       </Link>
 
                       {user?.role === 'admin' && (
-                        <Link
-                          to="/app/admin/proposals"
-                          onClick={() => setUserDropdownOpen(false)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: '8px 10px',
-                            borderRadius: 'var(--radius-md)',
-                            fontSize: 'var(--text-xs)',
-                            color: 'var(--text-secondary)',
-                            textDecoration: 'none',
-                            transition: 'background var(--transition-fast)',
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                        >
-                          <ClipboardCheck size={14} style={{ color: 'var(--primary)' }} />
-                          <span>Proposal Review</span>
-                        </Link>
+                        <>
+                          <Link
+                            to="/app/admin/proposals"
+                            onClick={() => setUserDropdownOpen(false)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '8px 10px',
+                              borderRadius: 'var(--radius-md)',
+                              fontSize: 'var(--text-xs)',
+                              color: 'var(--text-secondary)',
+                              textDecoration: 'none',
+                              transition: 'background var(--transition-fast)',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                          >
+                            <ClipboardCheck size={14} style={{ color: 'var(--primary)' }} />
+                            <span>Proposal Review</span>
+                          </Link>
+
+                          <Link
+                            to="/app/admin/gallery"
+                            onClick={() => setUserDropdownOpen(false)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '8px 10px',
+                              borderRadius: 'var(--radius-md)',
+                              fontSize: 'var(--text-xs)',
+                              color: 'var(--text-secondary)',
+                              textDecoration: 'none',
+                              transition: 'background var(--transition-fast)',
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                          >
+                            <Camera size={14} style={{ color: 'var(--primary)' }} />
+                            <span>Manage Memories</span>
+                          </Link>
+                        </>
                       )}
 
                       {(user?.role === 'organizer' || user?.role === 'admin') && (
@@ -748,24 +773,45 @@ export const PublicNavbar = () => {
                 </NavLink>
 
                 {user?.role === 'admin' && (
-                  <NavLink
-                    to="/app/admin/proposals"
-                    onClick={() => setMobileMenuOpen(false)}
-                    style={({ isActive }) => ({
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '12px 16px',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: 'var(--text-base)',
-                      fontWeight: 'var(--weight-medium)',
-                      color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                      textDecoration: 'none',
-                    })}
-                  >
-                    <ClipboardCheck size={18} />
-                    <span>Proposal Review</span>
-                  </NavLink>
+                  <>
+                    <NavLink
+                      to="/app/admin/proposals"
+                      onClick={() => setMobileMenuOpen(false)}
+                      style={({ isActive }) => ({
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-md)',
+                        fontSize: 'var(--text-base)',
+                        fontWeight: 'var(--weight-medium)',
+                        color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                        textDecoration: 'none',
+                      })}
+                    >
+                      <ClipboardCheck size={18} />
+                      <span>Proposal Review</span>
+                    </NavLink>
+
+                    <NavLink
+                      to="/app/admin/gallery"
+                      onClick={() => setMobileMenuOpen(false)}
+                      style={({ isActive }) => ({
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-md)',
+                        fontSize: 'var(--text-base)',
+                        fontWeight: 'var(--weight-medium)',
+                        color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                        textDecoration: 'none',
+                      })}
+                    >
+                      <Camera size={18} />
+                      <span>Manage Memories</span>
+                    </NavLink>
+                  </>
                 )}
 
                 <NavLink

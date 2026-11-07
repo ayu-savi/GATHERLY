@@ -85,6 +85,9 @@ export const PublicFooter = () => {
                 <Link to="/events" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>All Events</Link>
               </li>
               <li>
+                <Link to="/gallery" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Campus Memories Gallery</Link>
+              </li>
+              <li>
                 <Link to="/categories" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Browse Categories</Link>
               </li>
               <li>

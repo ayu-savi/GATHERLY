@@ -9,6 +9,7 @@ const authRoutes = require('./authRoutes');
 const registrationRoutes = require('./registrationRoutes');
 const passRoutes = require('./passRoutes');
 const proposalRoutes = require('./proposalRoutes');
+const galleryRoutes = require('./galleryRoutes');
 
 // Mount routes
 router.use('/health', healthRoutes);
@@ -19,6 +20,7 @@ router.use('/auth', authRoutes);
 router.use('/registrations', registrationRoutes);
 router.use('/passes', passRoutes);
 router.use('/proposals', proposalRoutes);
+router.use('/gallery', galleryRoutes);
 
 // Base route info
 router.get('/', (req, res) => {

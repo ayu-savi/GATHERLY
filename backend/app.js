@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path');
 
 const apiRouter = require('./routes/api');
 const errorHandler = require('./middleware/errorHandler');
@@ -44,6 +45,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
+
+// Static uploads directory serving
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API Routes prefix
 app.use('/api', apiRouter);

@@ -413,6 +413,128 @@ async function runTestSuite() {
     assert(allEventsRes.status === 200 && allEventsRes.body.data.length >= searchRes.body.data.length,
       'Search', 'Empty query returns full events list without stale results');
 
+    // =========================================================================
+    // 6. CAMPUS MEMORIES GALLERY & ATOMIC REPLACEMENT LIFECYCLE
+    // =========================================================================
+    console.log('\n📌 6. Campus Memories Gallery & Atomic Replacement');
+
+    // 6.1 Public gallery retrieval
+    const galleryRes = await request({ path: '/api/gallery', method: 'GET' });
+    assert(
+      galleryRes.status === 200 &&
+      galleryRes.body.success &&
+      Array.isArray(galleryRes.body.data?.photographs) &&
+      galleryRes.body.data.photographs.length >= 8,
+      'Gallery',
+      'Public user retrieves active campus memories gallery with 8+ demo photographs',
+      galleryRes
+    );
+
+    // 6.2 Photographer credits and source preserved
+    const hasCredits = galleryRes.body.data.photographs.every(
+      (p) => Boolean(p.photographerCredit) && Boolean(p.eventName) && Boolean(p.eventDate)
+    );
+    assert(hasCredits, 'Gallery', 'All demo photographs preserve photographer credits and event metadata');
+
+    // 6.3 Static image file serving
+    const staticRes = await request({ path: '/uploads/gallery/defaults/concert_stage.jpg', method: 'GET' });
+    assert(staticRes.status === 200, 'Gallery', 'Static uploads endpoint serves image files with 200 OK');
+
+    // 6.4 Non-admin blocked from uploading photographs
+    const studentUpload = await request({
+      path: '/api/gallery/upload',
+      method: 'POST',
+      headers: studentHeaders,
+    });
+    assert(studentUpload.status === 403, 'GalleryAuth', 'Student blocked from uploading gallery photographs (403 Forbidden)');
+
+    // 6.5 Missing auth token rejected
+    const unauthPublish = await request({
+      path: '/api/gallery/publish',
+      method: 'POST',
+    }, { photographs: [] });
+    assert(unauthPublish.status === 401, 'GalleryAuth', 'Missing auth token rejected on publish (401 Unauthorized)');
+
+    // 6.6 Non-admin blocked from publishing collection
+    const studentPublish = await request({
+      path: '/api/gallery/publish',
+      method: 'POST',
+      headers: studentHeaders,
+    }, {
+      title: 'Hacked Gallery',
+      photographs: [{ photoPath: '/uploads/gallery/defaults/concert_stage.jpg', eventName: 'Hack', eventDate: 'Today' }],
+    });
+    assert(studentPublish.status === 403, 'GalleryAuth', 'Student blocked from publishing gallery (403 Forbidden)');
+
+    // 6.7 Empty collection rejected with 400 Bad Request
+    const emptyPublish = await request({
+      path: '/api/gallery/publish',
+      method: 'POST',
+      headers: adminHeaders,
+    }, {
+      title: 'Empty Collection',
+      photographs: [],
+    });
+    assert(emptyPublish.status === 400, 'Gallery', 'Empty photograph array rejected with 400 Bad Request');
+
+    // 6.8 Failed publish preserves active gallery
+    const verifyAfterFail = await request({ path: '/api/gallery', method: 'GET' });
+    assert(
+      verifyAfterFail.body.data?._id === galleryRes.body.data?._id,
+      'Gallery',
+      'Failed publication attempts preserve the existing active gallery collection'
+    );
+
+    // 6.9 Admin publishes new collection (atomic replacement)
+    const newPublishRes = await request({
+      path: '/api/gallery/publish',
+      method: 'POST',
+      headers: adminHeaders,
+    }, {
+      title: 'Annual Spring Festival Retrospective',
+      description: 'Newly published collection replacing previous active gallery.',
+      isDemo: true,
+      photographs: [
+        {
+          photoPath: '/uploads/gallery/defaults/concert_stage.jpg',
+          eventName: 'Spring Concert Gala',
+          eventDate: 'April 02, 2026',
+          photographerCredit: 'Aditya Chache',
+          photographerSource: 'Unsplash',
+          isSocietyAttribution: false,
+          isFeatured: true,
+        },
+        {
+          photoPath: '/uploads/gallery/defaults/cultural_festival.jpg',
+          eventName: 'Cultural Dance Parade',
+          eventDate: 'April 03, 2026',
+          photographerCredit: 'Nainoa Shizuru',
+          photographerSource: 'Unsplash',
+          isSocietyAttribution: true,
+          isFeatured: false,
+        },
+      ],
+    });
+    assert(
+      newPublishRes.status === 200 && newPublishRes.body.data?.title === 'Annual Spring Festival Retrospective',
+      'Gallery',
+      'Admin successfully publishes and atomically replaces active collection (200 OK)',
+      newPublishRes
+    );
+
+    // 6.10 Public gallery immediately reflects newly activated collection
+    const activeReplaced = await request({ path: '/api/gallery', method: 'GET' });
+    assert(
+      activeReplaced.body.data?.title === 'Annual Spring Festival Retrospective' &&
+      activeReplaced.body.data?.photographs?.length === 2,
+      'Gallery',
+      'Public gallery immediately displays only the newly activated collection'
+    );
+
+    // Restore full demo collection for live showcase
+    const { galleryStore } = require('../data/galleryStore');
+    galleryStore.resetToDemo();
+
     console.log('\n===============================================================');
     console.log(`🏁 TEST RESULTS: ${passed} PASSED, ${failed} FAILED (Total: ${passed + failed})`);
     console.log('===============================================================\n');
