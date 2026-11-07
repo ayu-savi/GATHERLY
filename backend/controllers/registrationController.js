@@ -7,14 +7,33 @@ const { generateQRCodeSVG } = require('../utils/qrGenerator');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 /**
- * Generate unique IDs for registration and pass
+ * Generate unique IDs for registration and pass with collision resistance
  */
-const generateIdentifiers = (userId) => {
+const generateIdentifiers = async (userId, dbConnected) => {
   const timestamp = Date.now().toString(36).toUpperCase();
   const randomSuffix = Math.floor(100 + Math.random() * 900);
   const registrationId = `REG-GATH-${timestamp}-${randomSuffix}`;
-  const passNum = Math.floor(100000 + Math.random() * 900000);
-  const passId = `PASS-GATH-${passNum}`;
+
+  let passId = null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const passNum = Math.floor(100000 + Math.random() * 900000);
+    const candidateId = `PASS-GATH-${passNum}`;
+    let exists = false;
+    if (dbConnected) {
+      exists = await Registration.exists({ passId: candidateId });
+    } else {
+      exists = inMemoryRegistrations.some((r) => r.passId === candidateId);
+    }
+    if (!exists) {
+      passId = candidateId;
+      break;
+    }
+  }
+
+  if (!passId) {
+    passId = `PASS-GATH-${Date.now().toString().slice(-6)}`;
+  }
+
   const tokenHash = Buffer.from(`${passId}-${userId}-${Date.now()}`).toString('hex').slice(0, 16).toUpperCase();
   const qrToken = `GATHERLY:PASS:${passId}:${tokenHash}`;
   const qrSvg = generateQRCodeSVG(qrToken);
@@ -141,8 +160,8 @@ const registerForEvent = async (req, res, next) => {
     let paymentStatus = fee > 0 ? 'completed' : 'free';
     const txnRef = fee > 0 ? (paymentReference || `DEMO-TXN-${Date.now().toString().slice(-7)}`) : null;
 
-    // 7. Generate identifiers & QR Code
-    const { registrationId, passId, qrToken, qrSvg } = generateIdentifiers(userId);
+    // 7. Generate identifiers & QR Code with uniqueness guarantee
+    const { registrationId, passId, qrToken, qrSvg } = await generateIdentifiers(userId, dbStatus.connected);
 
     const registrationData = {
       registrationId,
@@ -176,12 +195,40 @@ const registerForEvent = async (req, res, next) => {
       createdAt: new Date().toISOString(),
     };
 
-    // 8. Persist registration
+    // 8. Persist registration with atomic capacity reservation
     if (dbStatus.connected) {
-      const newRegistration = await Registration.create(registrationData);
+      // Atomically check and reserve capacity spot on the event
+      const reservedEvent = await Event.findOneAndUpdate(
+        {
+          _id: event._id,
+          $or: [
+            { registeredCount: { $lt: capacity } },
+            { registeredCount: { $exists: false } },
+          ],
+        },
+        { $inc: { registeredCount: 1 } },
+        { new: true }
+      );
 
-      // Increment event registeredCount atomically
-      await Event.findByIdAndUpdate(event._id, { $inc: { registeredCount: 1 } });
+      if (!reservedEvent) {
+        return sendError(res, 'Registration is closed: This event has reached full capacity', 400);
+      }
+
+      let newRegistration = null;
+      try {
+        newRegistration = await Registration.create(registrationData);
+      } catch (createErr) {
+        // Rollback atomic capacity reservation if record persistence fails
+        await Event.findByIdAndUpdate(event._id, { $inc: { registeredCount: -1 } });
+        if (createErr.code === 11000) {
+          return res.status(409).json({
+            success: false,
+            isAlreadyRegistered: true,
+            message: `You already hold an active registration for ${event.title}.`,
+          });
+        }
+        throw createErr;
+      }
 
       return res.status(201).json({
         success: true,
@@ -190,9 +237,13 @@ const registerForEvent = async (req, res, next) => {
       });
     }
 
-    // In-memory fallback
-    inMemoryRegistrations.unshift(registrationData);
+    // In-memory fallback mode
+    if ((event.registeredCount || 0) >= capacity) {
+      return sendError(res, 'Registration is closed: This event has reached full capacity', 400);
+    }
+
     event.registeredCount = (event.registeredCount || 0) + 1;
+    inMemoryRegistrations.unshift(registrationData);
 
     return res.status(201).json({
       success: true,
@@ -329,9 +380,12 @@ const cancelRegistration = async (req, res, next) => {
       registration.status = 'cancelled';
       await registration.save();
 
-      // Decrement event registeredCount
+      // Decrement event registeredCount atomically, ensuring it does not drop below 0
       await Event.findOneAndUpdate(
-        { $or: [{ _id: registration.event }, { slug: registration.eventSlug }] },
+        {
+          $or: [{ _id: registration.event }, { slug: registration.eventSlug }],
+          registeredCount: { $gt: 0 },
+        },
         { $inc: { registeredCount: -1 } }
       );
 

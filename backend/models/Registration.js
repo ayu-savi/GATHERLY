@@ -165,8 +165,26 @@ const registrationSchema = new mongoose.Schema(
   }
 );
 
-// Compound index to guarantee uniqueness per user and event in MongoDB
-registrationSchema.index({ user: 1, event: 1 }, { unique: true });
+// Compound index: Enforce uniqueness ONLY for active (non-cancelled) registrations
+// Allows legitimate re-registration after a student cancels an event registration
+registrationSchema.index(
+  { user: 1, event: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $ne: 'cancelled' } },
+  }
+);
 
-module.exports = mongoose.model('Registration', registrationSchema);
+const Registration = mongoose.model('Registration', registrationSchema);
+
+// Safely handle legacy compound index migration without partial filter expression
+Registration.on('index', (err) => {
+  if (err && (err.code === 85 || err.message?.includes('different options'))) {
+    Registration.collection.dropIndex('user_1_event_1')
+      .then(() => Registration.syncIndexes())
+      .catch((dropErr) => console.warn('Could not auto-migrate legacy user_1_event_1 index:', dropErr.message));
+  }
+});
+
+module.exports = Registration;
 
