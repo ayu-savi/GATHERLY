@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sparkles,
@@ -27,10 +27,11 @@ import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { useInView } from '../../hooks/useInView';
 
-// Optional creator photo URL (defaults to null for elegant avatar placeholder)
-const CREATOR_PHOTO_URL = null;
+// Creator photo URL pointing to verified public portrait asset
+const CREATOR_PHOTO_URL = '/creator-profile.jpg';
 
 export const AboutPage = () => {
+  const [photoError, setPhotoError] = useState(false);
   // Intersection observers for coordinated scroll entrances
   const [heroRef, heroInView] = useInView();
   const [introRef, introInView] = useInView();
@@ -630,19 +631,23 @@ export const AboutPage = () => {
                   flexWrap: 'wrap',
                 }}
               >
-                {/* Creator Photo / Elegant Avatar Placeholder */}
+                {/* Creator Photo / Elegant Avatar Fallback */}
                 <div style={{ flexShrink: 0, margin: '0 auto' }}>
-                  {CREATOR_PHOTO_URL ? (
+                  {!photoError && CREATOR_PHOTO_URL ? (
                     <img
                       src={CREATOR_PHOTO_URL}
-                      alt="Ayushi Kesarwani — Creator of GATHERLY"
+                      alt="Ayushi Kesarwani — Creator and Developer of GATHERLY"
+                      onError={() => setPhotoError(true)}
+                      className="animate-avatar-ring"
                       style={{
                         width: '140px',
                         height: '140px',
                         borderRadius: '50%',
                         objectFit: 'cover',
+                        objectPosition: 'center 20%',
                         border: '3px solid var(--primary)',
                         boxShadow: '0 8px 24px rgba(var(--primary-rgb), 0.25)',
+                        display: 'block',
                       }}
                     />
                   ) : (
