@@ -350,7 +350,7 @@ export const HostEventModal = ({ isOpen, onClose, onSuccess }) => {
       title=""
       maxWidth="860px"
     >
-      <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '82vh', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: 'min(88vh, 800px)', maxHeight: '92dvh', overflow: 'hidden' }}>
         {/* Header Bar */}
         <div
           style={{
@@ -463,8 +463,9 @@ export const HostEventModal = ({ isOpen, onClose, onSuccess }) => {
         {/* Interior Form Content (Scrollable) */}
         <div
           style={{
-            padding: 'var(--space-6)',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
             flex: 1,
             background: 'var(--bg-primary)',
           }}
@@ -1813,12 +1814,15 @@ export const HostEventModal = ({ isOpen, onClose, onSuccess }) => {
         {!submittedProposal && (
           <div
             style={{
-              padding: 'var(--space-4) var(--space-6)',
+              padding: 'var(--space-3) var(--space-4)',
               borderTop: '1px solid var(--border-subtle)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               background: 'var(--bg-secondary)',
+              flexShrink: 0,
+              gap: '8px',
+              flexWrap: 'wrap',
             }}
           >
             <Button

@@ -576,9 +576,50 @@ export const PublicNavbar = () => {
               <>
                 <div
                   style={{
+                    padding: '10px 14px',
+                    borderRadius: 'var(--radius-lg)',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '34px',
+                      height: '34px',
+                      borderRadius: '50%',
+                      background: 'var(--primary)',
+                      color: 'var(--text-inverse)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.85rem',
+                      fontWeight: '700',
+                      fontFamily: 'var(--font-heading)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'S'}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
+                    <p style={{ margin: 0, fontSize: 'var(--text-xs)', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {user?.fullName || 'Campus Student'}
+                    </p>
+                    <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                      {user?.email || 'student@campus.edu'}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style={{
                     height: '1px',
                     background: 'var(--border-subtle)',
-                    margin: '8px 0',
+                    margin: '4px 0',
                   }}
                 />
                 <NavLink

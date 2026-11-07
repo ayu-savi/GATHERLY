@@ -122,14 +122,15 @@ export const PassVerifierPage = () => {
             <label style={{ display: 'block', fontSize: 'var(--text-xs)', fontWeight: 'bold', color: 'var(--text-secondary)', marginBottom: '8px' }}>
               Enter Pass ID or Decoded QR Token:
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <input
                 type="text"
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value)}
                 placeholder="e.g. PASS-GATH-2026-7891 or GATHERLY:PASS:..."
                 style={{
-                  flex: 1,
+                  flex: '1 1 220px',
+                  minWidth: 0,
                   padding: '12px 16px',
                   borderRadius: 'var(--radius-md)',
                   background: 'var(--bg-elevated)',
@@ -140,7 +141,7 @@ export const PassVerifierPage = () => {
                   outline: 'none',
                 }}
               />
-              <Button type="submit" variant="primary" loading={loading} icon={Search}>
+              <Button type="submit" variant="primary" loading={loading} icon={Search} style={{ flexShrink: 0 }}>
                 Verify Pass
               </Button>
             </div>
@@ -158,11 +159,15 @@ export const PassVerifierPage = () => {
                 background: 'var(--bg-elevated)',
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-sm)',
-                padding: '3px 8px',
+                padding: '4px 10px',
                 fontSize: '0.7rem',
                 fontFamily: 'var(--font-mono)',
                 color: 'var(--primary)',
                 cursor: 'pointer',
+                maxWidth: '100%',
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+                textAlign: 'left',
               }}
             >
               PASS-GATH-2026-7891 (Aarav Sharma)
