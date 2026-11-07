@@ -274,10 +274,171 @@ input, select, textarea {
   animation: radarPulse 1.8s infinite;
 }
 
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
-.delay-4 { animation-delay: 0.4s; }
+@keyframes heroFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-fade-up {
+  opacity: 0;
+  animation: heroFadeUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes scaleFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scale-fade-in {
+  opacity: 0;
+  animation: scaleFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes lightboxZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-lightbox-zoom {
+  animation: lightboxZoomIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes avatarPulseRing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(var(--primary-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+  }
+}
+
+.animate-avatar-ring {
+  animation: avatarPulseRing 3.5s ease-in-out infinite;
+}
+
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.16s; }
+.delay-3 { animation-delay: 0.24s; }
+.delay-4 { animation-delay: 0.32s; }
+.delay-5 { animation-delay: 0.40s; }
+.delay-6 { animation-delay: 0.48s; }
+.delay-7 { animation-delay: 0.56s; }
+.delay-8 { animation-delay: 0.64s; }
+
+/* Interactive Experience & Gallery Cards */
+.about-experience-card {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease !important;
+}
+
+.about-experience-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 16px 36px rgba(var(--primary-rgb), 0.14), var(--shadow-lg) !important;
+}
+
+.about-experience-card .exp-card-img {
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.about-experience-card:hover .exp-card-img {
+  transform: scale(1.05) !important;
+}
+
+.about-society-card {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease,
+              background-color 0.25s ease !important;
+}
+
+.about-society-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: var(--primary) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.about-society-card .society-icon-box {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.about-society-card:hover .society-icon-box {
+  transform: translateY(-3px) scale(1.12) !important;
+}
+
+.gallery-photo-card {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease !important;
+}
+
+.gallery-photo-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 16px 36px rgba(var(--primary-rgb), 0.16), var(--shadow-lg) !important;
+}
+
+.gallery-photo-card .gallery-card-img {
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.gallery-photo-card:hover .gallery-card-img {
+  transform: scale(1.045) !important;
+}
+
+.featured-hero-interactive {
+  transition: box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease !important;
+}
+
+.featured-hero-interactive:hover {
+  box-shadow: 0 20px 48px rgba(var(--primary-rgb), 0.22), var(--shadow-xl) !important;
+  border-color: var(--primary) !important;
+}
+
+.featured-hero-interactive .featured-hero-img {
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.featured-hero-interactive:hover .featured-hero-img {
+  transform: scale(1.025) !important;
+}
+
+.lightbox-control-btn {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.2s ease,
+              border-color 0.2s ease !important;
+}
+
+.lightbox-control-btn:hover {
+  transform: scale(1.08) !important;
+}
+
+.lightbox-control-btn:active {
+  transform: scale(0.94) !important;
+}
 
 /* Enhanced Interactive Event Card Classes */
 .gatherly-event-card {

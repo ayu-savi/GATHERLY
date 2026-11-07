@@ -17,12 +17,18 @@ import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { galleryService } from '../../services/galleryService';
+import { useInView } from '../../hooks/useInView';
 
 export const GalleryPage = () => {
   const [collection, setCollection] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activePhotoIndex, setActivePhotoIndex] = useState(null);
+
+  // Intersection observers for fluid scroll entrances
+  const [heroRef, heroInView] = useInView();
+  const [featuredRef, featuredInView] = useInView();
+  const [gridRef, gridInView] = useInView();
 
   const fetchGallery = async () => {
     try {
@@ -74,7 +80,11 @@ export const GalleryPage = () => {
     <div style={{ padding: 'var(--space-12) 0 var(--space-20)' }}>
       <div className="container">
         {/* Page Header */}
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-10)' }}>
+        <div
+          ref={heroRef}
+          className={heroInView ? 'animate-hero-fade-up' : ''}
+          style={{ textAlign: 'center', marginBottom: 'var(--space-10)' }}
+        >
           <div className="editorial-eyebrow" style={{ justifyContent: 'center' }}>
             <Camera size={14} />
             <span>Campus Memories</span>
@@ -106,6 +116,7 @@ export const GalleryPage = () => {
         {/* Demo Showcase Notice Banner */}
         {collection?.isDemo && (
           <div
+            className={heroInView ? 'animate-slide-up delay-1' : ''}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -118,6 +129,7 @@ export const GalleryPage = () => {
               fontSize: 'var(--text-xs)',
               lineHeight: 1.6,
               color: 'var(--text-secondary)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <Info size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />
@@ -185,7 +197,11 @@ export const GalleryPage = () => {
           <>
             {/* Featured Photograph Hero Showcase */}
             {featuredPhoto && (
-              <div style={{ marginBottom: 'var(--space-12)' }}>
+              <div
+                ref={featuredRef}
+                className={featuredInView ? 'animate-scale-fade-in delay-2' : ''}
+                style={{ marginBottom: 'var(--space-12)' }}
+              >
                 <div
                   style={{
                     display: 'flex',
@@ -230,20 +246,18 @@ export const GalleryPage = () => {
                     maxHeight: '520px',
                     background: 'var(--bg-card)',
                   }}
-                  className="card-lift"
+                  className="card-lift featured-hero-interactive"
                 >
                   <img
                     src={featuredPhoto.photoPath}
                     alt={featuredPhoto.eventName}
+                    className="featured-hero-img"
                     style={{
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
                       display: 'block',
-                      transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                   />
 
                   {/* Gradient Overlay & Metadata */}
@@ -367,8 +381,9 @@ export const GalleryPage = () => {
             )}
 
             {/* Gallery Grid Section */}
-            <div style={{ marginBottom: 'var(--space-8)' }}>
+            <div ref={gridRef} style={{ marginBottom: 'var(--space-8)' }}>
               <div
+                className={gridInView ? 'animate-slide-up delay-1' : ''}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -400,7 +415,9 @@ export const GalleryPage = () => {
                   <Card
                     key={photo._id || idx}
                     glass
-                    className="card-lift"
+                    className={`card-lift gallery-photo-card ${
+                      gridInView ? `animate-slide-up delay-${(idx % 6) + 1}` : ''
+                    }`}
                     onClick={() => setActivePhotoIndex(idx)}
                     style={{
                       padding: 0,
@@ -423,15 +440,13 @@ export const GalleryPage = () => {
                         src={photo.photoPath}
                         alt={photo.eventName}
                         loading="lazy"
+                        className="gallery-card-img"
                         style={{
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
                           display: 'block',
-                          transition: 'transform 0.4s ease',
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                       />
                       {photo.isFeatured && (
                         <div
@@ -512,7 +527,7 @@ export const GalleryPage = () => {
                           <span>Campus Life</span>
                         )}
 
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--primary)' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--primary)', fontWeight: '600' }}>
                           <Maximize2 size={11} /> View
                         </span>
                       </div>
@@ -542,7 +557,7 @@ export const GalleryPage = () => {
             flexDirection: 'column',
             justifyContent: 'space-between',
             padding: 'clamp(16px, 3vw, 32px)',
-            animation: 'fadeIn 0.2s ease',
+            animation: 'fadeIn 0.22s ease-out',
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setActivePhotoIndex(null);
@@ -578,6 +593,7 @@ export const GalleryPage = () => {
             <button
               onClick={() => setActivePhotoIndex(null)}
               aria-label="Close Lightbox"
+              className="lightbox-control-btn"
               style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 border: 'none',
@@ -589,10 +605,7 @@ export const GalleryPage = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'background var(--transition-fast)',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')}
             >
               <X size={20} />
             </button>
@@ -619,11 +632,12 @@ export const GalleryPage = () => {
                 );
               }}
               aria-label="Previous Photograph"
+              className="lightbox-control-btn"
               style={{
                 position: 'absolute',
                 left: '10px',
                 zIndex: 10,
-                background: 'rgba(0, 0, 0, 0.6)',
+                background: 'rgba(0, 0, 0, 0.65)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 color: '#FFFFFF',
                 width: '48px',
@@ -633,18 +647,17 @@ export const GalleryPage = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all var(--transition-fast)',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)')}
             >
               <ChevronLeft size={26} />
             </button>
 
             {/* Main Lightbox Image */}
             <img
+              key={activePhoto._id || activePhotoIndex}
               src={activePhoto.photoPath}
               alt={activePhoto.eventName}
+              className="animate-lightbox-zoom"
               style={{
                 maxWidth: '90%',
                 maxHeight: '80vh',
@@ -663,11 +676,12 @@ export const GalleryPage = () => {
                 );
               }}
               aria-label="Next Photograph"
+              className="lightbox-control-btn"
               style={{
                 position: 'absolute',
                 right: '10px',
                 zIndex: 10,
-                background: 'rgba(0, 0, 0, 0.6)',
+                background: 'rgba(0, 0, 0, 0.65)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 color: '#FFFFFF',
                 width: '48px',
@@ -677,10 +691,7 @@ export const GalleryPage = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all var(--transition-fast)',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)')}
             >
               <ChevronRight size={26} />
             </button>
@@ -688,6 +699,7 @@ export const GalleryPage = () => {
 
           {/* Bottom Bar: Image Metadata */}
           <div
+            className="animate-slide-up delay-1"
             style={{
               background: 'rgba(20, 20, 20, 0.85)',
               backdropFilter: 'blur(10px)',
