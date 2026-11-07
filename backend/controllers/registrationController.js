@@ -93,7 +93,12 @@ const registerForEvent = async (req, res, next) => {
       return sendError(res, 'Event not found or has been removed', 404);
     }
 
-    // 3. Check registration deadline
+    // 3. Check event status & cancellation
+    if (event.isCancelled || event.registrationStatus === 'Closed' || event.registrationStatus === 'Cancelled') {
+      return sendError(res, 'Registration is closed: This event is closed or has been cancelled', 400);
+    }
+
+    // 4. Check registration deadline
     if (event.registrationDeadline) {
       const deadlineDate = new Date(event.registrationDeadline);
       if (deadlineDate < new Date()) {
@@ -101,7 +106,7 @@ const registerForEvent = async (req, res, next) => {
       }
     }
 
-    // 4. Check capacity
+    // 5. Check capacity
     const registeredCount = event.registeredCount || 0;
     const capacity = event.capacity || 100;
     if (registeredCount >= capacity) {

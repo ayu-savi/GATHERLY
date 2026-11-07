@@ -51,6 +51,24 @@ export const eventService = {
     const res = await api.get('/registrations/my');
     return res.data || [];
   },
+
+  // Create a new event (Organizer / Admin)
+  createEvent: async (eventData) => {
+    const res = await api.post('/events', eventData);
+    return res.data;
+  },
+
+  // Update an existing event (Event Owner / Admin)
+  updateEvent: async (id, eventData) => {
+    const res = await api.put(`/events/${id}`, eventData);
+    return res.data;
+  },
+
+  // Safely cancel or delete an event (Event Owner / Admin)
+  deleteEvent: async (id, reason = '') => {
+    const res = await api.delete(`/events/${id}`, { data: { reason } });
+    return res.data;
+  },
 };
 
 export default eventService;

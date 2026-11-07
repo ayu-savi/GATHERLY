@@ -69,8 +69,22 @@ const eventSchema = new mongoose.Schema(
     },
     registrationStatus: {
       type: String,
-      enum: ['Open', 'Filling Fast', 'Waitlist', 'Closed'],
+      enum: ['Open', 'Filling Fast', 'Waitlist', 'Closed', 'Cancelled'],
       default: 'Open',
+    },
+    organizer: {
+      type: mongoose.Schema.Types.Mixed,
+      ref: 'User',
+      index: true,
+    },
+    isCancelled: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    cancellationReason: {
+      type: String,
+      default: null,
     },
     registrationFee: {
       type: Number,
