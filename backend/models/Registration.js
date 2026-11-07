@@ -165,24 +165,39 @@ const registrationSchema = new mongoose.Schema(
   }
 );
 
-// Compound index: Enforce uniqueness ONLY for active (non-cancelled) registrations
+// Compound index: Enforce uniqueness ONLY for active confirmed registrations in MongoDB
+// Uses MongoDB-supported equality expression { status: 'confirmed' }
 // Allows legitimate re-registration after a student cancels an event registration
 registrationSchema.index(
   { user: 1, event: 1 },
   {
     unique: true,
-    partialFilterExpression: { status: { $ne: 'cancelled' } },
+    partialFilterExpression: { status: 'confirmed' },
   }
 );
 
 const Registration = mongoose.model('Registration', registrationSchema);
 
-// Safely handle legacy compound index migration without partial filter expression
-Registration.on('index', (err) => {
-  if (err && (err.code === 85 || err.message?.includes('different options'))) {
-    Registration.collection.dropIndex('user_1_event_1')
-      .then(() => Registration.syncIndexes())
-      .catch((dropErr) => console.warn('Could not auto-migrate legacy user_1_event_1 index:', dropErr.message));
+// Safely handle legacy compound index migration without breaking MongoDB startup
+Registration.on('index', async (err) => {
+  if (err) {
+    if (
+      err.code === 85 ||
+      err.code === 67 ||
+      err.message?.includes('different options') ||
+      err.message?.includes('unsupported expression')
+    ) {
+      try {
+        console.log('🔄 Migrating Registration unique index to MongoDB-supported partial filter...');
+        await Registration.collection.dropIndex('user_1_event_1');
+        await Registration.syncIndexes();
+        console.log('✅ Registration compound index synchronized successfully.');
+      } catch (dropErr) {
+        console.warn('⚠️ Could not auto-migrate legacy user_1_event_1 index:', dropErr.message);
+      }
+    } else {
+      console.warn('Registration index notice:', err.message);
+    }
   }
 });
 
