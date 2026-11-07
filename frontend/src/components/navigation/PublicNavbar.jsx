@@ -50,7 +50,7 @@ export const PublicNavbar = () => {
   const publicLinks = [
     { name: 'Home', path: '/', end: true },
     { name: 'Discover', path: '/events', end: false },
-    { name: 'Memories', path: '/gallery', end: false },
+    { name: 'Campus Memories', path: '/gallery', end: false },
     { name: 'About Campus', path: '/about', end: false },
   ];
 
@@ -528,6 +528,27 @@ export const PublicNavbar = () => {
                       >
                         <SettingsIcon size={14} style={{ color: 'var(--text-muted)' }} />
                         <span>Settings</span>
+                      </Link>
+
+                      <Link
+                        to="/"
+                        onClick={() => setUserDropdownOpen(false)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '8px 10px',
+                          borderRadius: 'var(--radius-md)',
+                          fontSize: 'var(--text-xs)',
+                          color: 'var(--text-secondary)',
+                          textDecoration: 'none',
+                          transition: 'background var(--transition-fast)',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <Compass size={14} style={{ color: 'var(--primary)' }} />
+                        <span>Return to Public Site</span>
                       </Link>
                     </div>
 
