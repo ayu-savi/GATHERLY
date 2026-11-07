@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 export const Modal = ({
@@ -8,6 +8,30 @@ export const Modal = ({
   children,
   maxWidth = '540px',
 }) => {
+  const modalRef = useRef(null);
+  const previousActiveElement = useRef(null);
+
+  // Focus management: save previous active element and restore on unmount/close
+  useEffect(() => {
+    if (isOpen) {
+      previousActiveElement.current = document.activeElement;
+      // Focus modal container or first actionable element after mount
+      const focusTimer = setTimeout(() => {
+        if (modalRef.current) {
+          const focusable = modalRef.current.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          if (focusable) {
+            focusable.focus();
+          } else {
+            modalRef.current.focus();
+          }
+        }
+      }, 50);
+      return () => clearTimeout(focusTimer);
+    } else if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
+      previousActiveElement.current.focus();
+    }
+  }, [isOpen]);
+
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -48,6 +72,7 @@ export const Modal = ({
       {/* Backdrop */}
       <div
         onClick={onClose}
+        aria-hidden="true"
         style={{
           position: 'fixed',
           inset: 0,
@@ -60,6 +85,12 @@ export const Modal = ({
 
       {/* Modal Dialog Card */}
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? 'modal-dialog-title' : undefined}
+        aria-label={!title ? 'Campus Dialog' : undefined}
+        tabIndex={-1}
         style={{
           position: 'relative',
           zIndex: 'var(--z-modal)',
@@ -73,6 +104,7 @@ export const Modal = ({
           display: 'flex',
           flexDirection: 'column',
           maxHeight: '90vh',
+          outline: 'none',
         }}
       >
         {/* Header */}
@@ -85,9 +117,10 @@ export const Modal = ({
             justifyContent: 'space-between',
           }}
         >
-          <h3 style={{ fontSize: 'var(--text-xl)', margin: 0 }}>{title}</h3>
+          <h3 id="modal-dialog-title" style={{ fontSize: 'var(--text-xl)', margin: 0 }}>{title}</h3>
           <button
             onClick={onClose}
+            type="button"
             aria-label="Close modal"
             style={{
               color: 'var(--text-secondary)',

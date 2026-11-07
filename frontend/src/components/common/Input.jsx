@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 
 export const Input = forwardRef(({
   label,
+  id,
   error,
   helperText,
   icon: Icon,
@@ -16,19 +17,25 @@ export const Input = forwardRef(({
   style = {},
   ...props
 }, ref) => {
+  const generatedId = id || (label ? `input-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : undefined);
+  const errorId = error && generatedId ? `${generatedId}-error` : undefined;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', ...style }}>
       {label && (
-        <label style={{
-          fontSize: 'var(--text-sm)',
-          fontWeight: 'var(--weight-medium)',
-          color: 'var(--text-secondary)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-        }}>
+        <label
+          htmlFor={generatedId}
+          style={{
+            fontSize: 'var(--text-sm)',
+            fontWeight: 'var(--weight-medium)',
+            color: 'var(--text-secondary)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
           {label}
-          {required && <span style={{ color: 'var(--error)' }}>*</span>}
+          {required && <span style={{ color: 'var(--error)' }} aria-hidden="true">*</span>}
         </label>
       )}
 
@@ -41,19 +48,23 @@ export const Input = forwardRef(({
             display: 'flex',
             alignItems: 'center',
             pointerEvents: 'none',
-          }}>
+          }} aria-hidden="true">
             <Icon size={18} />
           </span>
         )}
 
         <input
           ref={ref}
+          id={generatedId}
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
           disabled={disabled}
           required={required}
+          aria-required={required}
+          aria-invalid={Boolean(error)}
+          aria-describedby={errorId}
           className={`gatherly-input ${className}`}
           style={{
             width: '100%',
@@ -94,7 +105,7 @@ export const Input = forwardRef(({
       </div>
 
       {error ? (
-        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--error)', marginTop: '2px' }}>
+        <span id={errorId} role="alert" style={{ fontSize: 'var(--text-xs)', color: 'var(--error)', marginTop: '2px' }}>
           {error}
         </span>
       ) : helperText ? (
