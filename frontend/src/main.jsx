@@ -11,7 +11,6 @@ import './styles/responsive.css';
 // Import Global Application Providers
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
-import { EventProvider } from './context/EventContext';
 import { ToastProvider } from './context/ToastContext';
 
 import App from './App';
@@ -21,11 +20,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <EventProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
-          </EventProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
