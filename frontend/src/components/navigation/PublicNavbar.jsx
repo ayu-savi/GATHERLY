@@ -81,7 +81,7 @@ export const PublicNavbar = () => {
             textDecoration: 'none',
           }}
         >
-          <BrandLogo size={36} showText subtitle="Campus Portal" />
+          <BrandLogo size={36} showText />
         </Link>
 
         {/* Desktop Navigation Links */}
