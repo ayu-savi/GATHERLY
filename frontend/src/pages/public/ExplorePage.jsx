@@ -10,6 +10,7 @@ import {
   Clock,
   MapPin,
   ArrowRight,
+  X,
 } from 'lucide-react';
 import { EventCard } from '../../components/events/EventCard';
 import { Button } from '../../components/common/Button';
@@ -21,9 +22,11 @@ export const ExplorePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Category filter and view states (Search bar removed per specification)
+  // Category and query filter states (Search bar removed per specification; entry point is homepage hero)
   const initialCategory = searchParams.get('category') || 'all';
+  const initialQuery = searchParams.get('q') || '';
   const [activeCategory, setActiveCategory] = useState(initialCategory);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
 
   const [events, setEvents] = useState([]);
@@ -31,14 +34,12 @@ export const ExplorePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Synchronize category if URL search parameters change
+  // Synchronize category and search query if URL search parameters change
   useEffect(() => {
-    const cat = searchParams.get('category');
-    if (cat && cat !== activeCategory) {
-      setActiveCategory(cat);
-    } else if (!cat && activeCategory !== 'all') {
-      setActiveCategory('all');
-    }
+    const cat = searchParams.get('category') || 'all';
+    const q = searchParams.get('q') || '';
+    setActiveCategory(cat);
+    setSearchQuery(q);
   }, [searchParams]);
 
   // Fetch categories list
@@ -60,13 +61,31 @@ export const ExplorePage = () => {
       setLoading(true);
       setError(null);
 
+      const cat = searchParams.get('category') || 'all';
+      const q = (searchParams.get('q') || '').trim();
+
       const params = { limit: 100 };
-      if (activeCategory && activeCategory !== 'all') {
-        params.category = activeCategory;
+      if (cat && cat !== 'all') {
+        params.category = cat;
+      }
+      if (q) {
+        params.q = q;
       }
 
       const res = await eventService.getEvents(params);
-      const fetchedEvents = res.data || [];
+      let fetchedEvents = res.data || [];
+
+      // Safeguard client-side filtering across title, description, category, and venue
+      if (q) {
+        const term = q.toLowerCase();
+        fetchedEvents = fetchedEvents.filter((e) =>
+          (e.title && e.title.toLowerCase().includes(term)) ||
+          (e.description && e.description.toLowerCase().includes(term)) ||
+          (e.category && e.category.toLowerCase().includes(term)) ||
+          (e.venue && e.venue.toLowerCase().includes(term)) ||
+          (e.tags && e.tags.some((t) => t.toLowerCase().includes(term)))
+        );
+      }
 
       // Guarantee chronological order: earliest upcoming event first
       const now = new Date();
@@ -108,10 +127,10 @@ export const ExplorePage = () => {
     }
   };
 
-  // Trigger load when category changes
+  // Trigger load when searchParams change (handling both category and q)
   useEffect(() => {
     loadEvents();
-  }, [activeCategory]);
+  }, [searchParams]);
 
   const handleCategorySelect = (slug) => {
     setActiveCategory(slug);
@@ -292,19 +311,62 @@ export const ExplorePage = () => {
           </div>
         </div>
 
-        {/* Results Metadata Header */}
+        {/* Results Metadata & Active Query Header */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 'var(--space-3)',
             marginBottom: 'var(--space-6)',
             fontSize: 'var(--text-xs)',
             color: 'var(--text-muted)',
             fontWeight: '600',
           }}
         >
-          <span>Showing {events.length} campus {events.length === 1 ? 'event' : 'events'}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <span>Showing {events.length} campus {events.length === 1 ? 'event' : 'events'}</span>
+            {searchQuery && (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '3px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--primary)',
+                  color: 'var(--text-primary)',
+                  fontWeight: '600',
+                }}
+              >
+                <span>Search: <strong>"{searchQuery}"</strong></span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    searchParams.delete('q');
+                    setSearchParams(searchParams);
+                  }}
+                  title="Clear search filter"
+                  aria-label="Clear search filter"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '2px',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Loading State */}
