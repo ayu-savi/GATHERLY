@@ -1165,7 +1165,7 @@ export const HostEventModal = ({ isOpen, onClose, onSuccess }) => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: 'var(--radius-full)', background: 'rgba(217, 87, 112, 0.15)', color: 'var(--primary)', fontWeight: 'bold' }}>
+                        <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: 'var(--radius-full)', background: 'rgba(var(--primary-rgb), 0.15)', color: 'var(--primary)', fontWeight: 'bold' }}>
                           INTERNAL USE ONLY
                         </span>
                       </div>

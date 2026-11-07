@@ -252,7 +252,7 @@ export const EventDetailsPage = () => {
                 style={{
                   padding: '4px 10px',
                   borderRadius: 'var(--radius-full)',
-                  background: isPaid ? 'rgba(217, 87, 112, 0.9)' : 'rgba(15, 118, 110, 0.9)',
+                  background: isPaid ? 'rgba(var(--primary-rgb), 0.9)' : 'rgba(15, 118, 110, 0.9)',
                   color: '#FFFFFF',
                   fontSize: '0.72rem',
                   fontWeight: '700',

@@ -1,69 +1,69 @@
 /* ==============================================================================
    GATHERLY Design System – Master Dual Theme System
-   Dark Theme: Graphite + Coral Pink
-   Light Theme: Peach + Emerald + Turquoise (Preserved strictly)
-   STRICT: NO ORANGE, NO PURPLE, NO BURGUNDY, NO CROSS-CONTAMINATION
+   Dark Theme: Midnight Black + Antique Gold (Approved Luxury Editorial Palette)
+   Light Theme: Peach + Emerald + Turquoise (Strictly Unchanged)
+   STRICT: NO HARDBOUND CORAL, NO BURGUNDY, NO CROSS-CONTAMINATION
    ============================================================================== */
 
-/* Fallback & Dark Theme (Graphite + Coral Pink) */
+/* Fallback & Dark Theme (Midnight Black + Antique Gold) */
 :root,
 [data-theme="dark"] {
   /* Surfaces */
-  --bg-primary: #171719;             /* Main background: Graphite */
-  --bg-secondary: #222226;           /* Secondary background / Cards */
-  --bg-elevated: #303036;            /* Elevated surface / Floating panels */
-  --bg-hover: #3C3C44;               /* Subtle hover highlight */
-  --bg-glass: rgba(34, 34, 38, 0.90);/* Frosted glass overlay */
-  --bg-overlay: rgba(23, 23, 25, 0.85);
+  --bg-primary: #050505;             /* Main background: Midnight Black */
+  --bg-secondary: #111111;           /* Secondary background / Cards */
+  --bg-elevated: #1A1916;            /* Elevated surface / Floating panels & inputs */
+  --bg-hover: #24221C;               /* Subtle warm bronze-gold hover */
+  --bg-glass: rgba(17, 17, 17, 0.92);/* Frosted luxury glass */
+  --bg-overlay: rgba(5, 5, 5, 0.88);
 
-  /* Primary Brand Coral Accents */
-  --primary: #D95770;                /* Primary coral: #D95770 */
-  --primary-hover: #C6455E;
-  --primary-active: #B2364E;
-  --primary-rgb: 217, 87, 112;
+  /* Primary Brand Gold Accents */
+  --primary: #B08D45;                /* Primary Antique Gold: #B08D45 */
+  --primary-hover: #C29F54;          /* Luminous warm gold on hover */
+  --primary-active: #9A7B38;         /* Deeper gold on active click */
+  --primary-rgb: 176, 141, 69;
 
-  /* Secondary Coral & Highlights */
-  --accent-secondary: #FF91A5;       /* Secondary coral: #FF91A5 */
-  --accent-secondary-rgb: 255, 145, 165;
-  --highlight: #FFD5DC;              /* Soft highlight: #FFD5DC */
-  --highlight-rgb: 255, 213, 220;
+  /* Secondary Soft Gold & Highlights */
+  --accent-secondary: #D6BD82;       /* Soft Gold / Secondary Accent: #D6BD82 */
+  --accent-secondary-rgb: 214, 189, 130;
+  --highlight: #EAE0C8;              /* Delicate champagne highlight */
+  --highlight-rgb: 234, 224, 200;
 
-  /* Legacy aliases mapped to dark tokens */
-  --accent-cyan: #FF91A5;
-  --accent-cyan-rgb: 255, 145, 165;
-  --highlight-pink: #FFD5DC;
-  --highlight-pink-rgb: 255, 213, 220;
+  /* Legacy aliases mapped to gold tokens */
+  --accent-cyan: #D6BD82;
+  --accent-cyan-rgb: 214, 189, 130;
+  --highlight-pink: #EAE0C8;
+  --highlight-pink-rgb: 234, 224, 200;
 
   /* Text & Content */
-  --text-primary: #F8F5F6;           /* Crisp primary text */
-  --text-secondary: #BDB5B9;         /* Secondary text */
-  --text-muted: #827A7F;             /* Dim graphite slate */
-  --text-inverse: #171719;           /* Text on coral buttons */
+  --text-primary: #F5F3ED;           /* Crisp warm ivory text */
+  --text-secondary: #C4BFB3;         /* Refined warm secondary text */
+  --text-muted: #88816F;             /* Approved Muted Text: #88816F */
+  --text-inverse: #050505;           /* Midnight black text on gold buttons for strong readability */
 
   /* Borders & Dividers */
-  --border-subtle: #39353A;          /* Borders: #39353A */
-  --border-strong: #4F4950;
-  --border-glow: rgba(217, 87, 112, 0.35);
+  --border-subtle: #24221D;          /* Restrained bronze-charcoal border */
+  --border-strong: #38342B;          /* Defined border */
+  --border-glow: rgba(176, 141, 69, 0.35);
 
-  /* Status Colors (NO ORANGE, NO PURPLE) */
+  /* Status Colors (Semantic status preserved) */
   --success: #10B981;
   --success-bg: rgba(16, 185, 129, 0.15);
-  --warning: #FF91A5;                /* Coral pink for warnings */
-  --warning-bg: rgba(255, 145, 165, 0.15);
-  --error: #F43F5E;
-  --error-bg: rgba(244, 63, 94, 0.15);
-  --info: #FFD5DC;
-  --info-bg: rgba(255, 213, 220, 0.15);
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --error: #EF4444;
+  --error-bg: rgba(239, 68, 68, 0.15);
+  --info: #38BDF8;
+  --info-bg: rgba(56, 189, 248, 0.15);
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.6), 0 2px 6px -1px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.75), 0 6px 14px -2px rgba(0, 0, 0, 0.45);
-  --shadow-glow: 0 0 24px rgba(217, 87, 112, 0.28);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.75), 0 2px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 36px -4px rgba(0, 0, 0, 0.9), 0 6px 14px -2px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 24px rgba(176, 141, 69, 0.22);
 
   /* Scrollbar */
-  --scrollbar-thumb: #39353A;
-  --scrollbar-track: #171719;
+  --scrollbar-thumb: #38342B;
+  --scrollbar-track: #050505;
 }
 
 /* Light Theme (Peach + Emerald + Turquoise - PRESERVED EXACTLY) */

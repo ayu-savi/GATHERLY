@@ -152,7 +152,7 @@ export const HomePage = () => {
             width: '450px',
             height: '450px',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(217, 87, 112, 0.14) 0%, rgba(217, 87, 112, 0) 70%)',
+            background: 'radial-gradient(circle, rgba(var(--primary-rgb), 0.14) 0%, rgba(var(--primary-rgb), 0) 70%)',
             pointerEvents: 'none',
             zIndex: 0,
             filter: 'blur(50px)',
@@ -461,7 +461,7 @@ export const HomePage = () => {
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-4px)';
               e.currentTarget.style.borderColor = 'var(--accent-secondary)';
-              e.currentTarget.style.boxShadow = '0 12px 24px rgba(217, 87, 112, 0.12)';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(var(--primary-rgb), 0.12)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
