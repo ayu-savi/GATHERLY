@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 const Gallery = require('../models/Gallery');
 const { galleryStore, INITIAL_DEMO_COLLECTION } = require('../data/galleryStore');
 const { getDBStatus } = require('../config/db');
@@ -185,7 +186,13 @@ const publishGallery = async (req, res, next) => {
         isActive: true,
         publishedAt: new Date(),
         publishedBy: req.user._id,
-        photographs,
+        photographs: photographs.map((p) => {
+          const item = { ...p };
+          if (item._id && typeof item._id === 'string' && !mongoose.Types.ObjectId.isValid(item._id)) {
+            delete item._id;
+          }
+          return item;
+        }),
       });
 
       // 3. Mark previous collections as inactive
@@ -208,7 +215,13 @@ const publishGallery = async (req, res, next) => {
         title,
         description,
         isDemo,
-        photographs,
+        photographs: photographs.map((p) => {
+          const item = { ...p };
+          if (item._id && typeof item._id === 'string' && !mongoose.Types.ObjectId.isValid(item._id)) {
+            delete item._id;
+          }
+          return item;
+        }),
         publishedBy: req.user?._id || req.user?.id,
       });
     }

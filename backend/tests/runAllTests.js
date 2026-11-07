@@ -722,6 +722,314 @@ async function runTestSuite() {
       `Discover events span across 7+ distinct campus categories/domains (Found: ${distinctCategories.size})`
     );
 
+    // =========================================================================
+    // 8. FORGOT PASSWORD WITH EMAIL OTP VERIFICATION
+    // =========================================================================
+    console.log('\n📌 8. Forgot Password with Email OTP Verification');
+
+    const mongoose = require('mongoose');
+    const dotenv = require('dotenv');
+    dotenv.config();
+
+    if (process.env.MONGO_URI && mongoose.connection.readyState === 0) {
+      try {
+        await mongoose.connect(process.env.MONGO_URI);
+      } catch (e) {}
+    }
+
+    const User = require('../models/User');
+    const { fallbackUsers } = require('../controllers/authController');
+
+    const getTestUser = async (email) => {
+      try {
+        if (mongoose.connection.readyState === 1) {
+          const u = await User.findOne({ email: email.toLowerCase().trim() });
+          if (u) return u;
+        }
+      } catch (e) {}
+      return fallbackUsers.find((u) => u.email === email.toLowerCase().trim());
+    };
+
+    const crackOtpFromHash = (hash) => {
+      if (!hash) return null;
+      const crypto = require('crypto');
+      for (let i = 100000; i <= 999999; i++) {
+        const s = i.toString();
+        if (crypto.createHash('sha256').update(s).digest('hex') === hash) {
+          return s;
+        }
+      }
+      return null;
+    };
+
+    const targetEmail = 'priya.patel@campus.edu';
+
+    // 8.1 Unregistered email returns generic message without leaking account existence
+    const unregRes = await request({ path: '/api/auth/forgot-password', method: 'POST' }, {
+      email: 'nonexistent.student.99@campus.edu',
+    });
+    assert(
+      unregRes.status === 200 &&
+      unregRes.body.success === true &&
+      unregRes.body.message === 'If an account with that email exists, a password reset code has been sent.' &&
+      !unregRes.body.data?.otp &&
+      !unregRes.body.data?.resetToken,
+      'ForgotPassword',
+      'Unregistered email returns generic message without user enumeration or secret exposure'
+    );
+
+    // 8.2 Missing email rejected with 400 Bad Request
+    const missingEmailRes = await request({ path: '/api/auth/forgot-password', method: 'POST' }, {});
+    assert(
+      missingEmailRes.status === 400 && missingEmailRes.body.success === false,
+      'ForgotPassword',
+      'Missing email rejected with 400 Bad Request'
+    );
+
+    // Reset any existing cooldown on test user before starting flow
+    const initialUser = await getTestUser(targetEmail);
+    if (initialUser) {
+      initialUser.resetPasswordCooldown = null;
+      initialUser.resetPasswordAttempts = 0;
+      await initialUser.save?.();
+    }
+
+    // 8.3 Valid registered student requests OTP code
+    const validOtpReq = await request({ path: '/api/auth/forgot-password', method: 'POST' }, {
+      email: targetEmail,
+    });
+    assert(
+      validOtpReq.status === 200 &&
+      validOtpReq.body.success === true &&
+      validOtpReq.body.data?.cooldownSeconds === 60 &&
+      !validOtpReq.body.data?.otp &&
+      !validOtpReq.body.data?.otpHash,
+      'ForgotPassword',
+      'Registered student receives generic response and OTP is never returned in API body'
+    );
+
+    // 8.4 Resend cooldown enforced within 60 seconds
+    const cooldownRes = await request({ path: '/api/auth/forgot-password', method: 'POST' }, {
+      email: targetEmail,
+    });
+    assert(
+      cooldownRes.status === 429 &&
+      cooldownRes.body.message.includes('second(s) before requesting another verification code'),
+      'ForgotPassword',
+      'Subsequent OTP request within 60 seconds rejected with 429 Rate Limit'
+    );
+
+    // 8.5 Malformed OTP format rejected
+    const malformedOtpRes = await request({ path: '/api/auth/verify-reset-otp', method: 'POST' }, {
+      email: targetEmail,
+      otp: '123',
+    });
+    assert(
+      malformedOtpRes.status === 400 &&
+      malformedOtpRes.body.message.includes('6-digit number'),
+      'ForgotOTP',
+      'Non-6-digit OTP rejected with 400 Bad Request'
+    );
+
+    // 8.6 Incorrect OTP decrements remaining attempts
+    const wrongOtpRes = await request({ path: '/api/auth/verify-reset-otp', method: 'POST' }, {
+      email: targetEmail,
+      otp: '000000',
+    });
+    assert(
+      wrongOtpRes.status === 400 &&
+      wrongOtpRes.body.message.includes('attempt(s) remaining'),
+      'ForgotOTP',
+      'Incorrect OTP rejected with remaining attempt count'
+    );
+
+    // 8.7 Attempt lockout: Send 4 more wrong OTPs (total 5)
+    for (let i = 0; i < 3; i++) {
+      await request({ path: '/api/auth/verify-reset-otp', method: 'POST' }, {
+        email: targetEmail,
+        otp: '00000' + (i + 1),
+      });
+    }
+    const finalWrongRes = await request({ path: '/api/auth/verify-reset-otp', method: 'POST' }, {
+      email: targetEmail,
+      otp: '000009',
+    });
+    assert(
+      (finalWrongRes.status === 429 || finalWrongRes.status === 400) &&
+      finalWrongRes.body.message.includes('Too many failed attempts'),
+      'ForgotOTP',
+      'OTP locked and invalidated after 5 failed attempts'
+    );
+
+    // 8.8 Request fresh OTP after resetting cooldown
+    const freshUser = await getTestUser(targetEmail);
+    if (freshUser) {
+      freshUser.resetPasswordCooldown = null;
+      await freshUser.save?.();
+    }
+    await request({ path: '/api/auth/forgot-password', method: 'POST' }, { email: targetEmail });
+    const freshUserWithOtp = await getTestUser(targetEmail);
+    const validOtp = crackOtpFromHash(freshUserWithOtp.resetPasswordOtpHash);
+    assert(
+      Boolean(validOtp) && validOtp.length === 6,
+      'ForgotOTP',
+      'Cryptographically secure 6-digit OTP generated and stored only as SHA-256 hash'
+    );
+
+    // 8.9 Expired OTP is rejected
+    if (freshUserWithOtp) {
+      freshUserWithOtp.resetPasswordOtpExpires = new Date(Date.now() - 5000);
+      await freshUserWithOtp.save?.();
+    }
+    const expiredRes = await request({ path: '/api/auth/verify-reset-otp', method: 'POST' }, {
+      email: targetEmail,
+      otp: validOtp,
+    });
+    assert(
+      expiredRes.status === 400 && expiredRes.body.message.includes('expired'),
+      'ForgotOTP',
+      'Expired OTP rejected with 400 Bad Request'
+    );
+
+    // 8.10 Verify valid OTP and receive reset token
+    if (freshUserWithOtp) {
+      freshUserWithOtp.resetPasswordOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
+      await freshUserWithOtp.save?.();
+    }
+    const verifySuccess = await request({ path: '/api/auth/verify-reset-otp', method: 'POST' }, {
+      email: targetEmail,
+      otp: validOtp,
+    });
+    assert(
+      verifySuccess.status === 200 &&
+      Boolean(verifySuccess.body.data?.resetToken),
+      'ForgotOTP',
+      'Valid OTP verification succeeds and returns short-lived reset token'
+    );
+    const validResetToken = verifySuccess.body.data.resetToken;
+
+    // 8.11 Single-use OTP: Replay attack fails
+    const replayOtpRes = await request({ path: '/api/auth/verify-reset-otp', method: 'POST' }, {
+      email: targetEmail,
+      otp: validOtp,
+    });
+    assert(
+      replayOtpRes.status === 400,
+      'ForgotOTP',
+      'OTP cannot be reused after verification (strictly single-use)'
+    );
+
+    // 8.12 Short password rejected (< 6 characters)
+    const shortPassRes = await request({ path: '/api/auth/reset-password', method: 'POST' }, {
+      email: targetEmail,
+      resetToken: validResetToken,
+      newPassword: '123',
+      confirmPassword: '123',
+    });
+    assert(
+      shortPassRes.status === 400 && shortPassRes.body.message.includes('at least 6 characters'),
+      'ResetPassword',
+      'Password shorter than 6 characters rejected with 400 Bad Request'
+    );
+
+    // 8.13 Mismatched passwords rejected
+    const mismatchPassRes = await request({ path: '/api/auth/reset-password', method: 'POST' }, {
+      email: targetEmail,
+      resetToken: validResetToken,
+      newPassword: 'newValidPassword123',
+      confirmPassword: 'differentPassword456',
+    });
+    assert(
+      mismatchPassRes.status === 400 && mismatchPassRes.body.message.includes('Passwords do not match'),
+      'ResetPassword',
+      'Mismatched confirm password rejected with 400 Bad Request'
+    );
+
+    // 8.14 Invalid / fake reset token rejected
+    const fakeTokenRes = await request({ path: '/api/auth/reset-password', method: 'POST' }, {
+      email: targetEmail,
+      resetToken: 'invalid_fake_reset_token_0000000000000000',
+      newPassword: 'newValidPassword123',
+      confirmPassword: 'newValidPassword123',
+    });
+    assert(
+      fakeTokenRes.status === 400,
+      'ResetPassword',
+      'Forged or fake reset token rejected with 400 Bad Request'
+    );
+
+    // 8.15 Successful password reset with valid resetToken
+    const resetSuccessRes = await request({ path: '/api/auth/reset-password', method: 'POST' }, {
+      email: targetEmail,
+      resetToken: validResetToken,
+      newPassword: 'priyaCampusNewPass2026!',
+      confirmPassword: 'priyaCampusNewPass2026!',
+    });
+    assert(
+      resetSuccessRes.status === 200 && resetSuccessRes.body.success === true,
+      'ResetPassword',
+      'Password successfully reset and hashed securely with bcrypt'
+    );
+
+    // 8.16 Single-use reset token: Token cannot be reused
+    const replayResetRes = await request({ path: '/api/auth/reset-password', method: 'POST' }, {
+      email: targetEmail,
+      resetToken: validResetToken,
+      newPassword: 'anotherPassword789!',
+      confirmPassword: 'anotherPassword789!',
+    });
+    assert(
+      replayResetRes.status === 400,
+      'ResetPassword',
+      'Reset token invalidated immediately upon first use (single-use enforced)'
+    );
+
+    // 8.17 Login credential verification: Old password fails, new password succeeds
+    const oldLoginAttempt = await request({ path: '/api/auth/login', method: 'POST' }, {
+      email: targetEmail,
+      password: 'gatherly123',
+    });
+    assert(
+      oldLoginAttempt.status === 401,
+      'ResetPassword',
+      'Login with previous password rejected with 401 Unauthorized'
+    );
+
+    const newLoginAttempt = await request({ path: '/api/auth/login', method: 'POST' }, {
+      email: targetEmail,
+      password: 'priyaCampusNewPass2026!',
+    });
+    assert(
+      newLoginAttempt.status === 200 &&
+      Boolean(newLoginAttempt.body.data?.token) &&
+      newLoginAttempt.body.data?.user?.role === 'student' &&
+      newLoginAttempt.body.data?.user?.fullName.includes('Priya Patel'),
+      'ResetPassword',
+      'Login with new password succeeds and preserves role & student profile details'
+    );
+
+    // 8.18 Restoration: Re-set Priya back to 'gatherly123' to leave test database pristine
+    const restoredUser = await getTestUser(targetEmail);
+    if (restoredUser) {
+      restoredUser.password = 'gatherly123';
+      restoredUser.resetPasswordCooldown = null;
+      await restoredUser.save?.();
+    }
+
+    const restoredLogin = await request({ path: '/api/auth/login', method: 'POST' }, {
+      email: targetEmail,
+      password: 'gatherly123',
+    });
+    assert(
+      restoredLogin.status === 200 && Boolean(restoredLogin.body.data?.token),
+      'ResetPassword',
+      'Test user restored to original credentials and database left in pristine state'
+    );
+
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
+
     console.log('\n===============================================================');
     console.log(`🏁 TEST RESULTS: ${passed} PASSED, ${failed} FAILED (Total: ${passed + failed})`);
     console.log('===============================================================\n');

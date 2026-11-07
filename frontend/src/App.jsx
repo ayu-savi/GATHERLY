@@ -19,6 +19,7 @@ import NotFoundPage from './pages/public/NotFoundPage';
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 
 // Student Dashboard Pages
 import OverviewPage from './pages/app/OverviewPage';
@@ -55,6 +56,7 @@ export const App = () => {
           <Route path="/host-event" element={<HostEventPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 

@@ -1,8 +1,10 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const User = require('../models/User');
 const { getDBStatus } = require('../config/db');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
+const { sendPasswordResetOtpEmail } = require('../services/emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gatherly_super_secret_jwt_key_2026_dev_env';
 
@@ -386,10 +388,355 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Generate and send 6-digit verification OTP to registered campus email
+ * @access  Public
+ */
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      return sendError(res, 'Please provide your registered email address', 400);
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const dbStatus = getDBStatus();
+
+    // Cryptographically secure 6-digit random code
+    const rawOtp = crypto.randomInt(100000, 1000000).toString();
+    const otpHash = crypto.createHash('sha256').update(rawOtp).digest('hex');
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const cooldownPeriod = new Date(Date.now() + 60 * 1000); // 60 seconds
+
+    if (dbStatus.connected) {
+      await ensureUsersSeeded();
+      const user = await User.findOne({ email: normalizedEmail });
+
+      // Generic response if user not found to prevent account enumeration
+      if (!user) {
+        return sendSuccess(
+          res,
+          'If an account with that email exists, a password reset code has been sent.',
+          { email: normalizedEmail, cooldownSeconds: 60 }
+        );
+      }
+
+      // Check cooldown (60s)
+      if (user.resetPasswordCooldown && user.resetPasswordCooldown > Date.now()) {
+        const remainingSeconds = Math.ceil((user.resetPasswordCooldown - Date.now()) / 1000);
+        return sendError(
+          res,
+          `Please wait ${remainingSeconds} second(s) before requesting another verification code.`,
+          429
+        );
+      }
+
+      user.resetPasswordOtpHash = otpHash;
+      user.resetPasswordOtpExpires = otpExpires;
+      user.resetPasswordCooldown = cooldownPeriod;
+      user.resetPasswordAttempts = 0;
+      user.resetPasswordTokenHash = null;
+      user.resetPasswordTokenExpires = null;
+      await user.save();
+
+      // Dispatch branded OTP email
+      try {
+        await sendPasswordResetOtpEmail({
+          to: user.email,
+          otp: rawOtp,
+          recipientName: user.fullName,
+        });
+      } catch (emailErr) {
+        console.error('Email sending error:', emailErr.message);
+        return sendError(res, 'Unable to send verification email. Please try again later.', 500);
+      }
+
+      return sendSuccess(
+        res,
+        'If an account with that email exists, a password reset code has been sent.',
+        { email: user.email, cooldownSeconds: 60 }
+      );
+    }
+
+    // Fallback store implementation
+    const fallbackUser = fallbackUsers.find((u) => u.email === normalizedEmail);
+    if (!fallbackUser) {
+      return sendSuccess(
+        res,
+        'If an account with that email exists, a password reset code has been sent.',
+        { email: normalizedEmail, cooldownSeconds: 60 }
+      );
+    }
+
+    if (fallbackUser.resetPasswordCooldown && fallbackUser.resetPasswordCooldown > Date.now()) {
+      const remainingSeconds = Math.ceil((fallbackUser.resetPasswordCooldown - Date.now()) / 1000);
+      return sendError(
+        res,
+        `Please wait ${remainingSeconds} second(s) before requesting another verification code.`,
+        429
+      );
+    }
+
+    fallbackUser.resetPasswordOtpHash = otpHash;
+    fallbackUser.resetPasswordOtpExpires = otpExpires;
+    fallbackUser.resetPasswordCooldown = cooldownPeriod;
+    fallbackUser.resetPasswordAttempts = 0;
+    fallbackUser.resetPasswordTokenHash = null;
+    fallbackUser.resetPasswordTokenExpires = null;
+
+    try {
+      await sendPasswordResetOtpEmail({
+        to: fallbackUser.email,
+        otp: rawOtp,
+        recipientName: fallbackUser.fullName,
+      });
+    } catch (emailErr) {
+      return sendError(res, 'Unable to send verification email. Please try again later.', 500);
+    }
+
+    return sendSuccess(
+      res,
+      'If an account with that email exists, a password reset code has been sent.',
+      { email: fallbackUser.email, cooldownSeconds: 60 }
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @route   POST /api/auth/verify-reset-otp
+ * @desc    Verify 6-digit OTP and generate short-lived reset token
+ * @access  Public
+ */
+const verifyResetOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return sendError(res, 'Email and 6-digit verification code are required', 400);
+    }
+
+    const cleanOtp = String(otp).trim();
+    if (cleanOtp.length !== 6 || !/^\d{6}$/.test(cleanOtp)) {
+      return sendError(res, 'Verification code must be a 6-digit number', 400);
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const dbStatus = getDBStatus();
+    const submittedHash = crypto.createHash('sha256').update(cleanOtp).digest('hex');
+
+    if (dbStatus.connected) {
+      const user = await User.findOne({ email: normalizedEmail });
+      if (!user) {
+        return sendError(res, 'Invalid verification request', 400);
+      }
+
+      // Check max attempts already exceeded
+      if (user.resetPasswordAttempts >= 5) {
+        user.resetPasswordOtpHash = null;
+        user.resetPasswordOtpExpires = null;
+        await user.save();
+        return sendError(
+          res,
+          'Too many failed attempts. This verification code has been invalidated. Please request a new one.',
+          429
+        );
+      }
+
+      // Check expiry or no active OTP
+      if (!user.resetPasswordOtpHash || !user.resetPasswordOtpExpires || user.resetPasswordOtpExpires < Date.now()) {
+        return sendError(res, 'Verification code has expired or is invalid. Please request a new one.', 400);
+      }
+
+      // Compare hashes
+      if (user.resetPasswordOtpHash !== submittedHash) {
+        user.resetPasswordAttempts = (user.resetPasswordAttempts || 0) + 1;
+        const remaining = 5 - user.resetPasswordAttempts;
+
+        if (remaining <= 0) {
+          user.resetPasswordOtpHash = null;
+          user.resetPasswordOtpExpires = null;
+          await user.save();
+          return sendError(
+            res,
+            'Too many failed attempts. This verification code has been invalidated. Please request a new one.',
+            429
+          );
+        }
+
+        await user.save();
+        return sendError(res, `Invalid verification code. ${remaining} attempt(s) remaining.`, 400);
+      }
+
+      // Valid OTP: Single-use -> clear OTP, generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+      user.resetPasswordOtpHash = null;
+      user.resetPasswordOtpExpires = null;
+      user.resetPasswordAttempts = 0;
+      user.resetPasswordTokenHash = resetTokenHash;
+      user.resetPasswordTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+      await user.save();
+
+      return sendSuccess(res, 'Verification code confirmed. You may now reset your password.', {
+        resetToken,
+        email: user.email,
+      });
+    }
+
+    // Fallback store implementation
+    const fallbackUser = fallbackUsers.find((u) => u.email === normalizedEmail);
+    if (!fallbackUser) {
+      return sendError(res, 'Invalid verification request', 400);
+    }
+
+    if (fallbackUser.resetPasswordAttempts >= 5) {
+      fallbackUser.resetPasswordOtpHash = null;
+      fallbackUser.resetPasswordOtpExpires = null;
+      return sendError(
+        res,
+        'Too many failed attempts. This verification code has been invalidated. Please request a new one.',
+        429
+      );
+    }
+
+    if (!fallbackUser.resetPasswordOtpHash || !fallbackUser.resetPasswordOtpExpires || fallbackUser.resetPasswordOtpExpires < Date.now()) {
+      return sendError(res, 'Verification code has expired or is invalid. Please request a new one.', 400);
+    }
+
+    if (fallbackUser.resetPasswordOtpHash !== submittedHash) {
+      fallbackUser.resetPasswordAttempts = (fallbackUser.resetPasswordAttempts || 0) + 1;
+      const remaining = 5 - fallbackUser.resetPasswordAttempts;
+
+      if (remaining <= 0) {
+        fallbackUser.resetPasswordOtpHash = null;
+        fallbackUser.resetPasswordOtpExpires = null;
+        return sendError(
+          res,
+          'Too many failed attempts. This verification code has been invalidated. Please request a new one.',
+          429
+        );
+      }
+      return sendError(res, `Invalid verification code. ${remaining} attempt(s) remaining.`, 400);
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    fallbackUser.resetPasswordOtpHash = null;
+    fallbackUser.resetPasswordOtpExpires = null;
+    fallbackUser.resetPasswordAttempts = 0;
+    fallbackUser.resetPasswordTokenHash = resetTokenHash;
+    fallbackUser.resetPasswordTokenExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+    return sendSuccess(res, 'Verification code confirmed. You may now reset your password.', {
+      resetToken,
+      email: fallbackUser.email,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Validate reset token and update password securely
+ * @access  Public
+ */
+const resetPassword = async (req, res, next) => {
+  try {
+    const { email, resetToken, newPassword, confirmPassword } = req.body;
+
+    if (!email || !resetToken || !newPassword) {
+      return sendError(res, 'Email, reset token, and new password are required', 400);
+    }
+
+    if (confirmPassword && newPassword !== confirmPassword) {
+      return sendError(res, 'Passwords do not match', 400);
+    }
+
+    if (newPassword.length < 6) {
+      return sendError(res, 'Password must be at least 6 characters long', 400);
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const dbStatus = getDBStatus();
+    const submittedTokenHash = crypto.createHash('sha256').update(String(resetToken).trim()).digest('hex');
+
+    if (dbStatus.connected) {
+      const user = await User.findOne({ email: normalizedEmail });
+      if (!user) {
+        return sendError(res, 'Invalid password reset request', 400);
+      }
+
+      if (!user.resetPasswordTokenHash || !user.resetPasswordTokenExpires || user.resetPasswordTokenExpires < Date.now()) {
+        return sendError(res, 'Password reset session has expired or is invalid. Please start again.', 400);
+      }
+
+      if (user.resetPasswordTokenHash !== submittedTokenHash) {
+        return sendError(res, 'Invalid reset token', 400);
+      }
+
+      // Invalidate reset tokens immediately
+      user.resetPasswordTokenHash = null;
+      user.resetPasswordTokenExpires = null;
+      user.resetPasswordOtpHash = null;
+      user.resetPasswordOtpExpires = null;
+      user.resetPasswordAttempts = 0;
+      user.resetPasswordCooldown = null;
+
+      // Update password — userSchema.pre('save') handles bcrypt hashing
+      user.password = newPassword;
+      await user.save();
+
+      return sendSuccess(res, 'Password has been reset successfully. You can now log in with your new password.', {
+        email: user.email,
+      });
+    }
+
+    // Fallback store implementation
+    const fallbackUser = fallbackUsers.find((u) => u.email === normalizedEmail);
+    if (!fallbackUser) {
+      return sendError(res, 'Invalid password reset request', 400);
+    }
+
+    if (!fallbackUser.resetPasswordTokenHash || !fallbackUser.resetPasswordTokenExpires || fallbackUser.resetPasswordTokenExpires < Date.now()) {
+      return sendError(res, 'Password reset session has expired or is invalid. Please start again.', 400);
+    }
+
+    if (fallbackUser.resetPasswordTokenHash !== submittedTokenHash) {
+      return sendError(res, 'Invalid reset token', 400);
+    }
+
+    fallbackUser.resetPasswordTokenHash = null;
+    fallbackUser.resetPasswordTokenExpires = null;
+    fallbackUser.resetPasswordOtpHash = null;
+    fallbackUser.resetPasswordOtpExpires = null;
+    fallbackUser.resetPasswordAttempts = 0;
+    fallbackUser.resetPasswordCooldown = null;
+
+    fallbackUser.passwordHash = await bcrypt.hash(newPassword, 10);
+
+    return sendSuccess(res, 'Password has been reset successfully. You can now log in with your new password.', {
+      email: fallbackUser.email,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   login,
   register,
   getMe,
   updateProfile,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword,
+  fallbackUsers,
 };
 

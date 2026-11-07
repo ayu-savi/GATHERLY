@@ -55,13 +55,31 @@ export const LoginPage = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <Input
-              label="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div>
+              <Input
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+                <Link
+                  to="/forgot-password"
+                  style={{
+                    fontSize: 'var(--text-xs)',
+                    color: 'var(--primary)',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                    transition: 'opacity var(--transition-fast)',
+                  }}
+                  onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')}
+                  onMouseLeave={(e) => (e.target.style.textDecoration = 'none')}
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+            </div>
 
             <Button fullWidth variant="primary" size="md" type="submit" loading={loading} icon={LogIn}>
               Sign In to Dashboard
