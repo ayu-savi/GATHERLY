@@ -98,6 +98,9 @@ export const EventCard = ({
             className="featured-hero-img"
             src={image}
             alt={title}
+            onError={(e) => {
+              e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
+            }}
             style={{
               width: '100%',
               height: '100%',
@@ -284,6 +287,9 @@ export const EventCard = ({
           src={image}
           alt={title}
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
+          }}
           style={{
             position: 'absolute',
             top: 0,

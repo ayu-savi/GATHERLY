@@ -94,7 +94,7 @@ const inMemoryProposals = [
       { startTime: '11:30 AM', endTime: '02:00 PM', title: 'Round 1: Qualifying Time Trials', description: 'Preliminary obstacle navigation', venue: 'Innovation Quad' },
       { startTime: '02:30 PM', endTime: '04:30 PM', title: 'Grand Finale Run', description: 'Finalists head-to-head timed race', venue: 'Arena Track' },
     ],
-    posterUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&auto=format&fit=crop&q=80',
+    posterUrl: '/uploads/events/robosprint_robotics.jpg',
     supportingImages: [],
     proposalDocumentUrl: '',
     sponsorshipDocumentUrl: '',

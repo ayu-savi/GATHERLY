@@ -115,7 +115,7 @@ export const PublicFooter = () => {
                 fontFamily: 'var(--font-mono)',
               }}
             >
-              Academic Submission
+              Campus Platform
             </h4>
             <div
               style={{
@@ -126,10 +126,10 @@ export const PublicFooter = () => {
               }}
             >
               <div style={{ fontSize: 'var(--text-xs)', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '4px' }}>
-                Semester Project
+                Connected Community
               </div>
               <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
-                Strictly developed according to university examiner requirements with independent editorial design and full-stack architecture.
+                Uniting university events, student societies, and campus memories in one seamless digital space.
               </p>
             </div>
           </div>

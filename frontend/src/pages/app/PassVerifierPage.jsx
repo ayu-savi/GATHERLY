@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ShieldCheck,
+  ShieldAlert,
   QrCode,
   CheckCircle2,
   AlertCircle,
@@ -12,11 +14,14 @@ import {
   Clock,
   Ticket,
 } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 import { passService } from '../../services/passService';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
+import { Card } from '../../components/common/Card';
 
 export const PassVerifierPage = () => {
+  const { user } = useAuth();
   const [tokenInput, setTokenInput] = useState('PASS-GATH-2026-7891');
   const [loading, setLoading] = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
@@ -73,6 +78,26 @@ export const PassVerifierPage = () => {
       setCheckInLoading(false);
     }
   };
+
+  // Restrict access if not organizer or admin
+  if (user && user.role !== 'admin' && user.role !== 'organizer') {
+    return (
+      <div style={{ padding: 'var(--space-12) 0' }}>
+        <div className="container-narrow">
+          <Card glass style={{ padding: 'var(--space-10)', textAlign: 'center' }}>
+            <ShieldAlert size={48} color="var(--danger)" style={{ margin: '0 auto 16px' }} />
+            <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: '8px' }}>Organizer Access Required</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-6)' }}>
+              The QR pass verifier and check-in terminal is restricted strictly to authorized event organizers and administrators.
+            </p>
+            <Link to="/app/passes">
+              <Button variant="primary">Return to My Passes</Button>
+            </Link>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', maxWidth: '780px' }}>

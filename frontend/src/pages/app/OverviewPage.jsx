@@ -257,8 +257,7 @@ export const OverviewPage = () => {
             onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
             onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
             onError={(e) => {
-              e.currentTarget.src =
-                'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80';
+              e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
             }}
           />
 

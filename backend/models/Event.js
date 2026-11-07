@@ -31,7 +31,7 @@ const eventSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      default: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&auto=format&fit=crop&q=80',
+      default: '/uploads/events/rhythm_lights_cultural.jpg',
     },
     date: {
       type: String,

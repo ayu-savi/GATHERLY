@@ -160,7 +160,7 @@ export const HostEventModal = ({ isOpen, onClose, onSuccess }) => {
     ],
 
     // Step 9: Media & Supporting Documents
-    posterUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80',
+    posterUrl: '/uploads/events/rhythm_lights_cultural.jpg',
     supportingImages: [],
     proposalDocumentUrl: '',
     sponsorshipDocumentUrl: '',
@@ -1684,7 +1684,7 @@ export const HostEventModal = ({ isOpen, onClose, onSuccess }) => {
                         alt="Poster Preview"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={(e) => {
-                          e.currentTarget.src = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80';
+                          e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
                         }}
                       />
                     </div>

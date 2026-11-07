@@ -184,8 +184,11 @@ export const RegistrationsPage = () => {
               {/* Event Image */}
               <div style={{ width: '120px', height: '90px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', flexShrink: 0 }}>
                 <img
-                  src={reg.eventImage || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800'}
+                  src={reg.eventImage || '/uploads/events/rhythm_lights_cultural.jpg'}
                   alt={reg.eventTitle}
+                  onError={(e) => {
+                    e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
+                  }}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>

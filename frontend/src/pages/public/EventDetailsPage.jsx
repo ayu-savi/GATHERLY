@@ -227,6 +227,9 @@ export const EventDetailsPage = () => {
             <img
               src={event.image}
               alt={event.title}
+              onError={(e) => {
+                e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
+              }}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
             <div

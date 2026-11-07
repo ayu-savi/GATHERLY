@@ -457,6 +457,9 @@ export const ExplorePage = () => {
                       <img
                         src={evt.image}
                         alt={evt.title}
+                        onError={(e) => {
+                          e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
+                        }}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     </div>
