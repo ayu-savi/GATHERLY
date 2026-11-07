@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
-  Search,
   Grid,
   List,
   Sparkles,
@@ -22,29 +21,23 @@ export const ExplorePage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Search and filter states
+  // Category filter and view states (Search bar removed per specification)
   const initialCategory = searchParams.get('category') || 'all';
-  const initialQuery = searchParams.get('q') || '';
-
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
-  const [searchFocused, setSearchFocused] = useState(false);
 
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Synchronize category or search query if URL changes
+  // Synchronize category if URL search parameters change
   useEffect(() => {
     const cat = searchParams.get('category');
     if (cat && cat !== activeCategory) {
       setActiveCategory(cat);
-    }
-    const q = searchParams.get('q');
-    if (q !== null && q !== searchQuery) {
-      setSearchQuery(q);
+    } else if (!cat && activeCategory !== 'all') {
+      setActiveCategory('all');
     }
   }, [searchParams]);
 
@@ -67,9 +60,10 @@ export const ExplorePage = () => {
       setLoading(true);
       setError(null);
 
-      const params = {};
-      if (searchQuery.trim()) params.q = searchQuery.trim();
-      if (activeCategory && activeCategory !== 'all') params.category = activeCategory;
+      const params = { limit: 100 };
+      if (activeCategory && activeCategory !== 'all') {
+        params.category = activeCategory;
+      }
 
       const res = await eventService.getEvents(params);
       const fetchedEvents = res.data || [];
@@ -114,18 +108,10 @@ export const ExplorePage = () => {
     }
   };
 
-  // Debounced search on typing + immediate trigger on category switch
+  // Trigger load when category changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadEvents();
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [activeCategory, searchQuery]);
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
     loadEvents();
-  };
+  }, [activeCategory]);
 
   const handleCategorySelect = (slug) => {
     setActiveCategory(slug);
@@ -140,7 +126,7 @@ export const ExplorePage = () => {
   return (
     <div style={{ padding: 'var(--space-10) 0 var(--space-20)' }}>
       <div className="container">
-        {/* Page Header (Smooth Entrance) */}
+        {/* Page Header */}
         <div className="animate-slide-up" style={{ marginBottom: 'var(--space-8)' }}>
           <div className="editorial-eyebrow">
             <Compass size={14} />
@@ -149,133 +135,44 @@ export const ExplorePage = () => {
           <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: '900', letterSpacing: '-0.03em' }}>
             Campus Event Directory
           </h1>
-          <p style={{ color: 'var(--text-secondary)', maxWidth: '620px', lineHeight: 1.6, marginTop: 'var(--space-2)' }}>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.6, marginTop: 'var(--space-2)' }}>
             Filter and discover academic summits, cultural fests, sports championships, and workshops happening across university departments.
           </p>
         </div>
 
-        {/* Filter & Search Toolbar (No Filter Button, Full Width Search) */}
+        {/* Filter Toolbar: Unified Category Chips & Grid/List View Toggle (Search Bar Removed) */}
         <div
           className="animate-slide-up delay-1"
           style={{
             background: 'var(--bg-secondary)',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-xl)',
-            padding: 'var(--space-5) var(--space-6)',
+            padding: 'var(--space-4) var(--space-6)',
             marginBottom: 'var(--space-8)',
             display: 'flex',
-            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
             gap: 'var(--space-4)',
             boxShadow: 'var(--shadow-sm)',
           }}
         >
-          {/* Top Row: Full-Width Search Input + View Mode */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-4)', alignItems: 'center', justifyContent: 'space-between' }}>
-            <form onSubmit={handleSearchSubmit} style={{ flex: '1 1 360px', display: 'flex' }}>
-              <div
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: 'var(--bg-elevated)',
-                  border: searchFocused ? '1.5px solid var(--primary)' : '1px solid var(--border-subtle)',
-                  boxShadow: searchFocused ? '0 0 0 3px rgba(15, 118, 110, 0.12)' : 'none',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '8px 14px',
-                  transition: 'border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease',
-                }}
-              >
-                <Search
-                  size={16}
-                  color={searchFocused ? 'var(--primary)' : 'var(--text-muted)'}
-                  style={{ marginRight: '10px', flexShrink: 0, transition: 'color 0.25s ease' }}
-                />
-                <input
-                  type="text"
-                  placeholder="Search by event title, venue, or keyword..."
-                  value={searchQuery}
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    color: 'var(--text-primary)',
-                    fontSize: 'var(--text-sm)',
-                  }}
-                />
-              </div>
-            </form>
-
-            {/* View Mode Toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '2px',
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setViewMode('grid')}
-                  aria-label="Grid view"
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: viewMode === 'grid' ? 'var(--primary)' : 'transparent',
-                    color: viewMode === 'grid' ? 'var(--text-inverse)' : 'var(--text-muted)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    border: 'none',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <Grid size={15} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('list')}
-                  aria-label="List view"
-                  style={{
-                    padding: '6px 10px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: viewMode === 'list' ? 'var(--primary)' : 'transparent',
-                    color: viewMode === 'list' ? 'var(--text-inverse)' : 'var(--text-muted)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    border: 'none',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <List size={15} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Row: Category Filter Chips */}
+          {/* Category Filter Chips */}
           <div
             style={{
               display: 'flex',
               flexWrap: 'wrap',
-              gap: '6px',
-              paddingTop: 'var(--space-3)',
-              borderTop: '1px solid var(--border-subtle)',
+              gap: '8px',
+              alignItems: 'center',
+              flex: '1 1 auto',
             }}
           >
             <button
               onClick={() => handleCategorySelect('all')}
               style={{
-                padding: '6px 14px',
+                padding: '7px 15px',
                 borderRadius: 'var(--radius-full)',
-                fontSize: '0.74rem',
+                fontSize: '0.78rem',
                 fontFamily: 'var(--font-heading)',
                 fontWeight: activeCategory === 'all' ? '700' : '600',
                 background: activeCategory === 'all' ? 'var(--primary)' : 'var(--bg-elevated)',
@@ -311,9 +208,9 @@ export const ExplorePage = () => {
                   key={c.id || c.name}
                   onClick={() => handleCategorySelect(slug)}
                   style={{
-                    padding: '6px 14px',
+                    padding: '7px 15px',
                     borderRadius: 'var(--radius-full)',
-                    fontSize: '0.74rem',
+                    fontSize: '0.78rem',
                     fontFamily: 'var(--font-heading)',
                     fontWeight: isSelected ? '700' : '600',
                     background: isSelected ? 'var(--primary)' : 'var(--bg-elevated)',
@@ -343,9 +240,59 @@ export const ExplorePage = () => {
               );
             })}
           </div>
+
+          {/* View Mode Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexShrink: 0 }}>
+            <div
+              style={{
+                display: 'flex',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                padding: '3px',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                aria-label="Grid view"
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: viewMode === 'grid' ? 'var(--primary)' : 'transparent',
+                  color: viewMode === 'grid' ? 'var(--text-inverse)' : 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  border: 'none',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <Grid size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                aria-label="List view"
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: viewMode === 'list' ? 'var(--primary)' : 'transparent',
+                  color: viewMode === 'list' ? 'var(--text-inverse)' : 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  border: 'none',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <List size={15} />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Results Metadata Header (Reset All Filters removed per specification) */}
+        {/* Results Metadata Header */}
         <div
           style={{
             display: 'flex',
@@ -483,13 +430,12 @@ export const ExplorePage = () => {
             <Compass size={40} color="var(--primary)" style={{ margin: '0 auto 12px' }} />
             <h3 style={{ marginBottom: '6px' }}>No Campus Events Found</h3>
             <p style={{ color: 'var(--text-secondary)', maxWidth: '440px', margin: '0 auto 16px' }}>
-              No scheduled events matched your search query or category filter. Try selecting "All Events" or searching for a different keyword.
+              No scheduled events matched this category filter. Select "All Events" to view upcoming schedules across the university.
             </p>
             <Button
               variant="primary"
               size="sm"
               onClick={() => {
-                setSearchQuery('');
                 setActiveCategory('all');
                 setSearchParams({});
               }}

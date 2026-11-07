@@ -1,6 +1,6 @@
 /**
- * Temporary In-Memory Registration & Pass Store for Development
- * Used when MongoDB is disconnected, clearly flagged in API responses.
+ * In-Memory Registration & Pass Store for Development
+ * Used when MongoDB is disconnected, providing rich demo student data.
  */
 
 const { generateQRCodeSVG } = require('../utils/qrGenerator');
@@ -23,45 +23,20 @@ const sampleToken5 = `GATHERLY:PASS:${samplePassId5}:DEV4421`;
 const samplePassId6 = 'PASS-GATH-2026-6673';
 const sampleToken6 = `GATHERLY:PASS:${samplePassId6}:DEV6673`;
 
+const samplePassId7 = 'PASS-GATH-2026-8812';
+const sampleToken7 = `GATHERLY:PASS:${samplePassId7}:DEV8812`;
+
+const samplePassId8 = 'PASS-GATH-2026-2190';
+const sampleToken8 = `GATHERLY:PASS:${samplePassId8}:DEV2190`;
+
+const samplePassId9 = 'PASS-GATH-2026-6541';
+const sampleToken9 = `GATHERLY:PASS:${samplePassId9}:DEV6541`;
+
+const samplePassId10 = 'PASS-GATH-2026-7734';
+const sampleToken10 = `GATHERLY:PASS:${samplePassId10}:DEV7734`;
+
 const inMemoryRegistrations = [
-  // 1. TODAY's UPCOMING EVENT
-  {
-    _id: 'reg_mem_003',
-    registrationId: 'REG-GATH-2026-003',
-    passId: samplePassId3,
-    user: 'usr_student_01',
-    event: 'evt-ai-masterclass-today',
-    eventSlug: 'ai-coding-masterclass',
-    eventTitle: 'Agentic AI Systems: Campus Hands-On Engineering Masterclass',
-    eventCategory: 'Workshops',
-    eventDate: '2026-11-06',
-    eventEndDate: '2026-11-06',
-    eventTime: '04:00 PM - 07:00 PM IST',
-    eventVenue: 'Turing AI Lab, Room 402, Tech Block A',
-    eventImage: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80',
-    participantName: 'Aarav Sharma',
-    participantEmail: 'aarav.sharma@campus.edu',
-    participantPhone: '+91 98765 43210',
-    studentId: 'STU-2026-089',
-    department: 'Computer Science & Engineering',
-    registrationType: 'individual',
-    teamName: null,
-    teamMembers: [],
-    paymentStatus: 'free',
-    paymentAmount: 0,
-    paymentReference: null,
-    isDemoPayment: false,
-    status: 'confirmed',
-    qrToken: sampleToken3,
-    qrSvg: generateQRCodeSVG(sampleToken3),
-    checkedIn: false,
-    checkedInAt: null,
-    hasResults: false,
-    resultsPublished: false,
-    resultsAnnouncementDate: null,
-    createdAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-  },
-  // 2. UPCOMING HACKATHON
+  // 1. UPCOMING HACKATHON (Paid Team Registration, Ready for Entry)
   {
     _id: 'reg_mem_001',
     registrationId: 'REG-GATH-2026-001',
@@ -101,7 +76,46 @@ const inMemoryRegistrations = [
     resultsAnnouncementDate: null,
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
   },
-  // 3. UPCOMING CULTURAL FEST
+
+  // 2. UPCOMING WORKSHOP (Free Individual Registration, Ready for Entry)
+  {
+    _id: 'reg_mem_003',
+    registrationId: 'REG-GATH-2026-003',
+    passId: samplePassId3,
+    user: 'usr_student_01',
+    event: 'evt-ai-masterclass-today',
+    eventSlug: 'ai-coding-masterclass',
+    eventTitle: 'Agentic AI Systems: Campus Hands-On Engineering Masterclass',
+    eventCategory: 'Workshops',
+    eventDate: '2026-11-10',
+    eventEndDate: '2026-11-10',
+    eventTime: '04:00 PM - 07:00 PM IST',
+    eventVenue: 'Turing AI Lab, Room 402, Tech Block A',
+    eventImage: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80',
+    participantName: 'Aarav Sharma',
+    participantEmail: 'aarav.sharma@campus.edu',
+    participantPhone: '+91 98765 43210',
+    studentId: 'STU-2026-089',
+    department: 'Computer Science & Engineering',
+    registrationType: 'individual',
+    teamName: null,
+    teamMembers: [],
+    paymentStatus: 'free',
+    paymentAmount: 0,
+    paymentReference: null,
+    isDemoPayment: false,
+    status: 'confirmed',
+    qrToken: sampleToken3,
+    qrSvg: generateQRCodeSVG(sampleToken3),
+    checkedIn: false,
+    checkedInAt: null,
+    hasResults: false,
+    resultsPublished: false,
+    resultsAnnouncementDate: null,
+    createdAt: new Date(Date.now() - 86400000 * 1).toISOString(),
+  },
+
+  // 3. UPCOMING CULTURAL FEST (Free Individual Registration, Ready for Entry)
   {
     _id: 'reg_mem_004',
     registrationId: 'REG-GATH-2026-004',
@@ -138,7 +152,125 @@ const inMemoryRegistrations = [
     resultsAnnouncementDate: null,
     createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
   },
-  // 4. RECENTLY COMPLETED COMPETITIVE EVENT WITH PUBLISHED RESULTS (Active in 7-day retention window!)
+
+  // 4. UPCOMING ESPORTS TOURNAMENT (Paid Team Registration, Ready for Entry)
+  {
+    _id: 'reg_mem_007',
+    registrationId: 'REG-GATH-2026-007',
+    passId: samplePassId7,
+    user: 'usr_student_01',
+    event: 'evt-esports-championship',
+    eventSlug: 'clutcharena-esports-2026',
+    eventTitle: 'ClutchArena: Campus Esports Championship 2026',
+    eventCategory: 'Gaming',
+    eventDate: '2026-12-02',
+    eventEndDate: '2026-12-03',
+    eventTime: '11:00 AM - 08:00 PM IST',
+    eventVenue: 'Indoor Sports Complex & Student Lounge',
+    eventImage: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80',
+    participantName: 'Aarav Sharma',
+    participantEmail: 'aarav.sharma@campus.edu',
+    participantPhone: '+91 98765 43210',
+    studentId: 'STU-2026-089',
+    department: 'Computer Science & Engineering',
+    registrationType: 'team',
+    teamName: 'PixelSnipers',
+    teamMembers: [
+      { name: 'Aarav Sharma', email: 'aarav.sharma@campus.edu', studentId: 'STU-2026-089' },
+      { name: 'Karan Mehra', email: 'karan.m@campus.edu', studentId: 'STU-2026-091' },
+    ],
+    paymentStatus: 'completed',
+    paymentAmount: 200,
+    paymentReference: 'DEMO-TXN-9912041',
+    isDemoPayment: true,
+    status: 'confirmed',
+    qrToken: sampleToken7,
+    qrSvg: generateQRCodeSVG(sampleToken7),
+    checkedIn: false,
+    checkedInAt: null,
+    hasResults: true,
+    resultsPublished: false,
+    resultsAnnouncementDate: null,
+    createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
+  },
+
+  // 5. UPCOMING FOOTBALL DERBY (Free Spectator Pass, Ready for Entry)
+  {
+    _id: 'reg_mem_008',
+    registrationId: 'REG-GATH-2026-008',
+    passId: samplePassId8,
+    user: 'usr_student_01',
+    event: 'evt-premier-cup-2026',
+    eventSlug: 'chancellors-football-cup',
+    eventTitle: 'Chancellor\'s Cup: Inter-Department Football Derby',
+    eventCategory: 'Sports',
+    eventDate: '2026-12-05',
+    eventEndDate: '2026-12-08',
+    eventTime: '03:00 PM - 07:30 PM IST',
+    eventVenue: 'Main University Stadium Football Ground',
+    eventImage: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+    participantName: 'Aarav Sharma',
+    participantEmail: 'aarav.sharma@campus.edu',
+    participantPhone: '+91 98765 43210',
+    studentId: 'STU-2026-089',
+    department: 'Computer Science & Engineering',
+    registrationType: 'individual',
+    teamName: null,
+    teamMembers: [],
+    paymentStatus: 'free',
+    paymentAmount: 0,
+    paymentReference: null,
+    isDemoPayment: false,
+    status: 'confirmed',
+    qrToken: sampleToken8,
+    qrSvg: generateQRCodeSVG(sampleToken8),
+    checkedIn: false,
+    checkedInAt: null,
+    hasResults: false,
+    resultsPublished: false,
+    resultsAnnouncementDate: null,
+    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+  },
+
+  // 6. CHECKED-IN EVENT (Active "Checked In" status badge demonstration)
+  {
+    _id: 'reg_mem_009',
+    registrationId: 'REG-GATH-2026-009',
+    passId: samplePassId9,
+    user: 'usr_student_01',
+    event: 'evt-ai-summit-2026',
+    eventSlug: 'generative-ai-summit',
+    eventTitle: 'FutureForward: Generative AI & Deep Learning Summit',
+    eventCategory: 'Workshops',
+    eventDate: '2026-11-28',
+    eventEndDate: '2026-11-28',
+    eventTime: '10:00 AM - 04:30 PM IST',
+    eventVenue: 'Seminar Hall 3, Department of Electronics & Computing',
+    eventImage: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&auto=format&fit=crop&q=80',
+    participantName: 'Aarav Sharma',
+    participantEmail: 'aarav.sharma@campus.edu',
+    participantPhone: '+91 98765 43210',
+    studentId: 'STU-2026-089',
+    department: 'Computer Science & Engineering',
+    registrationType: 'individual',
+    teamName: null,
+    teamMembers: [],
+    paymentStatus: 'free',
+    paymentAmount: 0,
+    paymentReference: null,
+    isDemoPayment: false,
+    status: 'attended',
+    qrToken: sampleToken9,
+    qrSvg: generateQRCodeSVG(sampleToken9),
+    checkedIn: true,
+    checkedInAt: new Date(Date.now() - 3600000 * 2).toISOString(), // 2 hours ago
+    hasResults: false,
+    resultsPublished: false,
+    resultsAnnouncementDate: null,
+    createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
+  },
+
+  // 7. COMPLETED COMPETITIVE EVENT WITH PUBLISHED RESULTS (Winner! Active in 7-day retention window)
   {
     _id: 'reg_mem_005',
     registrationId: 'REG-GATH-2026-005',
@@ -151,7 +283,7 @@ const inMemoryRegistrations = [
     eventDate: '2026-10-28',
     eventEndDate: '2026-10-28',
     eventTime: '10:00 AM - 05:00 PM IST',
-    eventVenue: 'Computer Labs 1 & 2, Central Block',
+    eventVenue: 'Computer Labs 1 & 2, Central Academic Block',
     eventImage: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=80',
     participantName: 'Aarav Sharma',
     participantEmail: 'aarav.sharma@campus.edu',
@@ -170,7 +302,7 @@ const inMemoryRegistrations = [
     qrSvg: generateQRCodeSVG(sampleToken5),
     checkedIn: true,
     checkedInAt: new Date(Date.now() - 86400000 * 9).toISOString(),
-    // Official results published 3 days ago (Nov 3, 2026) -> Within 7-day retention period until Nov 10, 2026
+    // Official results published 3 days ago -> Within 7-day retention period until 4 days from now!
     hasResults: true,
     resultsPublished: true,
     resultsAnnouncementDate: new Date(Date.now() - 86400000 * 3).toISOString(),
@@ -189,7 +321,8 @@ const inMemoryRegistrations = [
     },
     createdAt: new Date(Date.now() - 86400000 * 12).toISOString(),
   },
-  // 5. RECENTLY COMPLETED COMPETITIVE EVENT WITH RESULTS AWAITED (Retained until results announced + 7 days!)
+
+  // 8. COMPLETED COMPETITIVE EVENT WITH RESULTS AWAITED (Retained until results announced + 7 days)
   {
     _id: 'reg_mem_006',
     registrationId: 'REG-GATH-2026-006',
@@ -236,26 +369,79 @@ const inMemoryRegistrations = [
       prizeWon: null,
       certificateAvailable: false,
       prizeCollectionStatus: 'Not Applicable',
-      prizeCollectionInstructions: 'Official evaluation by jury committee is currently in progress. Final standings and certificate downloads will be published here.',
+      prizeCollectionInstructions: 'Official evaluation by jury committee is currently in progress. Final standings and certificate downloads will be published here upon release.',
       announcedAt: null,
     },
     createdAt: new Date(Date.now() - 86400000 * 16).toISOString(),
   },
-  // 6. OLDER COMPLETED WORKSHOP (Beyond 7 days, lives permanently in My Registrations)
+
+  // 9. COMPLETED SPORTS COMPETITION WITH PUBLISHED RESULTS (Runner-Up, Active in 7-day retention)
+  {
+    _id: 'reg_mem_010',
+    registrationId: 'REG-GATH-2026-010',
+    passId: samplePassId10,
+    user: 'usr_student_01',
+    event: 'evt-table-tennis-derby',
+    eventSlug: 'apex-smash-table-tennis',
+    eventTitle: 'Apex Smash: Inter-Hostel Table Tennis Derby',
+    eventCategory: 'Sports',
+    eventDate: '2026-10-30',
+    eventEndDate: '2026-10-30',
+    eventTime: '02:00 PM - 07:00 PM IST',
+    eventVenue: 'Table Tennis Hall, Student Activity Centre',
+    eventImage: 'https://images.unsplash.com/photo-1534158914592-062992fbe900?w=800&auto=format&fit=crop&q=80',
+    participantName: 'Aarav Sharma',
+    participantEmail: 'aarav.sharma@campus.edu',
+    participantPhone: '+91 98765 43210',
+    studentId: 'STU-2026-089',
+    department: 'Computer Science & Engineering',
+    registrationType: 'individual',
+    teamName: 'Hostel 4 Smashers',
+    teamMembers: [],
+    paymentStatus: 'free',
+    paymentAmount: 0,
+    paymentReference: null,
+    isDemoPayment: false,
+    status: 'attended',
+    qrToken: sampleToken10,
+    qrSvg: generateQRCodeSVG(sampleToken10),
+    checkedIn: true,
+    checkedInAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+    // Official results published 5 days ago -> Within 7-day retention period until 2 days from now!
+    hasResults: true,
+    resultsPublished: true,
+    resultsAnnouncementDate: new Date(Date.now() - 86400000 * 5).toISOString(),
+    resultDetails: {
+      isWinner: true,
+      rank: 'Runner-Up (Silver Medal)',
+      status: 'Winner',
+      award: 'Silver Medal & Kit Voucher',
+      prizeWon: '₹5,000 Sports Voucher + Silver Medal',
+      certificateAvailable: true,
+      certificateUrl: '/certificates/CERT-APEXSMASH-2026-002.pdf',
+      prizeCollectionStatus: 'Collection Instructions Available',
+      prizeCollectionInstructions: 'Collect your medal and sports kit voucher from the Sports Council Pavilion, Table Tennis Desk between 02:00 PM - 05:00 PM.',
+      announcedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+      feedback: 'Splendid counter-looping and backhand defense across the five-set championship rubber.',
+    },
+    createdAt: new Date(Date.now() - 86400000 * 14).toISOString(),
+  },
+
+  // 10. OLDER COMPLETED CULTURAL EVENT (Permanent History in Student Profile)
   {
     _id: 'reg_mem_002',
     registrationId: 'REG-GATH-2026-002',
     passId: samplePassId2,
     user: 'usr_student_01',
-    event: 'evt-ai-orientation-2026',
-    eventSlug: 'ai-student-orientation',
-    eventTitle: 'Campus AI Circle: Fall Semester Orientation & Lab Demo',
-    eventCategory: 'Workshops',
-    eventDate: '2026-10-22',
-    eventEndDate: '2026-10-22',
-    eventTime: '02:00 PM - 05:00 PM IST',
-    eventVenue: 'CS Department Auditorium, 2nd Floor',
-    eventImage: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&auto=format&fit=crop&q=80',
+    event: 'evt-sargam-classical-2026',
+    eventSlug: 'sargam-classical-recital',
+    eventTitle: 'Sargam: Classical Sitar, Flute & Tabla Fusion Recital',
+    eventCategory: 'Cultural',
+    eventDate: '2026-11-01',
+    eventEndDate: '2026-11-01',
+    eventTime: '06:00 PM - 09:30 PM IST',
+    eventVenue: 'Rabindra Bhawan Cultural Hall',
+    eventImage: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80',
     participantName: 'Aarav Sharma',
     participantEmail: 'aarav.sharma@campus.edu',
     participantPhone: '+91 98765 43210',
@@ -272,11 +458,11 @@ const inMemoryRegistrations = [
     qrToken: sampleToken2,
     qrSvg: generateQRCodeSVG(sampleToken2),
     checkedIn: true,
-    checkedInAt: new Date(Date.now() - 86400000 * 15).toISOString(),
+    checkedInAt: new Date(Date.now() - 86400000 * 7).toISOString(),
     hasResults: false,
     resultsPublished: false,
     resultsAnnouncementDate: null,
-    createdAt: new Date(Date.now() - 86400000 * 18).toISOString(),
+    createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
   },
 ];
 
