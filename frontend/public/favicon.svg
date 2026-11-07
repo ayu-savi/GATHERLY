@@ -1,5 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
-  <rect width="48" height="48" rx="12" fill="#171719"/>
-  <circle cx="24" cy="24" r="14" stroke="#D95770" stroke-width="4" stroke-dasharray="64" stroke-dashoffset="18"/>
-  <circle cx="24" cy="24" r="5" fill="#FF91A5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="fav-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#043128" />
+      <stop offset="100%" stop-color="#011410" />
+    </linearGradient>
+    <linearGradient id="fav-roof-l" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3EE7C6" />
+      <stop offset="100%" stop-color="#129983" />
+    </linearGradient>
+    <linearGradient id="fav-roof-r" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16A590" />
+      <stop offset="100%" stop-color="#075044" />
+    </linearGradient>
+    <linearGradient id="fav-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD565" />
+      <stop offset="100%" stop-color="#D69117" />
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="2" y="2" width="44" height="44" rx="11" fill="url(#fav-bg)" stroke="#EED58D" stroke-width="0.75" stroke-opacity="0.6" />
+
+  <!-- Flagpole & Flag -->
+  <line x1="24" y1="12" x2="24" y2="7" stroke="url(#fav-gold)" stroke-width="1.2" stroke-linecap="round" />
+  <path d="M 24 7 C 27 6, 29 8, 32 8 C 31 10, 31 11, 30 12 C 28 11, 26 10, 24 11 Z" fill="url(#fav-gold)" />
+
+  <!-- Roof -->
+  <path d="M 24 12 C 18 14, 11 18, 5 22 C 10 23, 17 22, 24 20 Z" fill="url(#fav-roof-l)" />
+  <path d="M 24 12 C 30 14, 37 18, 43 22 C 38 23, 31 22, 24 20 Z" fill="url(#fav-roof-r)" />
+
+  <!-- Golden Cradle Wings -->
+  <path d="M 6 22.5 C 5 28, 9 35, 22.5 37 C 17.5 36.5, 9.5 34, 8.5 28.5 C 8 25.5, 8.5 23.5, 9.5 22.5 Z" fill="url(#fav-gold)" />
+  <path d="M 42 22.5 C 43 28, 39 35, 25.5 37 C 30.5 36.5, 38.5 34, 39.5 28.5 C 40 25.5, 39.5 23.5, 38.5 22.5 Z" fill="url(#fav-gold)" />
+
+  <!-- Center Person -->
+  <circle cx="24" cy="25" r="3" fill="#FFF9EE" />
+  <path d="M 20.5 36 C 20.5 29, 27.5 29, 27.5 36 Z" fill="#FFF9EE" />
+
+  <!-- Left & Right People -->
+  <circle cx="16.5" cy="27.5" r="2.2" fill="#FFF9EE" />
+  <path d="M 14 36 C 14 31, 19 31, 19 36 Z" fill="#FFF9EE" />
+
+  <circle cx="31.5" cy="27.5" r="2.2" fill="#FFF9EE" />
+  <path d="M 29 36 C 29 31, 34 31, 34 36 Z" fill="#FFF9EE" />
 </svg>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowUpRight, Compass, ShieldCheck } from 'lucide-react';
+import { BrandLogo } from '../common/BrandLogo';
 
 export const PublicFooter = () => {
   return (
@@ -25,36 +26,9 @@ export const PublicFooter = () => {
         >
           {/* Brand Column */}
           <div style={{ maxWidth: '300px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--space-4)' }}>
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'var(--bg-elevated)',
-                  border: '1.5px solid var(--primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--primary)',
-                  fontWeight: '900',
-                  fontSize: '1rem',
-                }}
-              >
-                G
-              </div>
-              <span
-                style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: '1.25rem',
-                  fontWeight: '800',
-                  letterSpacing: '-0.02em',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                GATHERLY
-              </span>
-            </div>
+            <Link to="/" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: 'var(--space-4)' }}>
+              <BrandLogo size={32} showText subtitle="Campus Event & Community Platform" />
+            </Link>
 
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 'var(--space-4)' }}>
               Discover. Connect. Celebrate. The unified campus event discovery and registration platform engineered for university ecosystems.

@@ -755,8 +755,7 @@ export const AboutPage = () => {
                         fontWeight: '500',
                       }}
                     >
-                      “I wanted to build a platform that brings campus events, student communities and memorable experiences
-                      together in one place.”
+                      “Great campus experiences begin when people, ideas, and opportunities come together.”
                     </p>
                   </div>
 
@@ -768,10 +767,7 @@ export const AboutPage = () => {
                       margin: 0,
                     }}
                   >
-                    GATHERLY was envisioned and architected as a complete semester capstone to solve the real-world fragmentation of
-                    university notifications. By uniting real-time discovery, atomic MongoDB registration integrity, digital QR pass
-                    generation, gatekeeper scanner verification, and community memories in a cohesive full-stack interface, the platform
-                    empowers student organizers and attendees alike.
+                    GATHERLY brings campus life into one connected space. It helps students discover events, explore communities and participate in experiences that make university life memorable. From event discovery and registration to digital passes and on-site verification, GATHERLY makes it easier for students and organizers to stay connected.
                   </p>
                 </div>
               </div>

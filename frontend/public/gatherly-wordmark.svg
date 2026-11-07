@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 160" width="100%" height="100%">
+  <defs>
+    <!-- Roof Gradients -->
+    <linearGradient id="wm-leftRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3EE7C6" />
+      <stop offset="35%" stop-color="#24CDAB" />
+      <stop offset="100%" stop-color="#129983" />
+    </linearGradient>
+
+    <linearGradient id="wm-rightRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16A590" />
+      <stop offset="45%" stop-color="#0F7A69" />
+      <stop offset="100%" stop-color="#075044" />
+    </linearGradient>
+
+    <!-- Gold Gradient -->
+    <linearGradient id="wm-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDDC72" />
+      <stop offset="35%" stop-color="#F5BD38" />
+      <stop offset="100%" stop-color="#D69117" />
+    </linearGradient>
+
+    <!-- People Ivory -->
+    <linearGradient id="wm-ivory" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF9EE" />
+      <stop offset="100%" stop-color="#F6E7CF" />
+    </linearGradient>
+  </defs>
+
+  <!-- Pavilion Symbol (Group centered at x=85, scaled to fit 120x120) -->
+  <g transform="translate(10, 15) scale(0.31)">
+    <!-- Flagpole -->
+    <line x1="256" y1="120" x2="256" y2="74" stroke="url(#wm-gold)" stroke-width="6" stroke-linecap="round" />
+
+    <!-- Golden Flag -->
+    <path
+      d="M 256 78
+         C 285 70, 314 84, 338 86
+         C 334 98, 335 110, 328 120
+         C 300 116, 276 100, 256 112
+         Z"
+      fill="url(#wm-gold)"
+    />
+
+    <!-- Pavilion Roof Left Half -->
+    <path
+      d="M 256 122
+         C 192 144, 116 186, 44 232
+         C 100 244, 185 236, 256 215
+         Z"
+      fill="url(#wm-leftRoof)"
+    />
+
+    <!-- Pavilion Roof Right Half -->
+    <path
+      d="M 256 122
+         C 320 144, 396 186, 468 232
+         C 412 244, 327 236, 256 215
+         Z"
+      fill="url(#wm-rightRoof)"
+    />
+
+    <!-- Left Golden Curved Side Wing -->
+    <path
+      d="M 52 234
+         C 46 295, 78 376, 238 396
+         C 194 390, 108 362, 88 300
+         C 78 268, 78 244, 88 234
+         Z"
+      fill="url(#wm-gold)"
+    />
+
+    <!-- Right Golden Curved Side Wing -->
+    <path
+      d="M 460 234
+         C 466 295, 434 376, 274 396
+         C 318 390, 404 362, 424 300
+         C 434 268, 434 244, 424 234
+         Z"
+      fill="url(#wm-gold)"
+    />
+
+    <!-- Center Person -->
+    <circle cx="256" cy="265" r="32" fill="url(#wm-ivory)" />
+    <path
+      d="M 216 384
+         C 216 308, 296 308, 296 384
+         C 296 390, 216 390, 216 384
+         Z"
+      fill="url(#wm-ivory)"
+    />
+
+    <!-- Left Person -->
+    <circle cx="178" cy="292" r="23" fill="url(#wm-ivory)" />
+    <path
+      d="M 148 382
+         C 148 326, 206 326, 206 382
+         C 206 386, 148 386, 148 382
+         Z"
+      fill="url(#wm-ivory)"
+    />
+
+    <!-- Right Person -->
+    <circle cx="334" cy="292" r="23" fill="url(#wm-ivory)" />
+    <path
+      d="M 306 382
+         C 306 326, 364 326, 364 382
+         C 364 386, 306 386, 306 382
+         Z"
+      fill="url(#wm-ivory)"
+    />
+  </g>
+
+  <!-- Divider Line -->
+  <line x1="172" y1="36" x2="172" y2="124" stroke="#D4AF37" stroke-width="1.5" stroke-opacity="0.35" />
+
+  <!-- GATHERLY Serif Typography -->
+  <text
+    x="200"
+    y="86"
+    font-family="Cinzel, 'Playfair Display', Georgia, 'Times New Roman', serif"
+    font-size="52"
+    font-weight="700"
+    letter-spacing="0.12em"
+    fill="#FAF6EF"
+  >GATHERLY</text>
+
+  <!-- Tagline -->
+  <text
+    x="204"
+    y="118"
+    font-family="'Plus Jakarta Sans', Inter, -apple-system, sans-serif"
+    font-size="12.5"
+    font-weight="600"
+    letter-spacing="0.18em"
+    text-transform="uppercase"
+    fill="#C5A565"
+  >— Campus Event &amp; Community Platform —</text>
+</svg>

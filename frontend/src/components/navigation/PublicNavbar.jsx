@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { Button } from '../common/Button';
+import { BrandLogo } from '../common/BrandLogo';
 import { useAuth } from '../../hooks/useAuth';
 
 export const PublicNavbar = () => {
@@ -71,83 +72,16 @@ export const PublicNavbar = () => {
       }}
     >
       <div className="container flex-between" style={{ height: '100%' }}>
-        {/* Brand Monogram & Wordmark */}
+        {/* Brand Pavilion Icon & Wordmark */}
         <Link
           to="/"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
             textDecoration: 'none',
           }}
         >
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-elevated)',
-              border: '1.5px solid var(--primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--primary)',
-              boxShadow: 'var(--shadow-sm)',
-              position: 'relative',
-              flexShrink: 0,
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontWeight: '900',
-                fontSize: '1.15rem',
-                lineHeight: 1,
-                letterSpacing: '-0.04em',
-              }}
-            >
-              G
-            </span>
-            <span
-              style={{
-                position: 'absolute',
-                top: '-3px',
-                right: '-3px',
-                width: '7px',
-                height: '7px',
-                borderRadius: '50%',
-                background: 'var(--accent-secondary)',
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '1.25rem',
-                fontWeight: '800',
-                letterSpacing: '-0.03em',
-                lineHeight: 1,
-                color: 'var(--text-primary)',
-              }}
-            >
-              GATHERLY
-            </span>
-            <span
-              style={{
-                fontSize: '0.62rem',
-                color: 'var(--text-muted)',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                fontWeight: '700',
-                fontFamily: 'var(--font-mono)',
-                marginTop: '3px',
-              }}
-            >
-              Campus Portal
-            </span>
-          </div>
+          <BrandLogo size={36} showText subtitle="Campus Portal" />
         </Link>
 
         {/* Desktop Navigation Links */}

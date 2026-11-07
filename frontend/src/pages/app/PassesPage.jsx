@@ -22,6 +22,7 @@ import {
 import { passService } from '../../services/passService';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
+import { BrandLogo } from '../../components/common/BrandLogo';
 
 export const PassesPage = () => {
   const { passId } = useParams();
@@ -236,23 +237,7 @@ Present this pass at campus gate for admission.
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div
-                style={{
-                  width: '26px',
-                  height: '26px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'var(--primary)',
-                  color: 'var(--text-inverse)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: '900',
-                  fontSize: '0.85rem',
-                  fontFamily: 'var(--font-heading)',
-                }}
-              >
-                G
-              </div>
+              <BrandLogo size={24} />
               <span
                 style={{
                   fontSize: '0.7rem',

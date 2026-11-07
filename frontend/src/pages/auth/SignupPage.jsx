@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
+import { BrandLogo } from '../../components/common/BrandLogo';
 import { useAuth } from '../../hooks/useAuth';
 import { UserPlus, Sparkles } from 'lucide-react';
 
@@ -29,6 +30,11 @@ export const SignupPage = () => {
     <div style={{ padding: 'var(--space-16) 0', flex: 1, display: 'flex', alignItems: 'center' }}>
       <div className="container" style={{ maxWidth: '480px' }}>
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-4)' }}>
+            <Link to="/" style={{ textDecoration: 'none' }}>
+              <BrandLogo size={52} />
+            </Link>
+          </div>
           <div className="editorial-eyebrow" style={{ justifyContent: 'center' }}>
             <Sparkles size={13} />
             <span>Campus Onboarding</span>

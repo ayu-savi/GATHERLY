@@ -4,6 +4,7 @@ import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Badge } from '../../components/common/Badge';
+import { BrandLogo } from '../../components/common/BrandLogo';
 import { useAuth } from '../../hooks/useAuth';
 import { LogIn, Sparkles, UserCheck, Shield } from 'lucide-react';
 
@@ -28,6 +29,11 @@ export const LoginPage = () => {
     <div style={{ padding: 'var(--space-16) 0', flex: 1, display: 'flex', alignItems: 'center' }}>
       <div className="container" style={{ maxWidth: '440px' }}>
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-4)' }}>
+            <Link to="/" style={{ textDecoration: 'none' }}>
+              <BrandLogo size={52} />
+            </Link>
+          </div>
           <div className="editorial-eyebrow" style={{ justifyContent: 'center' }}>
             <Shield size={13} />
             <span>Student Authentication</span>
