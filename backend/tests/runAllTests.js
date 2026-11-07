@@ -545,6 +545,183 @@ async function runTestSuite() {
     });
     galleryStore.resetToDemo();
 
+    // =========================================================================
+    // 7. DISCOVER DEDUPLICATION, DIVERSITY & PRIZE POOL MATHEMATICS
+    // =========================================================================
+    console.log('\n📌 7. Discover Deduplication, Diversity & Prize Pool Mathematics');
+
+    // 7.1 Authoritative Service Mathematical Calculations: Examples A, B, C
+    const { calculateEventFinancials, validateFinancialInputs } = require('../services/prizePoolService');
+    const { resetEventsToPristine } = require('../data/seedData');
+
+    // Example A: fee ₹200, expected 80, cap 100, 75% -> rev ₹16,000, prize ₹12,000, org ₹4,000
+    const exA = calculateEventFinancials({
+      registrationFee: 200,
+      expectedRegistrations: 80,
+      capacity: 100,
+      prizePoolPercentage: 75,
+    });
+    assert(
+      exA.expectedRevenue === 16000 &&
+      exA.prizePool === 12000 &&
+      exA.organizerShare === 4000 &&
+      (exA.prizePool + exA.organizerShare === exA.expectedRevenue),
+      'PrizePoolMath',
+      'Example A: 80 exp × ₹200 @ 75% yields ₹16,000 rev, ₹12,000 prize, ₹4,000 org share'
+    );
+
+    // Example B: fee ₹300, expected 50, cap 60, 70% -> rev ₹15,000, prize ₹10,500, org ₹4,500
+    const exB = calculateEventFinancials({
+      registrationFee: 300,
+      expectedRegistrations: 50,
+      capacity: 60,
+      prizePoolPercentage: 70,
+    });
+    assert(
+      exB.expectedRevenue === 15000 &&
+      exB.prizePool === 10500 &&
+      exB.organizerShare === 4500 &&
+      (exB.prizePool + exB.organizerShare === exB.expectedRevenue),
+      'PrizePoolMath',
+      'Example B: 50 exp × ₹300 @ 70% yields ₹15,000 rev, ₹10,500 prize, ₹4,500 org share'
+    );
+
+    // Example C: fee ₹100, expected 90, cap 100, 80% -> rev ₹9,000, prize ₹7,200, org ₹1,800
+    const exC = calculateEventFinancials({
+      registrationFee: 100,
+      expectedRegistrations: 90,
+      capacity: 100,
+      prizePoolPercentage: 80,
+    });
+    assert(
+      exC.expectedRevenue === 9000 &&
+      exC.prizePool === 7200 &&
+      exC.organizerShare === 1800 &&
+      (exC.prizePool + exC.organizerShare === exC.expectedRevenue),
+      'PrizePoolMath',
+      'Example C: 90 exp × ₹100 @ 80% yields ₹9,000 rev, ₹7,200 prize, ₹1,800 org share'
+    );
+
+    // 7.2 Capacity is NOT used in the revenue formula
+    const exCapCheck = calculateEventFinancials({
+      registrationFee: 200,
+      expectedRegistrations: 80,
+      capacity: 500, // capacity increased 5x
+      prizePoolPercentage: 75,
+    });
+    assert(
+      exCapCheck.expectedRevenue === 16000 &&
+      exCapCheck.prizePool === 12000 &&
+      exCapCheck.organizerShare === 4000,
+      'PrizePoolMath',
+      'Revenue formula strictly depends on expectedRegistrations, capacity change does not alter revenue'
+    );
+
+    // 7.3 Percentage boundary validations (70% - 80%)
+    const lowPct = validateFinancialInputs({ registrationFee: 100, expectedRegistrations: 50, prizePoolPercentage: 65 });
+    const highPct = validateFinancialInputs({ registrationFee: 100, expectedRegistrations: 50, prizePoolPercentage: 85 });
+    assert(
+      !lowPct.isValid && !highPct.isValid,
+      'PrizePoolValidation',
+      'Prize pool percentages outside 70%–80% are rejected with validation errors'
+    );
+
+    // 7.4 Expected registrations exceeding capacity is rejected
+    const overCap = validateFinancialInputs({ registrationFee: 100, expectedRegistrations: 150, capacity: 100 });
+    assert(!overCap.isValid, 'PrizePoolValidation', 'Expected registrations exceeding maximum capacity rejected');
+
+    // 7.5 Zero expected registrations or free events handled safely
+    const zeroFee = calculateEventFinancials({ registrationFee: 0, expectedRegistrations: 100 });
+    const zeroExp = calculateEventFinancials({ registrationFee: 150, expectedRegistrations: 0 });
+    assert(
+      zeroFee.expectedRevenue === 0 && zeroFee.prizePool === 0 && zeroFee.organizerShare === 0 &&
+      zeroExp.expectedRevenue === 0 && zeroExp.prizePool === 0 && zeroExp.organizerShare === 0,
+      'PrizePoolMath',
+      'Zero registrations and zero fee events handled cleanly without errors'
+    );
+
+    // 7.6 Public API sanitization: /api/events and /api/events/:id do NOT expose internal financials
+    const publicList = await request({ path: '/api/events', method: 'GET' });
+    const hasAnyLeakedList = publicList.body.data.some(e => e.financialConfig || e.expectedRevenue || e.prizePool || e.organizerShare);
+    assert(
+      !hasAnyLeakedList,
+      'FinancialPrivacy',
+      'Public GET /api/events strictly sanitizes financialConfig, expectedRevenue, prizePool and organizerShare'
+    );
+
+    const publicSingle = await request({ path: '/api/events/samvaad-debate-2026', method: 'GET' });
+    assert(
+      publicSingle.status === 200 &&
+      !publicSingle.body.data?.financialConfig &&
+      !publicSingle.body.data?.expectedRevenue &&
+      Boolean(publicSingle.body.data?.prizes?.first),
+      'FinancialPrivacy',
+      'Public GET /api/events/:id sanitizes internal finances while preserving public prize text'
+    );
+
+    // 7.7 Protected Financials Endpoint: GET /api/events/:id/financials
+    // Student blocked with 403 Forbidden
+    const studentFinAccess = await request({
+      path: '/api/events/samvaad-debate-2026/financials',
+      method: 'GET',
+      headers: studentHeaders,
+    });
+    assert(studentFinAccess.status === 403, 'FinancialAuth', 'Student blocked from GET /api/events/:id/financials (403 Forbidden)');
+
+    // Admin allowed with full breakdown and mathematical confirmation
+    const adminFinAccess = await request({
+      path: '/api/events/samvaad-debate-2026/financials',
+      method: 'GET',
+      headers: adminHeaders,
+    });
+    assert(
+      adminFinAccess.status === 200 &&
+      adminFinAccess.body.data?.expectedRevenue === 16000 &&
+      adminFinAccess.body.data?.prizePool === 12000 &&
+      adminFinAccess.body.data?.organizerShare === 4000 &&
+      adminFinAccess.body.data?.formulas?.mathInvariantValid === true,
+      'FinancialAuth',
+      'Administrator accesses confidential event financials with valid math invariant'
+    );
+
+    // 7.8 Discover Events deduplication & diversity: clean 15-20 events across 7-8 domains
+    // Clean up temporary events created during lifecycle tests
+    resetEventsToPristine();
+
+    const cleanEventsRes = await request({ path: '/api/events', method: 'GET' });
+    const allDiscovered = cleanEventsRes.body.data;
+    assert(
+      cleanEventsRes.status === 200 &&
+      allDiscovered.length >= 15 &&
+      allDiscovered.length <= 20,
+      'DiscoverDiversity',
+      `Discover listing contains 15-20 distinct events (Count: ${allDiscovered.length})`
+    );
+
+    // Check for unique IDs, slugs, and normalized titles
+    const seenSlugs = new Set();
+    const seenTitles = new Set();
+    let hasDuplicates = false;
+    for (const ev of allDiscovered) {
+      const slug = ev.slug ? ev.slug.toLowerCase().trim() : '';
+      const normTitle = ev.title ? ev.title.toLowerCase().trim().replace(/\s+/g, ' ') : '';
+      if (seenSlugs.has(slug) || seenTitles.has(normTitle)) {
+        hasDuplicates = true;
+        break;
+      }
+      seenSlugs.add(slug);
+      seenTitles.add(normTitle);
+    }
+    assert(!hasDuplicates, 'DiscoverDeduplication', 'Discover events have zero duplicate IDs, slugs, or titles');
+
+    // Check domain representation (at least 7 domains present)
+    const distinctCategories = new Set(allDiscovered.map(e => e.category?.toLowerCase()));
+    assert(
+      distinctCategories.size >= 7,
+      'DiscoverDiversity',
+      `Discover events span across 7+ distinct campus categories/domains (Found: ${distinctCategories.size})`
+    );
+
     console.log('\n===============================================================');
     console.log(`🏁 TEST RESULTS: ${passed} PASSED, ${failed} FAILED (Total: ${passed + failed})`);
     console.log('===============================================================\n');

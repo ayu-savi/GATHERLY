@@ -90,6 +90,10 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    expectedRegistrations: {
+      type: Number,
+      default: 0,
+    },
     currency: {
       type: String,
       default: 'INR',
@@ -120,9 +124,16 @@ const eventSchema = new mongoose.Schema(
       officeLocation: { type: String },
     },
     financialConfig: {
+      registrationFee: { type: Number, default: 0 },
+      expectedRegistrations: { type: Number, default: 0 },
+      capacity: { type: Number, default: 100 },
+      prizePoolPercentage: { type: Number, default: 75, min: 70, max: 80 },
+      expectedRevenue: { type: Number, default: 0 },
+      prizePool: { type: Number, default: 0 },
+      organizerShare: { type: Number, default: 0 },
+      // Backward-compatible field aliases
       feePerParticipant: { type: Number, default: 0 },
       maxSpots: { type: Number, default: 0 },
-      expectedRevenue: { type: Number, default: 0 },
       prizePoolAmount: { type: Number, default: 0 },
       collegeAllocation: { type: Number, default: 0 },
       organizerAllocation: { type: Number, default: 0 },

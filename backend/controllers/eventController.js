@@ -2,6 +2,11 @@ const Event = require('../models/Event');
 const { getDBStatus } = require('../config/db');
 const { events: fallbackEvents } = require('../data/seedData');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
+const {
+  calculateEventFinancials,
+  validateFinancialInputs,
+  sanitizeInternalFinancials,
+} = require('../services/prizePoolService');
 
 /**
  * Seed initial events into MongoDB if connected and empty
@@ -17,6 +22,36 @@ const ensureEventsSeeded = async () => {
   } catch (err) {
     console.warn('⚠️ [MongoDB] Could not auto-seed events:', err.message);
   }
+};
+
+/**
+ * Deduplicate events list by ID, slug, and normalized title
+ */
+const deduplicateEvents = (eventsList) => {
+  if (!Array.isArray(eventsList)) return [];
+  const seenIds = new Set();
+  const seenSlugs = new Set();
+  const seenTitles = new Set();
+  const unique = [];
+
+  for (const ev of eventsList) {
+    if (!ev) continue;
+    const idKey = ev._id ? ev._id.toString() : (ev.id ? ev.id.toString() : null);
+    const slugKey = ev.slug ? ev.slug.toLowerCase().trim() : null;
+    const titleKey = ev.title ? ev.title.toLowerCase().trim().replace(/\s+/g, ' ') : null;
+
+    if (idKey && seenIds.has(idKey)) continue;
+    if (slugKey && seenSlugs.has(slugKey)) continue;
+    if (titleKey && seenTitles.has(titleKey)) continue;
+
+    if (idKey) seenIds.add(idKey);
+    if (slugKey) seenSlugs.add(slugKey);
+    if (titleKey) seenTitles.add(titleKey);
+
+    unique.push(ev);
+  }
+
+  return unique;
 };
 
 /**
@@ -40,14 +75,11 @@ const parseEventStartDateTime = (event) => {
 };
 
 /**
- * Helper to strip internal financial & organizer accounting data from public-facing responses
- * Preserves all student-facing information (title, rules, prizes, schedule, fee, spots, etc.)
+ * Strip confidential financial & organizer accounting data from public-facing responses
+ * Preserves student-facing information (title, rules, prizes, schedule, fee, spots, etc.)
  */
 const sanitizePublicEvent = (event) => {
-  if (!event) return null;
-  const raw = event.toObject ? event.toObject() : { ...event };
-  const { financialConfig, internalNotes, budgetProposals, ...publicData } = raw;
-  return publicData;
+  return sanitizeInternalFinancials(event);
 };
 
 /**
@@ -62,16 +94,16 @@ const getFeaturedEvents = async (req, res, next) => {
 
     if (dbStatus.connected) {
       await ensureEventsSeeded();
-      const events = await Event.find({ isFeatured: true })
-        .limit(limit)
+      const rawEvents = await Event.find({ isFeatured: true })
         .sort({ date: 1 })
         .lean();
+      const events = deduplicateEvents(rawEvents).slice(0, limit);
 
       return sendSuccess(res, 'Featured events retrieved from MongoDB', events.map(sanitizePublicEvent));
     }
 
     // Database is not connected: Return clearly identified development fallback
-    const featured = fallbackEvents.filter((e) => e.isFeatured).slice(0, limit).map(sanitizePublicEvent);
+    const featured = deduplicateEvents(fallbackEvents.filter((e) => e.isFeatured)).slice(0, limit).map(sanitizePublicEvent);
     return res.status(200).json({
       success: true,
       message: 'Featured events retrieved (Development Fallback Data)',
@@ -104,7 +136,8 @@ const getUpcomingEvents = async (req, res, next) => {
         .sort({ date: 1 })
         .lean();
 
-      const upcoming = rawEvents
+      const uniqueEvents = deduplicateEvents(rawEvents);
+      const upcoming = uniqueEvents
         .filter((e) => parseEventStartDateTime(e) >= now || e.isUpcoming)
         .sort((a, b) => parseEventStartDateTime(a) - parseEventStartDateTime(b))
         .slice(0, limit)
@@ -114,7 +147,7 @@ const getUpcomingEvents = async (req, res, next) => {
     }
 
     // Fallback
-    const upcoming = fallbackEvents
+    const upcoming = deduplicateEvents(fallbackEvents)
       .filter((e) => parseEventStartDateTime(e) >= now || e.isUpcoming)
       .sort((a, b) => parseEventStartDateTime(a) - parseEventStartDateTime(b))
       .slice(0, limit)
@@ -192,13 +225,16 @@ const getAllEvents = async (req, res, next) => {
         ];
       }
 
-      const total = await Event.countDocuments(query);
       const rawEvents = await Event.find(query)
         .sort({ date: 1, time: 1 })
         .lean();
 
+      // Ensure deduplication by unique ID, slug, and normalized title
+      const uniqueEvents = deduplicateEvents(rawEvents);
+      const total = uniqueEvents.length;
+
       // Ensure exact chronological order with start time and upcoming-first priority
-      const sortedEvents = sortEventsChronologically(rawEvents);
+      const sortedEvents = sortEventsChronologically(uniqueEvents);
       const paginatedEvents = sortedEvents.slice(skip, skip + limit);
 
       return res.status(200).json({
@@ -207,15 +243,15 @@ const getAllEvents = async (req, res, next) => {
         meta: {
           total,
           page,
-          totalPages: Math.ceil(total / limit),
+          totalPages: Math.ceil(total / limit) || 1,
           databaseConnected: true,
         },
         data: paginatedEvents.map(sanitizePublicEvent),
       });
     }
 
-    // Fallback filtering
-    let results = [...fallbackEvents];
+    // Fallback filtering: ensure deduplication first
+    let results = deduplicateEvents([...fallbackEvents]);
 
     if (category && category.toLowerCase() !== 'all') {
       results = results.filter(
@@ -236,14 +272,15 @@ const getAllEvents = async (req, res, next) => {
 
     // Automatically sort chronologically: earliest upcoming event first
     results = sortEventsChronologically(results);
+    const total = results.length;
 
     return res.status(200).json({
       success: true,
       message: 'Events retrieved (Development Fallback Data - Chronological: Earliest first)',
       meta: {
-        total: results.length,
-        page: 1,
-        totalPages: 1,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit) || 1,
         fallback: true,
         databaseConnected: false,
       },
@@ -318,6 +355,8 @@ const createEvent = async (req, res, next) => {
       venue,
       capacity,
       registrationFee,
+      expectedRegistrations,
+      prizePoolPercentage,
       registrationDeadline,
       rules,
       prizes,
@@ -347,26 +386,67 @@ const createEvent = async (req, res, next) => {
       return sendError(res, 'Event venue is required', 400);
     }
 
-    // 2. Validate capacity
+    // 2. Check for duplicate event title to prevent duplicate listings
+    const dbStatus = getDBStatus();
+    if (dbStatus.connected) {
+      const existing = await Event.findOne({ title: { $regex: new RegExp(`^${title.trim()}$`, 'i') } });
+      if (existing) {
+        return sendError(res, `An event titled "${title.trim()}" already exists`, 409);
+      }
+    } else {
+      const existing = fallbackEvents.find((e) => e.title.toLowerCase().trim() === title.trim().toLowerCase());
+      if (existing) {
+        return sendError(res, `An event titled "${title.trim()}" already exists`, 409);
+      }
+    }
+
+    // 3. Validate capacity
     const parsedCapacity = Number(capacity) || 100;
     if (parsedCapacity <= 0 || !Number.isInteger(parsedCapacity)) {
       return sendError(res, 'Event capacity must be a positive integer', 400);
     }
 
-    // 3. Validate date format (YYYY-MM-DD or standard parseable ISO)
+    // 4. Validate date format (YYYY-MM-DD or standard parseable ISO)
     const eventDateObj = new Date(date);
     if (isNaN(eventDateObj.getTime())) {
       return sendError(res, 'Invalid event date format', 400);
     }
 
-    // 4. Generate unique slug
+    // 5. Authoritative financial validation & calculation
+    const parsedFee = Math.max(0, Number(registrationFee) || 0);
+    const parsedExpected = expectedRegistrations !== undefined && expectedRegistrations !== null
+      ? Number(expectedRegistrations)
+      : Math.min(parsedCapacity, Math.round(parsedCapacity * 0.8));
+    const parsedPercentage = prizePoolPercentage !== undefined && prizePoolPercentage !== null
+      ? Number(prizePoolPercentage)
+      : 75;
+
+    const validation = validateFinancialInputs({
+      registrationFee: parsedFee,
+      expectedRegistrations: parsedExpected,
+      capacity: parsedCapacity,
+      prizePoolPercentage: parsedPercentage,
+    });
+
+    if (!validation.isValid) {
+      return sendError(res, validation.error, 400);
+    }
+
+    const financialConfig = calculateEventFinancials({
+      registrationFee: parsedFee,
+      expectedRegistrations: parsedExpected,
+      capacity: parsedCapacity,
+      prizePoolPercentage: parsedPercentage,
+    });
+
+    // 6. Generate unique slug
     const baseSlug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
     const slug = `${baseSlug}-${Date.now().toString(36)}`;
 
-    // 5. Build event payload
+    // 7. Build event payload
     const eventData = {
       title: title.trim(),
       slug,
@@ -383,7 +463,9 @@ const createEvent = async (req, res, next) => {
       isFeatured: Boolean(isFeatured),
       isUpcoming: true,
       registrationStatus: 'Open',
-      registrationFee: Math.max(0, Number(registrationFee) || 0),
+      registrationFee: parsedFee,
+      expectedRegistrations: parsedExpected,
+      financialConfig,
       currency: 'INR',
       registrationDeadline: registrationDeadline || date,
       isCancelled: false,
@@ -402,8 +484,6 @@ const createEvent = async (req, res, next) => {
       prizes: prizes || {},
       schedule: Array.isArray(schedule) ? schedule : [],
     };
-
-    const dbStatus = getDBStatus();
 
     if (dbStatus.connected) {
       const created = await Event.create(eventData);
@@ -488,7 +568,6 @@ const updateEvent = async (req, res, next) => {
     if (req.body.rules !== undefined) updatePayload.rules = req.body.rules;
     if (req.body.prizes !== undefined) updatePayload.prizes = req.body.prizes;
     if (req.body.schedule !== undefined) updatePayload.schedule = req.body.schedule;
-    if (req.body.registrationFee !== undefined) updatePayload.registrationFee = Math.max(0, Number(req.body.registrationFee) || 0);
 
     if (req.body.date !== undefined) {
       const parsedDate = new Date(req.body.date);
@@ -513,6 +592,46 @@ const updateEvent = async (req, res, next) => {
         );
       }
       updatePayload.capacity = newCapacity;
+    }
+
+    // Financial recalculation on update
+    const hasFinancialUpdate = (
+      req.body.registrationFee !== undefined ||
+      req.body.expectedRegistrations !== undefined ||
+      req.body.capacity !== undefined ||
+      req.body.prizePoolPercentage !== undefined
+    );
+
+    if (hasFinancialUpdate) {
+      const currentConfig = event.financialConfig || {};
+      const newFee = req.body.registrationFee !== undefined ? Math.max(0, Number(req.body.registrationFee) || 0) : (event.registrationFee || 0);
+      const newCap = updatePayload.capacity !== undefined ? updatePayload.capacity : (event.capacity || 100);
+      const newExpected = req.body.expectedRegistrations !== undefined
+        ? Number(req.body.expectedRegistrations)
+        : (event.expectedRegistrations !== undefined ? event.expectedRegistrations : (currentConfig.expectedRegistrations || Math.min(newCap, Math.round(newCap * 0.8))));
+      const newPercentage = req.body.prizePoolPercentage !== undefined
+        ? Number(req.body.prizePoolPercentage)
+        : (currentConfig.prizePoolPercentage || 75);
+
+      const validation = validateFinancialInputs({
+        registrationFee: newFee,
+        expectedRegistrations: newExpected,
+        capacity: newCap,
+        prizePoolPercentage: newPercentage,
+      });
+
+      if (!validation.isValid) {
+        return sendError(res, validation.error, 400);
+      }
+
+      updatePayload.registrationFee = newFee;
+      updatePayload.expectedRegistrations = newExpected;
+      updatePayload.financialConfig = calculateEventFinancials({
+        registrationFee: newFee,
+        expectedRegistrations: newExpected,
+        capacity: newCap,
+        prizePoolPercentage: newPercentage,
+      });
     }
 
     // Never overwrite registeredCount via general update
@@ -617,6 +736,95 @@ const deleteEvent = async (req, res, next) => {
   }
 };
 
+/**
+ * @route   GET /api/events/:id/financials
+ * @desc    Get confidential event financial planning and prize pool allocation
+ * @access  Protected (Organizer / Admin only)
+ */
+const getEventFinancials = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const dbStatus = getDBStatus();
+
+    let event = null;
+    if (dbStatus.connected) {
+      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        event = await Event.findById(id).lean();
+      }
+      if (!event) {
+        event = await Event.findOne({ $or: [{ slug: id }, { id: id }] }).lean();
+      }
+    } else {
+      event = fallbackEvents.find((e) => e.id === id || e._id === id || e.slug === id);
+    }
+
+    if (!event) {
+      return sendError(res, 'Event not found', 404);
+    }
+
+    // Role & Ownership check: Admin can view all; Organizer can view their own event
+    const isAdmin = req.user.role === 'admin';
+    const eventOrganizerId = event.organizer ? event.organizer.toString() : null;
+    const isOwner = Boolean(
+      (eventOrganizerId && eventOrganizerId === req.user.id.toString()) ||
+      (event.organizingCommittee?.contactEmail &&
+        event.organizingCommittee.contactEmail.toLowerCase() === req.user.email.toLowerCase())
+    );
+
+    if (!isAdmin && !isOwner) {
+      return sendError(res, 'Forbidden: You are not authorized to view financial details for this event', 403);
+    }
+
+    // Retrieve or calculate authoritative financials
+    let financials = event.financialConfig;
+    if (!financials || financials.expectedRevenue === undefined) {
+      const regFee = event.registrationFee || 0;
+      const expReg = event.expectedRegistrations !== undefined && event.expectedRegistrations !== null
+        ? event.expectedRegistrations
+        : Math.min(event.capacity || 100, Math.round((event.capacity || 100) * 0.8));
+      financials = calculateEventFinancials({
+        registrationFee: regFee,
+        expectedRegistrations: expReg,
+        capacity: event.capacity,
+        prizePoolPercentage: 75,
+      });
+    }
+
+    const {
+      registrationFee,
+      expectedRegistrations,
+      capacity,
+      prizePoolPercentage,
+      expectedRevenue,
+      prizePool,
+      organizerShare,
+    } = financials;
+
+    const mathCheckPassed = Math.abs((prizePool + organizerShare) - expectedRevenue) < 0.01;
+
+    return sendSuccess(res, 'Event financial calculations retrieved', {
+      eventId: event.id || event._id,
+      title: event.title,
+      slug: event.slug,
+      registrationFee,
+      expectedRegistrations,
+      capacity,
+      prizePoolPercentage,
+      expectedRevenue,
+      prizePool,
+      organizerShare,
+      formulas: {
+        expectedRevenue: `${expectedRegistrations} expected registrations × ₹${registrationFee} = ₹${expectedRevenue}`,
+        prizePool: `₹${expectedRevenue} × ${prizePoolPercentage}% = ₹${prizePool}`,
+        organizerShare: `₹${expectedRevenue} - ₹${prizePool} = ₹${organizerShare}`,
+        mathInvariantValid: mathCheckPassed,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getFeaturedEvents,
   getUpcomingEvents,
@@ -625,5 +833,7 @@ module.exports = {
   createEvent,
   updateEvent,
   deleteEvent,
+  getEventFinancials,
+  deduplicateEvents,
 };
 

@@ -4,6 +4,7 @@ const { getDBStatus } = require('../config/db');
 const { inMemoryProposals } = require('../data/proposalStore');
 const { events: fallbackEvents } = require('../data/seedData');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
+const { calculateEventFinancials } = require('../services/prizePoolService');
 
 // Generate unique reference code
 const generateProposalReference = () => {
@@ -387,6 +388,30 @@ const buildEventFromProposal = (proposal, reqUser) => {
   const uniqueSuffix = Date.now().toString(36);
   const slug = `${baseSlug}-${uniqueSuffix}`;
 
+  const parsedFee = Math.max(0, Number(proposal.registrationFee) || 0);
+  const parsedCapacity = Number(proposal.maxCapacity) || Number(proposal.expectedParticipants) || 100;
+  const parsedExpected = Number(proposal.expectedParticipants) || Math.min(parsedCapacity, Math.round(parsedCapacity * 0.8));
+
+  let financialConfig = null;
+  try {
+    financialConfig = calculateEventFinancials({
+      registrationFee: parsedFee,
+      expectedRegistrations: Math.min(parsedExpected, parsedCapacity),
+      capacity: parsedCapacity,
+      prizePoolPercentage: 75,
+    });
+  } catch {
+    financialConfig = {
+      registrationFee: parsedFee,
+      expectedRegistrations: Math.min(parsedExpected, parsedCapacity),
+      capacity: parsedCapacity,
+      prizePoolPercentage: 75,
+      expectedRevenue: 0,
+      prizePool: 0,
+      organizerShare: 0,
+    };
+  }
+
   return {
     title: proposal.title.trim(),
     slug,
@@ -400,12 +425,14 @@ const buildEventFromProposal = (proposal, reqUser) => {
     endDate: proposal.endDate ? proposal.endDate.trim() : '',
     time: proposal.startTime.trim(),
     venue: proposal.venue.trim(),
-    capacity: Number(proposal.maxCapacity) || Number(proposal.expectedParticipants) || 100,
+    capacity: parsedCapacity,
     registeredCount: 0,
     isFeatured: false,
     isUpcoming: true,
     registrationStatus: 'Open',
-    registrationFee: Number(proposal.registrationFee) || 0,
+    registrationFee: parsedFee,
+    expectedRegistrations: Math.min(parsedExpected, parsedCapacity),
+    financialConfig,
     currency: 'INR',
     registrationDeadline: proposal.registrationDeadline || proposal.startDate,
     teamPolicy: {
@@ -561,41 +588,50 @@ const updateProposalStatus = async (req, res, next) => {
 
     let publishedEvent = null;
 
-    // 4. If status is "approved", create and publish Event document
+    // 4. If status is "approved", create and publish Event document idempotently
     if (status === 'approved') {
       const eventData = buildEventFromProposal(existingProposal, req.user);
 
       if (dbStatus.connected) {
         // Idempotent event check in DB
-        if (!existingProposal.eventId) {
+        let existingEvent = null;
+        if (existingProposal.eventId) {
+          existingEvent = await Event.findById(existingProposal.eventId);
+        }
+        if (!existingEvent) {
+          existingEvent = await Event.findOne({ title: { $regex: new RegExp(`^${existingProposal.title.trim()}$`, 'i') } });
+        }
+
+        if (existingEvent) {
+          publishedEvent = existingEvent;
+          updatePayload.eventId = existingEvent._id.toString();
+        } else {
           publishedEvent = await Event.create(eventData);
           updatePayload.eventId = publishedEvent._id.toString();
-        } else {
-          publishedEvent = await Event.findById(existingProposal.eventId);
-          if (!publishedEvent) {
-            publishedEvent = await Event.create(eventData);
-            updatePayload.eventId = publishedEvent._id.toString();
-          }
         }
       } else {
         // Fallback development mode
-        if (!existingProposal.eventId) {
+        let existingEvent = null;
+        if (existingProposal.eventId) {
+          existingEvent = fallbackEvents.find(
+            (e) => e.id === existingProposal.eventId || e._id === existingProposal.eventId
+          );
+        }
+        if (!existingEvent) {
+          existingEvent = fallbackEvents.find(
+            (e) => e.title && e.title.toLowerCase().trim() === existingProposal.title.toLowerCase().trim()
+          );
+        }
+
+        if (existingEvent) {
+          publishedEvent = existingEvent;
+          updatePayload.eventId = existingEvent.id || existingEvent._id;
+        } else {
           eventData.id = 'evt_' + Date.now().toString(36);
           eventData._id = eventData.id;
           fallbackEvents.unshift(eventData);
           publishedEvent = eventData;
           updatePayload.eventId = eventData.id;
-        } else {
-          publishedEvent = fallbackEvents.find(
-            (e) => e.id === existingProposal.eventId || e._id === existingProposal.eventId
-          );
-          if (!publishedEvent) {
-            eventData.id = 'evt_' + Date.now().toString(36);
-            eventData._id = eventData.id;
-            fallbackEvents.unshift(eventData);
-            publishedEvent = eventData;
-            updatePayload.eventId = eventData.id;
-          }
         }
       }
     }

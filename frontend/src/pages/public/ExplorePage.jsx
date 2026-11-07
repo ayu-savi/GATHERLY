@@ -75,6 +75,16 @@ export const ExplorePage = () => {
       const res = await eventService.getEvents(params);
       let fetchedEvents = res.data || [];
 
+      // Deduplicate events by id, slug, or title as extra defensive layer
+      const seenKeys = new Set();
+      fetchedEvents = fetchedEvents.filter((ev) => {
+        if (!ev) return false;
+        const key = ev.slug || ev.id || ev._id || (ev.title ? ev.title.toLowerCase().trim() : null);
+        if (!key || seenKeys.has(key)) return false;
+        seenKeys.add(key);
+        return true;
+      });
+
       // Safeguard client-side filtering across title, description, category, and venue
       if (q) {
         const term = q.toLowerCase();

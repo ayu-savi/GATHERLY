@@ -8,8 +8,12 @@ const {
   createEvent,
   updateEvent,
   deleteEvent,
+  getEventFinancials,
 } = require('../controllers/eventController');
 const { protect, authorizeRoles } = require('../middleware/authMiddleware');
+
+// Confidential event financial calculations (Organizer & Admin only)
+router.get('/:id/financials', protect, authorizeRoles('organizer', 'admin'), getEventFinancials);
 
 // Public event discovery routes
 router.get('/featured', getFeaturedEvents);
