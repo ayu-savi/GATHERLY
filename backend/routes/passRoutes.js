@@ -6,12 +6,14 @@ const {
   verifyPass,
   checkInPass,
 } = require('../controllers/passController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, authorizeRoles } = require('../middleware/authMiddleware');
 
 router.get('/my', protect, getMyPasses);
 router.get('/:passId', protect, getPassByPassId);
-router.post('/verify', verifyPass);
-router.post('/checkin', checkInPass);
+
+// Gate verifier and admission check-in (Restricted to organizer & admin)
+router.post('/verify', protect, authorizeRoles('organizer', 'admin'), verifyPass);
+router.post('/checkin', protect, authorizeRoles('organizer', 'admin'), checkInPass);
 
 module.exports = router;
 

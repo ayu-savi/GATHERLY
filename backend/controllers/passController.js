@@ -94,10 +94,15 @@ const getPassByPassId = async (req, res, next) => {
 /**
  * @route   POST /api/passes/verify
  * @desc    Verify QR token authenticity and pass validity for event check-in
- * @access  Public / Organizer
+ * @access  Protected (Organizer / Admin only)
  */
 const verifyPass = async (req, res, next) => {
   try {
+    // Explicit Role Authorization Guard
+    if (!req.user || (req.user.role !== 'organizer' && req.user.role !== 'admin')) {
+      return sendError(res, 'Forbidden: Gate verification requires organizer or administrator privileges', 403);
+    }
+
     const { qrToken, passId, eventSlug } = req.body;
 
     if (!qrToken && !passId) {
@@ -174,6 +179,7 @@ const verifyPass = async (req, res, next) => {
       });
     }
 
+    // Privacy-preserving response: Excludes participantEmail and telephone
     return res.status(200).json({
       success: true,
       valid: true,
@@ -183,8 +189,8 @@ const verifyPass = async (req, res, next) => {
         passId: pass.passId,
         registrationId: pass.registrationId,
         participantName: pass.participantName,
-        participantEmail: pass.participantEmail,
         studentId: pass.studentId,
+        department: pass.department,
         eventTitle: pass.eventTitle,
         eventDate: pass.eventDate,
         eventVenue: pass.eventVenue,
@@ -203,10 +209,15 @@ const verifyPass = async (req, res, next) => {
 /**
  * @route   POST /api/passes/checkin
  * @desc    Admit participant and mark pass as checked in
- * @access  Public / Organizer
+ * @access  Protected (Organizer / Admin only)
  */
 const checkInPass = async (req, res, next) => {
   try {
+    // Explicit Role Authorization Guard
+    if (!req.user || (req.user.role !== 'organizer' && req.user.role !== 'admin')) {
+      return sendError(res, 'Forbidden: Gate check-in requires organizer or administrator privileges', 403);
+    }
+
     const { passId, qrToken } = req.body;
 
     if (!passId && !qrToken) {

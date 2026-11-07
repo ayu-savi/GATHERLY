@@ -15,6 +15,12 @@ const connectDB = async () => {
     console.warn('\x1b[33m%s\x1b[0m', '👉 Backend will run with database status: DISCONNECTED.');
     console.warn('\x1b[33m%s\x1b[0m', '👉 Configure MONGO_URI in backend/.env to connect to your MongoDB database.');
     isConnected = false;
+
+    if (process.env.NODE_ENV === 'production') {
+      console.error('\x1b[31m%s\x1b[0m', '❌ [MongoDB] FATAL: Production environment requires a configured MONGO_URI.');
+      process.exit(1);
+    }
+
     return false;
   }
 
@@ -29,6 +35,12 @@ const connectDB = async () => {
   } catch (error) {
     isConnected = false;
     console.error('\x1b[31m%s\x1b[0m', `❌ [MongoDB] Connection error: ${error.message}`);
+
+    if (process.env.NODE_ENV === 'production') {
+      console.error('\x1b[31m%s\x1b[0m', '❌ [MongoDB] FATAL: Production database connection failed. Aborting startup.');
+      process.exit(1);
+    }
+
     console.warn('\x1b[33m%s\x1b[0m', '👉 Backend continues running. Check your MONGO_URI credentials or network access.');
     return false;
   }
