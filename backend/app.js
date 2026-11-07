@@ -8,16 +8,22 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 
 // CORS configuration
-const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
-  'http://localhost:3000',
-  'http://127.0.0.1:5173',
-];
+const rawOrigins = process.env.FRONTEND_URL || process.env.CLIENT_URL || '';
+const configuredOrigins = rawOrigins.split(',').map((o) => o.trim()).filter(Boolean);
+
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? (configuredOrigins.length > 0 ? configuredOrigins : ['http://localhost:5173'])
+  : [
+      ...configuredOrigins,
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+    ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, postman)
+      // Allow requests with no origin (e.g. mobile apps, curl, postman, server-to-server)
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
         return callback(null, true);
