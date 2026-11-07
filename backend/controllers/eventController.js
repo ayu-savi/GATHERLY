@@ -309,7 +309,15 @@ const getEventById = async (req, res, next) => {
         event = await Event.findById(id).lean();
       }
       if (!event) {
-        event = await Event.findOne({ $or: [{ slug: id }, { id: id }] }).lean();
+        const cleanSlug = id.replace(/^evt-/, '');
+        event = await Event.findOne({
+          $or: [
+            { slug: id },
+            { slug: cleanSlug },
+            { id: id },
+            { id: `evt-${cleanSlug}` },
+          ],
+        }).lean();
       }
 
       if (!event) {
@@ -752,7 +760,15 @@ const getEventFinancials = async (req, res, next) => {
         event = await Event.findById(id).lean();
       }
       if (!event) {
-        event = await Event.findOne({ $or: [{ slug: id }, { id: id }] }).lean();
+        const cleanSlug = id.replace(/^evt-/, '');
+        event = await Event.findOne({
+          $or: [
+            { slug: id },
+            { slug: cleanSlug },
+            { id: id },
+            { id: `evt-${cleanSlug}` },
+          ],
+        }).lean();
       }
     } else {
       event = fallbackEvents.find((e) => e.id === id || e._id === id || e.slug === id);

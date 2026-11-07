@@ -83,7 +83,15 @@ const registerForEvent = async (req, res, next) => {
         event = await Event.findById(eventId);
       }
       if (!event) {
-        event = await Event.findOne({ $or: [{ slug: eventId }, { id: eventId }] });
+        const cleanSlug = eventId.replace(/^evt-/, '');
+        event = await Event.findOne({
+          $or: [
+            { slug: eventId },
+            { slug: cleanSlug },
+            { id: eventId },
+            { id: `evt-${cleanSlug}` },
+          ],
+        });
       }
     } else {
       event = fallbackEvents.find((e) => e.id === eventId || e.slug === eventId);

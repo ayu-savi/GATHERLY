@@ -18,7 +18,15 @@ const getActiveGallery = async (req, res, next) => {
       // Seed initial demo collection into MongoDB if database is empty
       if (!activeDoc) {
         const seeded = await Gallery.create({
-          ...INITIAL_DEMO_COLLECTION,
+          title: INITIAL_DEMO_COLLECTION.title,
+          description: INITIAL_DEMO_COLLECTION.description,
+          isDemo: INITIAL_DEMO_COLLECTION.isDemo,
+          publishedAt: INITIAL_DEMO_COLLECTION.publishedAt || new Date(),
+          photographs: (INITIAL_DEMO_COLLECTION.photographs || []).map((p) => {
+            const photoCopy = { ...p };
+            delete photoCopy._id;
+            return photoCopy;
+          }),
           _id: undefined,
           isActive: true,
         });
