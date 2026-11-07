@@ -103,12 +103,17 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('gatherly_token');
   };
 
-  const updateProfile = (updatedFields) => {
-    setUser((prev) => {
-      const updated = { ...prev, ...updatedFields };
+  const updateProfile = async (updatedFields) => {
+    try {
+      const res = await authService.updateProfile(updatedFields);
+      const updated = res.data || { ...user, ...updatedFields };
+      setUser(updated);
       localStorage.setItem('gatherly_user', JSON.stringify(updated));
-      return updated;
-    });
+      return { success: true, data: updated };
+    } catch (err) {
+      console.error('Failed to update profile on server:', err);
+      return { success: false, message: err.message || 'Profile update failed' };
+    }
   };
 
   return (

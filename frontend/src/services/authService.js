@@ -21,6 +21,13 @@ export const authService = {
   getMe: async () => {
     return await api.get('/auth/me');
   },
+
+  /**
+   * Update student profile information (persists to backend)
+   */
+  updateProfile: async (userData) => {
+    return await api.put('/auth/profile', userData);
+  },
 };
 
 export default authService;

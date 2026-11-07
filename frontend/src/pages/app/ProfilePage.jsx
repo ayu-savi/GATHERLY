@@ -19,12 +19,37 @@ export const ProfilePage = () => {
   const [department, setDepartment] = useState(user?.department || 'Computer Science & Engineering');
   const [phone, setPhone] = useState(user?.phone || '+91 98765 43210');
   const [savedNotice, setSavedNotice] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (e) => {
+  // Keep form synchronized if user profile updates
+  useEffect(() => {
+    if (user) {
+      if (user.fullName) setFullName(user.fullName);
+      if (user.department) setDepartment(user.department);
+      if (user.phone) setPhone(user.phone);
+    }
+  }, [user]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    updateProfile({ fullName, department, phone });
-    setSavedNotice(true);
-    setTimeout(() => setSavedNotice(false), 3000);
+    setSaving(true);
+    setSaveError('');
+    setSavedNotice(false);
+
+    try {
+      const res = await updateProfile({ fullName, department, phone });
+      if (res && res.success) {
+        setSavedNotice(true);
+        setTimeout(() => setSavedNotice(false), 3500);
+      } else {
+        setSaveError(res?.message || 'Failed to save profile changes.');
+      }
+    } catch (err) {
+      setSaveError(err.message || 'Failed to save profile changes.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -54,7 +79,27 @@ export const ProfilePage = () => {
           }}
         >
           <CheckCircle2 size={16} />
-          <span>Profile changes saved successfully!</span>
+          <span>Profile changes saved and synchronized with university backend!</span>
+        </div>
+      )}
+
+      {saveError && (
+        <div
+          style={{
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--error-bg)',
+            border: '1px solid var(--error)',
+            color: 'var(--error)',
+            fontSize: 'var(--text-xs)',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <AlertCircle size={16} />
+          <span>{saveError}</span>
         </div>
       )}
 
@@ -200,8 +245,8 @@ export const ProfilePage = () => {
           </div>
 
           <div style={{ marginTop: 'var(--space-2)' }}>
-            <Button type="submit" variant="primary" icon={Save}>
-              Save Profile Changes
+            <Button type="submit" variant="primary" icon={Save} loading={saving} disabled={saving}>
+              {saving ? 'Saving Changes...' : 'Save Profile Changes'}
             </Button>
           </div>
         </form>

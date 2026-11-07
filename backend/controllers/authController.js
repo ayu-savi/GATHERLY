@@ -11,12 +11,16 @@ const generateToken = (payload) => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 };
 
-// In-memory demo students for offline / development testing
+// Pre-computed bcrypt hash for campus demo password "gatherly123"
+const DEMO_PASSWORD_HASH = bcrypt.hashSync('gatherly123', 10);
+
+// In-memory demo students, organizers and administrators for offline / development testing
 const fallbackUsers = [
   {
     id: 'usr_student_01',
     fullName: 'Aarav Sharma',
     email: 'aarav.sharma@campus.edu',
+    passwordHash: DEMO_PASSWORD_HASH,
     studentId: 'STU-2026-089',
     department: 'Computer Science & Engineering',
     phone: '+91 98765 43210',
@@ -26,10 +30,31 @@ const fallbackUsers = [
     id: 'usr_student_02',
     fullName: 'Priya Patel',
     email: 'priya.patel@campus.edu',
+    passwordHash: DEMO_PASSWORD_HASH,
     studentId: 'STU-2026-112',
     department: 'Electronics & Communication',
     phone: '+91 98765 43219',
     role: 'student',
+  },
+  {
+    id: 'usr_organizer_01',
+    fullName: 'Vikram Mehta',
+    email: 'organizer@campus.edu',
+    passwordHash: DEMO_PASSWORD_HASH,
+    studentId: 'ORG-2026-007',
+    department: 'Student Affairs & Cultural Council',
+    phone: '+91 98765 11111',
+    role: 'organizer',
+  },
+  {
+    id: 'usr_admin_01',
+    fullName: 'Campus Administrator',
+    email: 'admin@campus.edu',
+    passwordHash: DEMO_PASSWORD_HASH,
+    studentId: 'ADM-2026-001',
+    department: 'Office of the Dean (Student Welfare)',
+    phone: '+91 98765 99999',
+    role: 'admin',
   },
 ];
 
@@ -80,22 +105,17 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Development Fallback Authentication
+    // Development Fallback Authentication: Strict credential matching
     const normalizedEmail = email.toLowerCase().trim();
-    let existingUser = fallbackUsers.find((u) => u.email === normalizedEmail);
+    const existingUser = fallbackUsers.find((u) => u.email === normalizedEmail);
 
     if (!existingUser) {
-      // Create ad-hoc student profile for any valid test email
-      existingUser = {
-        id: 'usr_' + Date.now(),
-        fullName: email.split('@')[0].replace('.', ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-        email: normalizedEmail,
-        studentId: 'STU-' + Math.floor(1000 + Math.random() * 9000),
-        department: 'Engineering & Technology',
-        phone: '+91 98765 00000',
-        role: 'student',
-      };
-      fallbackUsers.push(existingUser);
+      return sendError(res, 'Invalid campus email or password', 401);
+    }
+
+    const isMatch = await bcrypt.compare(password, existingUser.passwordHash);
+    if (!isMatch) {
+      return sendError(res, 'Invalid campus email or password', 401);
     }
 
     const token = generateToken({
@@ -105,17 +125,19 @@ const login = async (req, res, next) => {
       fullName: existingUser.fullName,
     });
 
+    const userProfile = { ...existingUser };
+    delete userProfile.passwordHash;
+
     return res.status(200).json({
       success: true,
-      message: 'Student authenticated (Development Mode)',
+      message: 'Authenticated successfully (Development Mode)',
       meta: {
         databaseConnected: false,
         fallback: true,
-        notice: 'MongoDB is offline. Authenticated via development identity provider.',
       },
       data: {
         token,
-        user: existingUser,
+        user: userProfile,
       },
     });
   } catch (error) {
@@ -181,10 +203,16 @@ const register = async (req, res, next) => {
 
     // Development Fallback Registration
     const normalizedEmail = email.toLowerCase().trim();
+    if (fallbackUsers.some((u) => u.email === normalizedEmail)) {
+      return sendError(res, 'An account with this email already exists', 409);
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
     const newUser = {
       id: 'usr_' + Date.now(),
       fullName,
       email: normalizedEmail,
+      passwordHash,
       studentId: studentId || 'STU-' + Math.floor(1000 + Math.random() * 9000),
       department: department || 'General Engineering',
       phone: phone || '+91 98765 00000',
@@ -199,6 +227,9 @@ const register = async (req, res, next) => {
       fullName: newUser.fullName,
     });
 
+    const userProfile = { ...newUser };
+    delete userProfile.passwordHash;
+
     return res.status(201).json({
       success: true,
       message: 'Student account created (Development Mode)',
@@ -208,7 +239,7 @@ const register = async (req, res, next) => {
       },
       data: {
         token,
-        user: newUser,
+        user: userProfile,
       },
     });
   } catch (error) {
@@ -246,7 +277,83 @@ const getMe = async (req, res, next) => {
       });
     }
 
-    return sendSuccess(res, 'Student profile retrieved (Development)', user);
+    const userProfile = { ...user };
+    delete userProfile.passwordHash;
+
+    return sendSuccess(res, 'Student profile retrieved (Development)', userProfile);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @route   PUT /api/auth/profile
+ * @desc    Update authenticated student profile information (strictly whitelist editable fields)
+ * @access  Protected
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const { fullName, phone, department } = req.body;
+
+    const updatePayload = {};
+    if (fullName && typeof fullName === 'string' && fullName.trim()) {
+      updatePayload.fullName = fullName.trim();
+    }
+    if (phone && typeof phone === 'string' && phone.trim()) {
+      updatePayload.phone = phone.trim();
+    }
+    if (department && typeof department === 'string' && department.trim()) {
+      updatePayload.department = department.trim();
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      return sendError(res, 'Please provide at least one valid profile field to update', 400);
+    }
+
+    const dbStatus = getDBStatus();
+
+    if (dbStatus.connected) {
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: updatePayload },
+        { new: true, runValidators: true }
+      ).select('-password');
+
+      if (!updatedUser) {
+        return sendError(res, 'User account not found', 404);
+      }
+
+      return sendSuccess(res, 'Profile updated successfully', {
+        id: updatedUser._id.toString(),
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        studentId: updatedUser.studentId,
+        department: updatedUser.department,
+        phone: updatedUser.phone,
+        role: updatedUser.role,
+      });
+    }
+
+    // Fallback store update
+    const idx = fallbackUsers.findIndex((u) => u.id === userId || u.email === req.user.email);
+    if (idx === -1) {
+      return sendError(res, 'User account not found in development store', 404);
+    }
+
+    fallbackUsers[idx] = {
+      ...fallbackUsers[idx],
+      ...updatePayload,
+    };
+
+    const sanitized = { ...fallbackUsers[idx] };
+    delete sanitized.passwordHash;
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully (Development Mode)',
+      data: sanitized,
+    });
   } catch (error) {
     next(error);
   }
@@ -256,5 +363,6 @@ module.exports = {
   login,
   register,
   getMe,
+  updateProfile,
 };
 
