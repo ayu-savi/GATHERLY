@@ -11,6 +11,8 @@ import {
   Settings,
   LogOut,
   ExternalLink,
+  FileText,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -32,12 +34,18 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
       items: [
         { name: 'My Registrations', path: '/app/registrations', icon: CalendarCheck },
         { name: 'My Digital Passes', path: '/app/passes', icon: Ticket },
+        { name: 'My Proposals', path: '/app/proposals', icon: FileText },
       ],
     },
     {
       title: 'TOOLS & PROFILE',
       items: [
-        { name: 'Gate Verifier', path: '/app/pass-verifier', icon: ShieldCheck },
+        ...(user?.role === 'admin'
+          ? [{ name: 'Proposal Review', path: '/app/admin/proposals', icon: ClipboardCheck }]
+          : []),
+        ...(user?.role === 'organizer' || user?.role === 'admin'
+          ? [{ name: 'Gate Verifier', path: '/app/pass-verifier', icon: ShieldCheck }]
+          : []),
         { name: 'Student Profile', path: '/app/profile', icon: User },
         { name: 'Settings', path: '/app/settings', icon: Settings },
       ],

@@ -15,6 +15,8 @@ export const AppTopbar = ({ onMobileToggle }) => {
     if (path.includes('/overview')) return { title: 'Dashboard Overview', category: 'Personal Center' };
     if (path.includes('/registrations')) return { title: 'My Registrations', category: 'Tickets & Passes' };
     if (path.includes('/passes')) return { title: 'My Digital Passes', category: 'Gate Vouchers' };
+    if (path.includes('/admin/proposals')) return { title: 'Proposal Review', category: 'Campus Administration' };
+    if (path.includes('/proposals')) return { title: 'My Submitted Proposals', category: 'Event Hosting' };
     if (path.includes('/pass-verifier')) return { title: 'Gate Pass Verifier', category: 'Organizer Security' };
     if (path.includes('/profile')) return { title: 'Student Profile', category: 'Account' };
     if (path.includes('/settings')) return { title: 'Application Settings', category: 'Preferences' };

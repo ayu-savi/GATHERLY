@@ -25,6 +25,8 @@ import RegistrationsPage from './pages/app/RegistrationsPage';
 import PassesPage from './pages/app/PassesPage';
 import PassVerifierPage from './pages/app/PassVerifierPage';
 import ProfilePage from './pages/app/ProfilePage';
+import MyProposalsPage from './pages/app/MyProposalsPage';
+import AdminProposalsPage from './pages/app/AdminProposalsPage';
 
 // Simple Scroll to top helper
 const ScrollToTop = () => {
@@ -61,6 +63,8 @@ export const App = () => {
             <Route path="/app/registrations" element={<RegistrationsPage />} />
             <Route path="/app/passes" element={<PassesPage />} />
             <Route path="/app/passes/:passId" element={<PassesPage />} />
+            <Route path="/app/proposals" element={<MyProposalsPage />} />
+            <Route path="/app/admin/proposals" element={<AdminProposalsPage />} />
             <Route path="/app/pass-verifier" element={<PassVerifierPage />} />
             <Route path="/app/profile" element={<ProfilePage />} />
             <Route path="/app/settings" element={<ProfilePage />} />
