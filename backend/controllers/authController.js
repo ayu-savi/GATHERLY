@@ -59,6 +59,32 @@ const fallbackUsers = [
 ];
 
 /**
+ * Auto-seed initial demo accounts into MongoDB if connected and database is empty
+ */
+const ensureUsersSeeded = async () => {
+  try {
+    const count = await User.countDocuments();
+    if (count === 0) {
+      console.log('🌱 [MongoDB] Seeding initial campus demo accounts (student, organizer, admin)...');
+      for (const u of fallbackUsers) {
+        await User.create({
+          fullName: u.fullName,
+          email: u.email,
+          password: 'gatherly123',
+          studentId: u.studentId,
+          department: u.department,
+          phone: u.phone,
+          role: u.role,
+        });
+      }
+      console.log('✅ [MongoDB] Initial demo accounts seeded successfully.');
+    }
+  } catch (err) {
+    console.warn('⚠️ [MongoDB] Could not auto-seed users:', err.message);
+  }
+};
+
+/**
  * @route   POST /api/auth/login
  * @desc    Authenticate student and get JWT token
  * @access  Public
@@ -74,6 +100,7 @@ const login = async (req, res, next) => {
     const dbStatus = getDBStatus();
 
     if (dbStatus.connected) {
+      await ensureUsersSeeded();
       const user = await User.findOne({ email: email.toLowerCase().trim() });
       if (!user) {
         return sendError(res, 'Invalid campus email or password', 401);
