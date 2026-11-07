@@ -192,11 +192,13 @@ export const PassVerifierPage = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: 'var(--space-5)' }}>
             {verifyResult.valid ? (
               <div
+                className="animate-radar-pulse"
                 style={{
-                  width: '40px',
-                  height: '40px',
+                  width: '42px',
+                  height: '42px',
                   borderRadius: '50%',
                   background: 'var(--success-bg)',
+                  border: '1.5px solid var(--success)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

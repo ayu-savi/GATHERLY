@@ -197,7 +197,8 @@ export const ExplorePage = () => {
                 background: activeCategory === 'all' ? 'var(--primary)' : 'var(--bg-elevated)',
                 color: activeCategory === 'all' ? 'var(--text-inverse)' : 'var(--text-secondary)',
                 border: activeCategory === 'all' ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
-                boxShadow: activeCategory === 'all' ? '0 2px 8px rgba(15, 118, 110, 0.25)' : 'none',
+                boxShadow: activeCategory === 'all' ? '0 2px 8px rgba(var(--primary-rgb), 0.25)' : 'none',
+                transform: activeCategory === 'all' ? 'scale(1.03) translateY(-1px)' : 'none',
                 cursor: 'pointer',
                 transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
@@ -235,7 +236,8 @@ export const ExplorePage = () => {
                     background: isSelected ? 'var(--primary)' : 'var(--bg-elevated)',
                     color: isSelected ? 'var(--text-inverse)' : 'var(--text-secondary)',
                     border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border-subtle)',
-                    boxShadow: isSelected ? '0 2px 8px rgba(15, 118, 110, 0.25)' : 'none',
+                    boxShadow: isSelected ? '0 2px 8px rgba(var(--primary-rgb), 0.25)' : 'none',
+                    transform: isSelected ? 'scale(1.03) translateY(-1px)' : 'none',
                     cursor: 'pointer',
                     transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                   }}

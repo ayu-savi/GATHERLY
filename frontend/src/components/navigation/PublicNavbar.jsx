@@ -14,6 +14,8 @@ import {
   ArrowRight,
   Menu,
   X,
+  FileText,
+  ClipboardCheck,
 } from 'lucide-react';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { Button } from '../common/Button';
@@ -416,7 +418,7 @@ export const PublicNavbar = () => {
                       </Link>
 
                       <Link
-                        to="/app/pass-verifier"
+                        to="/app/proposals"
                         onClick={() => setUserDropdownOpen(false)}
                         style={{
                           display: 'flex',
@@ -432,9 +434,55 @@ export const PublicNavbar = () => {
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                       >
-                        <ShieldCheck size={14} style={{ color: 'var(--text-muted)' }} />
-                        <span>Gate Verifier</span>
+                        <FileText size={14} style={{ color: 'var(--primary)' }} />
+                        <span>My Proposals</span>
                       </Link>
+
+                      {user?.role === 'admin' && (
+                        <Link
+                          to="/app/admin/proposals"
+                          onClick={() => setUserDropdownOpen(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '8px 10px',
+                            borderRadius: 'var(--radius-md)',
+                            fontSize: 'var(--text-xs)',
+                            color: 'var(--text-secondary)',
+                            textDecoration: 'none',
+                            transition: 'background var(--transition-fast)',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                        >
+                          <ClipboardCheck size={14} style={{ color: 'var(--primary)' }} />
+                          <span>Proposal Review</span>
+                        </Link>
+                      )}
+
+                      {(user?.role === 'organizer' || user?.role === 'admin') && (
+                        <Link
+                          to="/app/pass-verifier"
+                          onClick={() => setUserDropdownOpen(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '8px 10px',
+                            borderRadius: 'var(--radius-md)',
+                            fontSize: 'var(--text-xs)',
+                            color: 'var(--text-secondary)',
+                            textDecoration: 'none',
+                            transition: 'background var(--transition-fast)',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                        >
+                          <ShieldCheck size={14} style={{ color: 'var(--text-muted)' }} />
+                          <span>Gate Verifier</span>
+                        </Link>
+                      )}
 
                       <Link
                         to="/app/settings"
@@ -681,6 +729,46 @@ export const PublicNavbar = () => {
                 </NavLink>
 
                 <NavLink
+                  to="/app/proposals"
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={({ isActive }) => ({
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--text-base)',
+                    fontWeight: 'var(--weight-medium)',
+                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                    textDecoration: 'none',
+                  })}
+                >
+                  <FileText size={18} />
+                  <span>My Proposals</span>
+                </NavLink>
+
+                {user?.role === 'admin' && (
+                  <NavLink
+                    to="/app/admin/proposals"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={({ isActive }) => ({
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px 16px',
+                      borderRadius: 'var(--radius-md)',
+                      fontSize: 'var(--text-base)',
+                      fontWeight: 'var(--weight-medium)',
+                      color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                      textDecoration: 'none',
+                    })}
+                  >
+                    <ClipboardCheck size={18} />
+                    <span>Proposal Review</span>
+                  </NavLink>
+                )}
+
+                <NavLink
                   to="/app/profile"
                   onClick={() => setMobileMenuOpen(false)}
                   style={({ isActive }) => ({
@@ -699,24 +787,26 @@ export const PublicNavbar = () => {
                   <span>Student Profile</span>
                 </NavLink>
 
-                <NavLink
-                  to="/app/pass-verifier"
-                  onClick={() => setMobileMenuOpen(false)}
-                  style={({ isActive }) => ({
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: 'var(--text-base)',
-                    fontWeight: 'var(--weight-medium)',
-                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                    textDecoration: 'none',
-                  })}
-                >
-                  <ShieldCheck size={18} />
-                  <span>Gate Verifier</span>
-                </NavLink>
+                {(user?.role === 'organizer' || user?.role === 'admin') && (
+                  <NavLink
+                    to="/app/pass-verifier"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={({ isActive }) => ({
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px 16px',
+                      borderRadius: 'var(--radius-md)',
+                      fontSize: 'var(--text-base)',
+                      fontWeight: 'var(--weight-medium)',
+                      color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                      textDecoration: 'none',
+                    })}
+                  >
+                    <ShieldCheck size={18} />
+                    <span>Gate Verifier</span>
+                  </NavLink>
+                )}
 
                 <NavLink
                   to="/app/settings"

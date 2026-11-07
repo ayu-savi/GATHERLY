@@ -16,6 +16,8 @@ import {
   ExternalLink,
   ChevronRight,
   User,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { passService } from '../../services/passService';
 import { Button } from '../../components/common/Button';
@@ -29,6 +31,15 @@ export const PassesPage = () => {
   const [singlePass, setSinglePass] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [copiedPassId, setCopiedPassId] = useState(null);
+
+  const handleCopyPassId = (id) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(id);
+      setCopiedPassId(id);
+      setTimeout(() => setCopiedPassId(null), 2000);
+    }
+  };
 
   // Fetch single pass or full collection depending on URL param
   const loadPassData = async () => {
@@ -455,17 +466,47 @@ Present this pass at campus gate for admission.
             dangerouslySetInnerHTML={{ __html: pass.qrSvg }}
           />
 
-          <span
+          <button
+            type="button"
+            onClick={() => handleCopyPassId(pass.passId)}
+            title="Click to copy Pass ID"
+            aria-label={`Copy Pass ID ${pass.passId}`}
             style={{
-              fontSize: '0.72rem',
-              fontFamily: 'var(--font-mono)',
-              fontWeight: '800',
-              color: 'var(--primary)',
-              letterSpacing: '0.04em',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '3px 8px',
+              borderRadius: 'var(--radius-sm)',
+              background: copiedPassId === pass.passId ? 'var(--success-bg)' : 'var(--bg-secondary)',
+              border: `1px solid ${copiedPassId === pass.passId ? 'var(--success)' : 'var(--border-subtle)'}`,
+              cursor: 'pointer',
+              transition: 'all var(--transition-fast)',
             }}
           >
-            {pass.passId}
-          </span>
+            {copiedPassId === pass.passId ? (
+              <>
+                <Check size={11} style={{ color: 'var(--success)' }} />
+                <span style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: '700', fontFamily: 'var(--font-mono)' }}>
+                  Copied!
+                </span>
+              </>
+            ) : (
+              <>
+                <Copy size={11} style={{ color: 'var(--primary)' }} />
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: '800',
+                    color: 'var(--primary)',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {pass.passId}
+                </span>
+              </>
+            )}
+          </button>
           <span
             style={{
               fontSize: '0.65rem',
