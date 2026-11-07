@@ -437,7 +437,7 @@ async function runTestSuite() {
     assert(hasCredits, 'Gallery', 'All demo photographs preserve photographer credits and event metadata');
 
     // 6.3 Static image file serving
-    const staticRes = await request({ path: '/uploads/gallery/defaults/concert_stage.jpg', method: 'GET' });
+    const staticRes = await request({ path: '/uploads/gallery/defaults/rangmanch_cultural_fest.jpg', method: 'GET' });
     assert(staticRes.status === 200, 'Gallery', 'Static uploads endpoint serves image files with 200 OK');
 
     // 6.4 Non-admin blocked from uploading photographs
@@ -462,7 +462,7 @@ async function runTestSuite() {
       headers: studentHeaders,
     }, {
       title: 'Hacked Gallery',
-      photographs: [{ photoPath: '/uploads/gallery/defaults/concert_stage.jpg', eventName: 'Hack', eventDate: 'Today' }],
+      photographs: [{ photoPath: '/uploads/gallery/defaults/rangmanch_cultural_fest.jpg', eventName: 'Hack', eventDate: 'Today' }],
     });
     assert(studentPublish.status === 403, 'GalleryAuth', 'Student blocked from publishing gallery (403 Forbidden)');
 
@@ -496,19 +496,19 @@ async function runTestSuite() {
       isDemo: true,
       photographs: [
         {
-          photoPath: '/uploads/gallery/defaults/concert_stage.jpg',
+          photoPath: '/uploads/gallery/defaults/rangmanch_cultural_fest.jpg',
           eventName: 'Spring Concert Gala',
           eventDate: 'April 02, 2026',
-          photographerCredit: 'Aditya Chache',
+          photographerCredit: 'Nainoa Shizuru',
           photographerSource: 'Unsplash',
           isSocietyAttribution: false,
           isFeatured: true,
         },
         {
-          photoPath: '/uploads/gallery/defaults/cultural_festival.jpg',
+          photoPath: '/uploads/gallery/defaults/udaan_dance_night.jpg',
           eventName: 'Cultural Dance Parade',
           eventDate: 'April 03, 2026',
-          photographerCredit: 'Nainoa Shizuru',
+          photographerCredit: 'Abhishek Prasad',
           photographerSource: 'Unsplash',
           isSocietyAttribution: true,
           isFeatured: false,
@@ -531,8 +531,18 @@ async function runTestSuite() {
       'Public gallery immediately displays only the newly activated collection'
     );
 
-    // Restore full demo collection for live showcase
-    const { galleryStore } = require('../data/galleryStore');
+    // Restore full 12-photograph demo collection on server for live showcase and test idempotency
+    const { INITIAL_DEMO_COLLECTION, galleryStore } = require('../data/galleryStore');
+    await request({
+      path: '/api/gallery/publish',
+      method: 'POST',
+      headers: adminHeaders,
+    }, {
+      title: INITIAL_DEMO_COLLECTION.title,
+      description: INITIAL_DEMO_COLLECTION.description,
+      isDemo: true,
+      photographs: INITIAL_DEMO_COLLECTION.photographs,
+    });
     galleryStore.resetToDemo();
 
     console.log('\n===============================================================');
