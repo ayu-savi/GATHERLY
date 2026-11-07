@@ -63,7 +63,11 @@ export const EventDetailsPage = () => {
             const myRegs = await registrationService.getMyRegistrations();
             const found = (myRegs.data || []).find(
               (r) =>
-                (r.event === (eventData._id || eventData.id) || r.eventSlug === eventData.slug || r.event === eventData.slug) &&
+                (r.event === (eventData._id || eventData.id) ||
+                 r.eventSlug === eventData.slug ||
+                 r.event === eventData.slug ||
+                 r.eventSlug === id ||
+                 (r.eventTitle && eventData.title && r.eventTitle.toLowerCase() === eventData.title.toLowerCase())) &&
                 r.status !== 'cancelled'
             );
             if (found) {
@@ -784,9 +788,14 @@ export const EventDetailsPage = () => {
                         color: 'var(--success)',
                         fontWeight: 'bold',
                         fontSize: 'var(--text-xs)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
                       }}
                     >
-                      ✓ You are registered for this event!
+                      <CheckCircle2 size={16} />
+                      <span>Already Registered</span>
                     </div>
                     <Link to={`/app/passes/${registeredPass?.passId || ''}`} style={{ textDecoration: 'none' }}>
                       <Button variant="primary" size="md" fullWidth icon={Ticket}>

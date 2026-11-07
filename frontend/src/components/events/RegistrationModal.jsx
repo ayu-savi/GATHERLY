@@ -24,7 +24,7 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successData, setSuccessData] = useState(null);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(2);
 
   // Form Fields
   const [formData, setFormData] = useState({
@@ -38,31 +38,35 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
     teamMembers: [],
   });
 
-  // Pre-fill user data when modal opens
+  // Pre-fill user data only when modal opens (do not reset if parent updates event props)
   useEffect(() => {
-    if (user) {
-      setFormData((prev) => ({
-        ...prev,
-        participantName: user.fullName || '',
-        participantEmail: user.email || '',
-        participantPhone: user.phone || '+91 98765 00000',
-        studentId: user.studentId || 'STU-2026-089',
-        department: user.department || 'Computer Science & Engineering',
-      }));
+    if (isOpen) {
+      if (user) {
+        setFormData({
+          participantName: user.fullName || '',
+          participantEmail: user.email || '',
+          participantPhone: user.phone || '+91 98765 00000',
+          studentId: user.studentId || 'STU-2026-089',
+          department: user.department || 'Computer Science & Engineering',
+          registrationType: 'individual',
+          teamName: '',
+          teamMembers: [],
+        });
+      }
+      setStep(1);
+      setLoading(false);
+      setIsSubmitting(false);
+      setErrorMessage('');
+      setSuccessData(null);
+      setCountdown(2);
     }
-    setStep(1);
-    setLoading(false);
-    setIsSubmitting(false);
-    setErrorMessage('');
-    setSuccessData(null);
-    setCountdown(5);
-  }, [user, event, isOpen]);
+  }, [isOpen]);
 
-  // Automatic 5-second modal closure after confirmed registration
+  // Automatic 2-second modal closure after confirmed registration
   useEffect(() => {
     let timer = null;
     if (step === 4 && successData) {
-      setCountdown(5);
+      setCountdown(2);
       timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -698,7 +702,7 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
                   Registration Successful!
                 </h4>
                 <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
-                  You're successfully registered for <strong>{event.title}</strong>. Your digital pass is ready.
+                  You are successfully registered for <strong>{event.title}</strong>. Your digital pass is ready.
                 </p>
               </div>
 
@@ -755,7 +759,7 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
                 />
               </div>
 
-              {/* 5-Second Auto-Close Notice */}
+              {/* 2-Second Auto-Close Notice */}
               <div
                 style={{
                   width: '100%',
@@ -771,7 +775,7 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
                 }}
               >
                 <span>
-                  Closing automatically in <strong>{countdown}s</strong>
+                  Closing automatically in <strong>{countdown}s</strong>...
                 </span>
                 <span style={{ color: 'var(--success)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   <CheckCircle2 size={13} /> Active in Passes
