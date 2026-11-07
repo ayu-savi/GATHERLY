@@ -21,8 +21,10 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
 
   const [step, setStep] = useState(1); // 1: details, 2: team (if applicable), 3: payment (if paid), 4: success
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successData, setSuccessData] = useState(null);
+  const [countdown, setCountdown] = useState(5);
 
   // Form Fields
   const [formData, setFormData] = useState({
@@ -49,9 +51,33 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
       }));
     }
     setStep(1);
+    setLoading(false);
+    setIsSubmitting(false);
     setErrorMessage('');
     setSuccessData(null);
+    setCountdown(5);
   }, [user, event, isOpen]);
+
+  // Automatic 5-second modal closure after confirmed registration
+  useEffect(() => {
+    let timer = null;
+    if (step === 4 && successData) {
+      setCountdown(5);
+      timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            onClose();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [step, successData, onClose]);
 
   if (!isOpen || !event) return null;
 
@@ -94,7 +120,11 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
       return;
     }
 
+    // Prevent duplicate submission attempts and repeated rapid clicks
+    if (loading || isSubmitting) return;
+
     setLoading(true);
+    setIsSubmitting(true);
     setErrorMessage('');
 
     try {
@@ -121,9 +151,21 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
         throw new Error(res.message || 'Registration could not be completed.');
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Registration failed.';
-      setErrorMessage(msg);
-    } finally {
+      // Handle duplicate registration gracefully
+      if (err.response?.status === 409 || err.response?.data?.isAlreadyRegistered) {
+        const existingData = err.response?.data?.data;
+        if (existingData && onRegistered) {
+          onRegistered(existingData);
+        }
+        setErrorMessage(
+          err.response?.data?.message ||
+            'You are already registered for this event. Your pass is ready in your dashboard.'
+        );
+      } else {
+        const msg = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
+        setErrorMessage(msg);
+      }
+      setIsSubmitting(false);
       setLoading(false);
     }
   };
@@ -636,25 +678,27 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', alignItems: 'center' }}>
               <div
                 style={{
-                  width: '56px',
-                  height: '56px',
+                  width: '64px',
+                  height: '64px',
                   borderRadius: '50%',
                   background: 'var(--success-bg)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'var(--success)',
+                  border: '1.5px solid rgba(16, 185, 129, 0.35)',
+                  boxShadow: '0 0 24px rgba(16, 185, 129, 0.22)',
                 }}
               >
-                <CheckCircle2 size={32} />
+                <CheckCircle2 size={36} />
               </div>
 
               <div style={{ textAlign: 'center' }}>
-                <h4 style={{ fontSize: 'var(--text-lg)', fontWeight: '800', margin: 0, color: 'var(--text-primary)' }}>
-                  Registration Confirmed!
+                <h4 style={{ fontSize: '1.35rem', fontWeight: '900', margin: 0, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+                  Registration Successful!
                 </h4>
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                  Your digital event admission pass has been generated and added to your dashboard.
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
+                  You're successfully registered for <strong>{event.title}</strong>. Your digital pass is ready.
                 </p>
               </div>
 
@@ -711,6 +755,29 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
                 />
               </div>
 
+              {/* 5-Second Auto-Close Notice */}
+              <div
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.74rem',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                <span>
+                  Closing automatically in <strong>{countdown}s</strong>
+                </span>
+                <span style={{ color: 'var(--success)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckCircle2 size={13} /> Active in Passes
+                </span>
+              </div>
+
               <div style={{ display: 'flex', gap: 'var(--space-3)', width: '100%' }}>
                 <Button
                   variant="primary"
@@ -718,14 +785,14 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
                   fullWidth
                   onClick={() => {
                     onClose();
-                    navigate('/app/passes');
+                    navigate(`/app/passes/${successData.passId || ''}`);
                   }}
                   icon={Ticket}
                 >
-                  View in My Passes
+                  View Digital Pass Now
                 </Button>
                 <Button variant="secondary" size="md" fullWidth onClick={onClose}>
-                  Done
+                  Close Window
                 </Button>
               </div>
             </div>
@@ -745,11 +812,11 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
             }}
           >
             {step > 1 ? (
-              <Button variant="ghost" size="sm" onClick={() => setStep(step - 1)}>
+              <Button variant="ghost" size="sm" onClick={() => setStep(step - 1)} disabled={loading || isSubmitting}>
                 Back
               </Button>
             ) : (
-              <Button variant="ghost" size="sm" onClick={onClose}>
+              <Button variant="ghost" size="sm" onClick={onClose} disabled={loading || isSubmitting}>
                 Cancel
               </Button>
             )}
@@ -758,11 +825,22 @@ export const RegistrationModal = ({ event, isOpen, onClose, onRegistered }) => {
               variant="primary"
               size="sm"
               loading={loading}
+              disabled={loading || isSubmitting}
               onClick={step === 3 || (!isPaid && step === (teamAllowed && formData.registrationType === 'team' ? 2 : 1)) ? handleSubmitRegistration : handleNextStep}
               icon={ArrowRight}
               iconPosition="right"
             >
-              {step === 3 ? 'Authorize & Confirm' : step === 2 ? 'Continue to Confirmation' : isPaid ? 'Continue to Payment' : 'Confirm Registration'}
+              {loading
+                ? isPaid && step === 3
+                  ? 'Authorizing...'
+                  : 'Registering...'
+                : step === 3
+                ? 'Authorize & Confirm'
+                : step === 2
+                ? 'Continue to Confirmation'
+                : isPaid
+                ? 'Continue to Payment'
+                : 'Confirm Registration'}
             </Button>
           </div>
         )}

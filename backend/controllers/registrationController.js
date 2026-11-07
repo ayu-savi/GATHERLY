@@ -89,27 +89,50 @@ const registerForEvent = async (req, res, next) => {
       return sendError(res, 'Registration is closed: This event has reached full capacity', 400);
     }
 
-    // 5. Prevent duplicate registration
+    // 5. Prevent duplicate registration (Multi-layer check)
+    const normalizedEmail = (participantEmail || req.user.email || '').toLowerCase().trim();
+    const targetEventId = event._id ? event._id.toString() : event.id;
+    const targetEventSlug = event.slug;
+
     if (dbStatus.connected) {
       const existing = await Registration.findOne({
-        user: userId,
-        $or: [{ event: event._id.toString() }, { eventSlug: event.slug }],
-        status: { $ne: 'cancelled' },
+        $or: [{ user: userId }, { participantEmail: normalizedEmail }],
+        $and: [
+          {
+            $or: [
+              { event: targetEventId },
+              { event: targetEventSlug },
+              { eventSlug: targetEventSlug },
+              { eventSlug: eventId },
+            ],
+          },
+          { status: { $ne: 'cancelled' } },
+        ],
       });
 
       if (existing) {
-        return sendError(res, 'You are already registered for this campus event', 409);
+        return res.status(409).json({
+          success: false,
+          isAlreadyRegistered: true,
+          message: `You are already registered for ${event.title}. Your pass (${existing.passId}) is active in your dashboard.`,
+          data: existing,
+        });
       }
     } else {
       const existing = inMemoryRegistrations.find(
         (r) =>
-          (r.user === userId || r.participantEmail.toLowerCase() === participantEmail.toLowerCase()) &&
-          (r.event === eventId || r.eventSlug === event.slug) &&
+          (r.user === userId || (r.participantEmail && r.participantEmail.toLowerCase().trim() === normalizedEmail)) &&
+          (r.event === targetEventId || r.event === eventId || r.eventSlug === targetEventSlug || r.eventSlug === eventId) &&
           r.status !== 'cancelled'
       );
 
       if (existing) {
-        return sendError(res, 'You are already registered for this campus event', 409);
+        return res.status(409).json({
+          success: false,
+          isAlreadyRegistered: true,
+          message: `You are already registered for ${event.title}. Your pass (${existing.passId}) is active in your dashboard.`,
+          data: existing,
+        });
       }
     }
 

@@ -17,6 +17,7 @@ import {
   Share2,
   CalendarCheck,
   Sparkles,
+  Ticket,
 } from 'lucide-react';
 import { eventService } from '../../services/eventService';
 import { registrationService } from '../../services/registrationService';
@@ -36,6 +37,7 @@ export const EventDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [registeredPass, setRegisteredPass] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -59,12 +61,15 @@ export const EventDetailsPage = () => {
         if (isAuthenticated) {
           try {
             const myRegs = await registrationService.getMyRegistrations();
-            const found = (myRegs.data || []).some(
+            const found = (myRegs.data || []).find(
               (r) =>
-                (r.event === (eventData._id || eventData.id) || r.eventSlug === eventData.slug) &&
+                (r.event === (eventData._id || eventData.id) || r.eventSlug === eventData.slug || r.event === eventData.slug) &&
                 r.status !== 'cancelled'
             );
-            setIsRegistered(found);
+            if (found) {
+              setIsRegistered(true);
+              setRegisteredPass(found);
+            }
           } catch (e) {
             // ignore non-blocking registration check
           }
@@ -87,6 +92,9 @@ export const EventDetailsPage = () => {
 
   const handleRegisterSuccess = (newReg) => {
     setIsRegistered(true);
+    if (newReg) {
+      setRegisteredPass(newReg);
+    }
     if (event) {
       setEvent((prev) => ({
         ...prev,
@@ -778,11 +786,11 @@ export const EventDetailsPage = () => {
                         fontSize: 'var(--text-xs)',
                       }}
                     >
-                      ✓ You are confirmed for this event!
+                      ✓ You are registered for this event!
                     </div>
-                    <Link to="/app/passes">
-                      <Button variant="secondary" size="md" fullWidth>
-                        View Digital Pass in Dashboard
+                    <Link to={`/app/passes/${registeredPass?.passId || ''}`} style={{ textDecoration: 'none' }}>
+                      <Button variant="primary" size="md" fullWidth icon={Ticket}>
+                        View Digital Pass
                       </Button>
                     </Link>
                   </div>
