@@ -1,6 +1,8 @@
 const Proposal = require('../models/Proposal');
+const Event = require('../models/Event');
 const { getDBStatus } = require('../config/db');
 const { inMemoryProposals } = require('../data/proposalStore');
+const { events: fallbackEvents } = require('../data/seedData');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 // Generate unique reference code
@@ -311,18 +313,86 @@ const getMyProposals = async (req, res, next) => {
 };
 
 /**
+ * Helper to construct a public-facing Event document from an approved Proposal
+ * Strips internal financial budgets, sponsorship requests, and faculty notes
+ */
+const buildEventFromProposal = (proposal, reqUser) => {
+  const baseSlug = (proposal.title || 'campus-event')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  const uniqueSuffix = Date.now().toString(36);
+  const slug = `${baseSlug}-${uniqueSuffix}`;
+
+  return {
+    title: proposal.title.trim(),
+    slug,
+    tagline: proposal.tagline ? proposal.tagline.trim() : '',
+    description: proposal.description.trim(),
+    category: proposal.category.trim(),
+    image: proposal.posterUrl && proposal.posterUrl.trim()
+      ? proposal.posterUrl.trim()
+      : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80',
+    date: proposal.startDate.trim(),
+    endDate: proposal.endDate ? proposal.endDate.trim() : '',
+    time: proposal.startTime.trim(),
+    venue: proposal.venue.trim(),
+    capacity: Number(proposal.maxCapacity) || Number(proposal.expectedParticipants) || 100,
+    registeredCount: 0,
+    isFeatured: false,
+    isUpcoming: true,
+    registrationStatus: 'Open',
+    registrationFee: Number(proposal.registrationFee) || 0,
+    currency: 'INR',
+    registrationDeadline: proposal.registrationDeadline || proposal.startDate,
+    teamPolicy: {
+      allowed: Boolean(proposal.teamAllowed || (proposal.teamPolicy && proposal.teamPolicy.allowed)),
+      minSize: Number(proposal.minTeamSize || (proposal.teamPolicy && proposal.teamPolicy.minSize) || 1),
+      maxSize: Number(proposal.maxTeamSize || (proposal.teamPolicy && proposal.teamPolicy.maxSize) || 1),
+      note: proposal.teamPolicyNote || (proposal.teamPolicy && proposal.teamPolicy.note) || '',
+    },
+    rules: Array.isArray(proposal.rules)
+      ? proposal.rules
+      : (proposal.rules ? [proposal.rules] : ['Standard campus event code of conduct applies.']),
+    prizes: proposal.prizes || {},
+    organizingCommittee: {
+      societyName: proposal.clubOrSociety || 'Campus Society',
+      organizerName: proposal.leadOrganizer?.name || 'Lead Organizer',
+      contactPerson: proposal.leadOrganizer?.name || 'Lead Organizer',
+      contactPhone: proposal.leadOrganizer?.phone || '+91 98765 00000',
+      contactEmail: proposal.leadOrganizer?.email || (reqUser && reqUser.email) || 'events@campus.edu',
+      officeLocation: proposal.building || 'Student Activity Center',
+    },
+    schedule: Array.isArray(proposal.agendaItems) && proposal.agendaItems.length > 0
+      ? proposal.agendaItems.map((item) => ({
+          time: item.time || '',
+          activity: item.activity || item.title || '',
+          speakerOrVenue: item.speaker || item.speakerOrVenue || item.venue || '',
+        }))
+      : [
+          { time: proposal.startTime || '09:00 AM', activity: 'Event Inauguration & Keynote', speakerOrVenue: proposal.venue || 'Main Hall' },
+          { time: proposal.endTime || '05:00 PM', activity: 'Valedictory & Closing Remarks', speakerOrVenue: proposal.venue || 'Main Hall' },
+        ],
+  };
+};
+
+/**
  * @route   GET /api/proposals/:id
- * @desc    Get proposal details by id or reference code
- * @access  Protected
+ * @desc    Get proposal details by id or reference code (Protected)
+ * @access  Protected (Proposal Owner or Administrator only)
  */
 const getProposalById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user?.id || req.user?._id;
     const userRole = req.user?.role;
     const userEmail = req.user?.email;
-    const dbStatus = getDBStatus();
 
+    if (!userId) {
+      return sendError(res, 'Not authorized, authentication required', 401);
+    }
+
+    const dbStatus = getDBStatus();
     let proposal = null;
     if (dbStatus.connected) {
       if (id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -341,11 +411,16 @@ const getProposalById = async (req, res, next) => {
       return sendError(res, 'Event proposal not found', 404);
     }
 
-    // Authorization check: Submitting student, lookup by proposal reference, or admin/reviewer
-    const isOwner = !userId || proposal.user === userId || proposal.user?.toString() === userId || (userEmail && proposal.leadOrganizer?.email === userEmail);
-    const isAdmin = userRole === 'admin' || userRole === 'reviewer';
+    // Strict Authorization check: Must be the submitting student OR an administrator
+    const proposalUserId = proposal.user?._id ? proposal.user._id.toString() : proposal.user?.toString();
+    const isOwner = Boolean(
+      (userId && proposalUserId === userId.toString()) ||
+      (userEmail && proposal.leadOrganizer?.email && proposal.leadOrganizer.email.toLowerCase() === userEmail.toLowerCase())
+    );
+    const isAdmin = userRole === 'admin';
+
     if (!isOwner && !isAdmin) {
-      return sendError(res, 'Access denied: You are not authorized to view this proposal', 403);
+      return sendError(res, 'Forbidden: You are not authorized to view this proposal', 403);
     }
 
     return sendSuccess(res, 'Proposal details retrieved successfully', proposal);
@@ -356,13 +431,18 @@ const getProposalById = async (req, res, next) => {
 
 /**
  * @route   PATCH /api/proposals/:id/status
- * @desc    Update proposal review status (Authorized reviewer workflow)
- * @access  Protected (Admin / Reviewer)
+ * @desc    Update proposal review status and publish event upon approval
+ * @access  Protected (Admin only)
  */
 const updateProposalStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status, reviewFeedback } = req.body;
+
+    // Strict Role Enforcement: Only administrators may approve or reject proposals
+    if (!req.user || req.user.role !== 'admin') {
+      return sendError(res, 'Forbidden: Only campus administrators may update proposal status', 403);
+    }
 
     const allowed = ['pending_review', 'under_review', 'approved', 'rejected', 'revision_requested'];
     if (!allowed.includes(status)) {
@@ -370,46 +450,141 @@ const updateProposalStatus = async (req, res, next) => {
     }
 
     const dbStatus = getDBStatus();
+
+    // 1. Fetch existing proposal
+    let existingProposal = null;
+    if (dbStatus.connected) {
+      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        existingProposal = await Proposal.findById(id);
+      }
+      if (!existingProposal) {
+        existingProposal = await Proposal.findOne({ proposalReference: id });
+      }
+    } else {
+      existingProposal = inMemoryProposals.find(
+        (p) => p._id === id || p.proposalReference === id
+      );
+    }
+
+    if (!existingProposal) {
+      return sendError(res, 'Event proposal not found', 404);
+    }
+
+    // 2. Validate status transition
+    if (existingProposal.status === 'approved' && status === 'approved') {
+      // Idempotent: Already approved
+      let linkedEvent = null;
+      if (existingProposal.eventId) {
+        if (dbStatus.connected) {
+          linkedEvent = await Event.findById(existingProposal.eventId).lean();
+        } else {
+          linkedEvent = fallbackEvents.find((e) => e.id === existingProposal.eventId || e._id === existingProposal.eventId);
+        }
+      }
+      return sendSuccess(res, 'Proposal is already approved and event is published', {
+        proposal: existingProposal,
+        event: linkedEvent,
+      });
+    }
+
+    // 3. Prepare status update payload
     const updatePayload = {
       status,
-      reviewFeedback: reviewFeedback || null,
+      reviewFeedback: reviewFeedback || (status === 'rejected' ? 'Proposal rejected by campus administration' : null),
       reviewedAt: new Date(),
       reviewedBy: req.user.fullName || req.user.email,
     };
 
-    if (dbStatus.connected) {
-      let updated = null;
-      if (id.match(/^[0-9a-fA-F]{24}$/)) {
-        updated = await Proposal.findByIdAndUpdate(id, updatePayload, { new: true });
-      }
-      if (!updated) {
-        updated = await Proposal.findOneAndUpdate({ proposalReference: id }, updatePayload, { new: true });
-      }
+    let publishedEvent = null;
 
-      if (!updated) {
-        return sendError(res, 'Event proposal not found', 404);
-      }
+    // 4. If status is "approved", create and publish Event document
+    if (status === 'approved') {
+      const eventData = buildEventFromProposal(existingProposal, req.user);
 
-      return sendSuccess(res, `Proposal status updated to "${status}"`, updated);
+      if (dbStatus.connected) {
+        // Idempotent event check in DB
+        if (!existingProposal.eventId) {
+          publishedEvent = await Event.create(eventData);
+          updatePayload.eventId = publishedEvent._id.toString();
+        } else {
+          publishedEvent = await Event.findById(existingProposal.eventId);
+          if (!publishedEvent) {
+            publishedEvent = await Event.create(eventData);
+            updatePayload.eventId = publishedEvent._id.toString();
+          }
+        }
+      } else {
+        // Fallback development mode
+        if (!existingProposal.eventId) {
+          eventData.id = 'evt_' + Date.now().toString(36);
+          eventData._id = eventData.id;
+          fallbackEvents.unshift(eventData);
+          publishedEvent = eventData;
+          updatePayload.eventId = eventData.id;
+        } else {
+          publishedEvent = fallbackEvents.find(
+            (e) => e.id === existingProposal.eventId || e._id === existingProposal.eventId
+          );
+          if (!publishedEvent) {
+            eventData.id = 'evt_' + Date.now().toString(36);
+            eventData._id = eventData.id;
+            fallbackEvents.unshift(eventData);
+            publishedEvent = eventData;
+            updatePayload.eventId = eventData.id;
+          }
+        }
+      }
     }
 
+    // 5. Persist updated proposal
+    let updatedProposal = null;
+
+    if (dbStatus.connected) {
+      if (existingProposal._id) {
+        updatedProposal = await Proposal.findByIdAndUpdate(existingProposal._id, updatePayload, { new: true });
+      } else {
+        updatedProposal = await Proposal.findOneAndUpdate(
+          { proposalReference: existingProposal.proposalReference },
+          updatePayload,
+          { new: true }
+        );
+      }
+
+      return sendSuccess(
+        res,
+        status === 'approved'
+          ? `Proposal approved successfully! Event published to campus stage.`
+          : `Proposal status updated to "${status}"`,
+        {
+          proposal: updatedProposal,
+          event: publishedEvent,
+        }
+      );
+    }
+
+    // Fallback store update
     const idx = inMemoryProposals.findIndex(
       (p) => p._id === id || p.proposalReference === id
     );
-    if (idx === -1) {
-      return sendError(res, 'Event proposal not found', 404);
+    if (idx !== -1) {
+      inMemoryProposals[idx] = {
+        ...inMemoryProposals[idx],
+        ...updatePayload,
+        updatedAt: new Date().toISOString(),
+      };
+      updatedProposal = inMemoryProposals[idx];
     }
-
-    inMemoryProposals[idx] = {
-      ...inMemoryProposals[idx],
-      ...updatePayload,
-      updatedAt: new Date().toISOString(),
-    };
 
     return res.status(200).json({
       success: true,
-      message: `Proposal status updated to "${status}" (Development Fallback)`,
-      data: inMemoryProposals[idx],
+      message:
+        status === 'approved'
+          ? `Proposal approved successfully! Event published (Development Fallback).`
+          : `Proposal status updated to "${status}" (Development Fallback)`,
+      data: {
+        proposal: updatedProposal,
+        event: publishedEvent,
+      },
     });
   } catch (error) {
     next(error);

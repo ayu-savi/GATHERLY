@@ -31,6 +31,11 @@ const proposalSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    eventId: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+      index: true,
+    },
 
     // STEP 1 — Basic Event Information
     title: {

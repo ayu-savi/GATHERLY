@@ -6,14 +6,14 @@ const {
   getProposalById,
   updateProposalStatus,
 } = require('../controllers/proposalController');
-const { protect, optionalProtect } = require('../middleware/authMiddleware');
+const { protect, optionalProtect, authorizeRoles } = require('../middleware/authMiddleware');
 
 // Student Organizer routes
 router.post('/', optionalProtect, createProposal);
 router.get('/my', protect, getMyProposals);
-router.get('/:id', optionalProtect, getProposalById);
+router.get('/:id', protect, getProposalById);
 
-// Reviewer/Admin workflow route
-router.patch('/:id/status', protect, updateProposalStatus);
+// Reviewer/Admin workflow route (restricted strictly to administrators)
+router.patch('/:id/status', protect, authorizeRoles('admin'), updateProposalStatus);
 
 module.exports = router;
