@@ -23,6 +23,7 @@ import { eventService } from '../../services/eventService';
 import { registrationService } from '../../services/registrationService';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/common/Button';
+import { getFullImageUrl } from '../../utils/imageUrl';
 import { Badge } from '../../components/common/Badge';
 import { RegistrationModal } from '../../components/events/RegistrationModal';
 import { EventCard } from '../../components/events/EventCard';
@@ -225,10 +226,10 @@ export const EventDetailsPage = () => {
           {/* Banner Image with subtle gradient overlay */}
           <div style={{ position: 'relative', height: '340px', width: '100%', overflow: 'hidden' }}>
             <img
-              src={event.image}
+              src={getFullImageUrl(event.image)}
               alt={event.title}
               onError={(e) => {
-                e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
+                e.currentTarget.src = getFullImageUrl('/uploads/events/rhythm_lights_cultural.jpg');
               }}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin, ArrowRight, Sparkles } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
+import { getFullImageUrl } from '../../utils/imageUrl';
 
 export const EventCard = ({
   event,
@@ -96,10 +97,10 @@ export const EventCard = ({
         <div style={{ position: 'relative', minHeight: '320px', overflow: 'hidden' }}>
           <img
             className="featured-hero-img"
-            src={image}
+            src={getFullImageUrl(image)}
             alt={title}
             onError={(e) => {
-              e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
+              e.currentTarget.src = getFullImageUrl('/uploads/events/rhythm_lights_cultural.jpg');
             }}
             style={{
               width: '100%',
@@ -284,11 +285,11 @@ export const EventCard = ({
       <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', overflow: 'hidden' }}>
         <img
           className="event-card-img"
-          src={image}
+          src={getFullImageUrl(image)}
           alt={title}
           loading="lazy"
           onError={(e) => {
-            e.currentTarget.src = '/uploads/events/rhythm_lights_cultural.jpg';
+            e.currentTarget.src = getFullImageUrl('/uploads/events/rhythm_lights_cultural.jpg');
           }}
           style={{
             position: 'absolute',

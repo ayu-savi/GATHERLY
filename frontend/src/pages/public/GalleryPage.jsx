@@ -18,6 +18,7 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { galleryService } from '../../services/galleryService';
 import { useInView } from '../../hooks/useInView';
+import { getFullImageUrl } from '../../utils/imageUrl';
 
 export const GalleryPage = () => {
   const [collection, setCollection] = useState(null);
@@ -249,7 +250,7 @@ export const GalleryPage = () => {
                   className="card-lift featured-hero-interactive"
                 >
                   <img
-                    src={featuredPhoto.photoPath}
+                    src={getFullImageUrl(featuredPhoto.photoPath)}
                     alt={featuredPhoto.eventName}
                     className="featured-hero-img"
                     style={{
@@ -437,7 +438,7 @@ export const GalleryPage = () => {
                       }}
                     >
                       <img
-                        src={photo.photoPath}
+                        src={getFullImageUrl(photo.photoPath)}
                         alt={photo.eventName}
                         loading="lazy"
                         className="gallery-card-img"
@@ -655,7 +656,7 @@ export const GalleryPage = () => {
             {/* Main Lightbox Image */}
             <img
               key={activePhoto._id || activePhotoIndex}
-              src={activePhoto.photoPath}
+              src={getFullImageUrl(activePhoto.photoPath)}
               alt={activePhoto.eventName}
               className="animate-lightbox-zoom"
               style={{

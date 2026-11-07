@@ -1,9 +1,11 @@
 import axios from 'axios';
 
+const RENDER_PROD_API_URL = 'https://gatherly-pahb.onrender.com/api';
+
 let rawBaseUrl =
   import.meta.env.VITE_API_URL ||
   import.meta.env.API_URL ||
-  '/api';
+  (import.meta.env.PROD ? RENDER_PROD_API_URL : '/api');
 if (rawBaseUrl.startsWith('http') && !rawBaseUrl.endsWith('/api') && !rawBaseUrl.endsWith('/api/')) {
   rawBaseUrl = rawBaseUrl.replace(/\/+$/, '') + '/api';
 }

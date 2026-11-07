@@ -1,15 +1,15 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://gatherly-pahb.onrender.com/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://gatherly-pahb.onrender.com/api/:path*"
     },
     {
-      "source": "/uploads/(.*)",
-      "destination": "https://gatherly-pahb.onrender.com/uploads/$1"
+      "source": "/uploads/:path*",
+      "destination": "https://gatherly-pahb.onrender.com/uploads/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api|uploads).*)",
       "destination": "/index.html"
     }
   ]
