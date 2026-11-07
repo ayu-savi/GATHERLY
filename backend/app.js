@@ -26,9 +26,25 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. mobile apps, curl, postman, server-to-server)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      if (
+        allowedOrigins.indexOf(origin) !== -1 ||
+        allowedOrigins.includes('*') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
         return callback(null, true);
       }
+      try {
+        const hostname = new URL(origin).hostname;
+        if (
+          hostname.endsWith('.vercel.app') ||
+          hostname.endsWith('.netlify.app') ||
+          hostname.endsWith('.onrender.com') ||
+          hostname === 'localhost' ||
+          hostname === '127.0.0.1'
+        ) {
+          return callback(null, true);
+        }
+      } catch (e) {}
       return callback(new Error('CORS policy: Not allowed by CORS'));
     },
     credentials: true,
